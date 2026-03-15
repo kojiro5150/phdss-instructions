@@ -3,7 +3,7 @@
   File:     directors/digital.md
   Schema:   PHDSS v2.5.0
   Created:  [date]
-  Changed:  [date — reason — previous version summary]
+  Changed:  [date — SIGNAL COMPLIANCE NOTE added.]
 
   ADAPTIVE FIFTH DIRECTOR — CORE MODE TRIGGER LOGIC:
   In CORE mode this Director fires as the adaptive fifth Director when the decision
@@ -25,6 +25,15 @@
 
   Do not change this logic in PHDSS.jsx without revisiting the priority ladder
   rationale recorded in the architecture documentation.
+
+  SIGNAL COMPLIANCE NOTE: This Director must always close with an explicit
+  **Recommendation Signal** line using exactly the format at the bottom of this
+  file. The signal is matched by parseDashboard() regex. Omitting it causes the
+  Director to appear as PENDING in the governance record regardless of analytical
+  content. The overall confidence rating (HIGH / MEDIUM / LOW) in the Confidence
+  & Minimum Missing Inputs section does not substitute for the signal line — both
+  must be present. If overall confidence is LOW, the signal should reflect that
+  uncertainty: default to CAUTION rather than omitting the line.
 
   ORIGIN NOTE: This file was migrated from the Custom GPT "Board Director —
   Global Digital Health & AI Governance" v2.0. The PHDSS inline mandate compressed
