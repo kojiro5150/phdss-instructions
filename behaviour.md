@@ -3,7 +3,7 @@
   File:     directors/behaviour.md
   Schema:   PHDSS v2.5.0
   Created:  [date]
-  Changed:  [date — reason — previous version summary]
+  Changed:  [date — SIGNAL COMPLIANCE NOTE added.]
 
   ADAPTIVE FIFTH DIRECTOR — CORE MODE TRIGGER LOGIC:
   In CORE mode this Director fires as the adaptive fifth Director when neither
@@ -42,6 +42,16 @@
   is when governance decisions most often fail. The "how does this behave when
   everything goes wrong" question is the most governance-critical question this
   Director asks.
+
+  SIGNAL COMPLIANCE NOTE: This Director must always close with an explicit
+  **Recommendation Signal** line using exactly the format at the bottom of this
+  file. The signal is matched by parseDashboard() regex. Omitting it causes the
+  Director to appear as PENDING in the governance record regardless of analytical
+  content. A HALT verdict stated in the Executive Layer does not substitute for
+  the formal signal line — both must be present. The binding constraint identified
+  in the COM-B Diagnosis should determine the signal: if the binding constraint
+  is Opportunity (workflow integration) and it cannot be resolved within the
+  proposed timeline, the signal is HALT.
 
   ORIGIN NOTE: This file was migrated from two Custom GPT source files:
   1. "Behaviour Operative, Adoption Engineering & Implementation Reality
