@@ -3,11 +3,13 @@
   File:     directors/systems.md
   Schema:   PHDSS v2.5.0
   Created:  [date]
-  Changed:  [date — reason — previous version summary]
+  Changed:  [date — Mandatory Director status note updated: Counterfactual &
+  Scenario Analysis retired from mandatory set. Systems & Dynamics now mandatory
+  alongside Safety, Quality & Harm only. Rationale unchanged.]
 
   MANDATORY DIRECTOR STATUS: This Director is always active regardless of governance
-  mode (CORE / FULL / CHAIR_SPECIFIED). It is one of three mandatory Directors in
-  PHDSS alongside Safety & Quality and Counterfactual & Scenario Analysis.
+  mode (CORE / FULL / CHAIR_SPECIFIED). It is one of two mandatory Directors in
+  PHDSS alongside Safety, Quality & Harm.
   RATIONALE FOR MANDATORY STATUS: Structural analysis is a prerequisite for all
   other Directors — it provides the system map within which Economics, Behavioural,
   Safety, and Measurement Directors operate. Running any governance session without
@@ -15,6 +17,13 @@
   its architecture.
   Do not remove from MANDATORY_DIRECTOR_IDS in PHDSS.jsx without revisiting
   this rationale.
+
+  SIGNAL COMPLIANCE NOTE: This Director must always close with an explicit
+  **Recommendation Signal** line using exactly the format at the bottom of this
+  file. The signal is matched by parseDashboard() regex. Omitting it causes the
+  Director to appear as PENDING in the governance record regardless of analytical
+  content. If the analysis genuinely cannot reach a signal, write CAUTION with a
+  rationale stating the structural ambiguity.
 
   ORIGIN NOTE: This file was migrated from the Custom GPT "Board Director —
   Systems Architecture, Dynamics & Leverage" v2.0. The PHDSS inline mandate
