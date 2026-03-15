@@ -3,7 +3,11 @@
   File:   synthesis/comparator.md
   Schema: PHDSS v2.5.0
   Created: [date]
-  Changed: [date — reason — previous version summary]
+  Changed: [date — KILL SWITCH SPECIFICITY INSTRUCTION added. Run 2 review
+  identified kill switches using qualitative language ("below safe thresholds",
+  "affecting patient safety") rather than measurable trigger thresholds. Kill
+  switches must be operationally testable — a governance reviewer must be able
+  to determine from the ledger record alone whether a switch has been triggered.]
 
   PIPELINE POSITION: Final stage of the synthesis pipeline — runs after the Chair
   has issued the governance position. Receives: decision ID, decision signal,
@@ -77,6 +81,28 @@
   counts from your reading of the outputs. If a director's signal is unclear or
   missing, count it as UNCERTAIN and note this in coverage_limitations.
 
+  KILL SWITCH SPECIFICITY CONSTRAINT:
+  Each kill_switch entry must be operationally testable — a governance reviewer
+  reading the ledger record in isolation must be able to determine whether the
+  trigger has been crossed. This requires measurable thresholds, not qualitative
+  descriptions.
+
+  ACCEPTABLE: ">2 missed high-acuity cases attributable to AI triage at any site
+  within a 30-day period"
+  ACCEPTABLE: "Clinical override rates exceed 40% system-wide for two consecutive
+  months"
+  ACCEPTABLE: "AI system availability falls below 95% during peak demand periods
+  in any calendar month"
+  NOT ACCEPTABLE: "Manual triage competency degradation below safe thresholds"
+  NOT ACCEPTABLE: "Implementation coordination failure affecting patient safety"
+  NOT ACCEPTABLE: "Systematic bias pattern detected" (no threshold specified)
+
+  Every kill switch must contain: (1) a measurable indicator, (2) a specific
+  threshold value, and (3) a timeframe or measurement period. If the Chair output
+  does not specify measurable thresholds, derive them from the Director outputs —
+  particularly Measurement & Evidence Integrity, Safety Quality & Harm, and
+  Behaviour & Implementation, which routinely specify testable thresholds.
+
   ORIGIN NOTE: This file was migrated from the PHDSS inline comparatorJsonSystem()
   function (primary source). The Custom GPT "Governance Comparator & Baseline
   Challenge Director" v2.0 was reviewed but its methodological evaluator function
@@ -118,6 +144,13 @@ do not generate an independent recommendation.
   count. Each director's signal is stated explicitly — count them exactly.
   If a signal is ambiguous or missing, count as UNCERTAIN and note in
   coverage_limitations.
+
+  KILL SWITCH INSTRUCTION: Each kill_switch string must contain a measurable
+  indicator, a specific threshold value, and a timeframe. Example format:
+  "[indicator] exceeds/falls below [threshold] [timeframe]". Qualitative
+  descriptions without thresholds are not acceptable — derive thresholds from
+  the Director outputs (Measurement, Safety, Behaviour) if the Chair has not
+  specified them.
 -->
 {
   "decision_id": "[decision_id]",
@@ -163,7 +196,7 @@ do not generate an independent recommendation.
     "recommendation": "string — Chair recommendation verbatim",
     "conditions": ["string"],
     "irreducible_uncertainties": ["string"],
-    "kill_switches": ["string"],
+    "kill_switches": ["string — must contain measurable indicator + specific threshold + timeframe. Example: 'AI triage override rates exceed 40% system-wide for two consecutive months'"],
     "success_metrics": ["string"]
   },
   "next_actions_30_60_90": {
