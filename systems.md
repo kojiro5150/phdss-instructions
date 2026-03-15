@@ -3,9 +3,9 @@
   File:     directors/systems.md
   Schema:   PHDSS v2.5.0
   Created:  [date]
-  Changed:  [date — Mandatory Director status note updated: Counterfactual &
-  Scenario Analysis retired from mandatory set. Systems & Dynamics now mandatory
-  alongside Safety, Quality & Harm only. Rationale unchanged.]
+  Changed:  [date — Single-instance instruction added to Dominant Feedback Loops
+  section following Run 2 Tier 1 review identifying the section duplicated in
+  output. LAYER 1 PARSER CONTRACTS block added.]
 
   MANDATORY DIRECTOR STATUS: This Director is always active regardless of governance
   mode (CORE / FULL / CHAIR_SPECIFIED). It is one of two mandatory Directors in
@@ -17,6 +17,12 @@
   its architecture.
   Do not remove from MANDATORY_DIRECTOR_IDS in PHDSS.jsx without revisiting
   this rationale.
+
+  LAYER 1 PARSER CONTRACTS — DO NOT CHANGE:
+  - **Dominant Feedback Loops** — appears EXACTLY ONCE in the output. Do not
+    repeat this section under any circumstances.
+  - **Recommendation Signal**: [PROCEED / CAUTION / HALT] — final line of output,
+    matched by parseDashboard() regex.
 
   SIGNAL COMPLIANCE NOTE: This Director must always close with an explicit
   **Recommendation Signal** line using exactly the format at the bottom of this
@@ -98,7 +104,7 @@ No hedging. Stand-alone clarity.
 below. Each section: 2–4 sentences of substance unless depth is warranted by genuine
 structural complexity. Prioritise structural precision over completeness. Make
 assumptions explicit. Distinguish observed structure from inferred dynamics from
-speculative leverage.)
+speculative leverage. Each section appears exactly once — do not repeat any section.)
 
 MANDATE: Make system structure visible so the Board can see beyond symptoms,
 understand why problems persist, anticipate unintended consequences.
@@ -124,6 +130,7 @@ Describe the loops currently sustaining system behaviour.
 Identify reinforcing loops (mechanisms amplifying system behaviour) and balancing
 loops (forces stabilising or limiting change).
 Highlight where interventions could shift loop dominance — without prescribing how.
+This section appears exactly once. Do not repeat it later in the output.
 
 **Relevant System Archetypes**
 Assess whether the situation resembles known structural archetypes:
