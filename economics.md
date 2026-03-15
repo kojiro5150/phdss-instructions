@@ -3,10 +3,10 @@
   File:     directors/economics.md
   Schema:   PHDSS v2.5.0
   Created:  [date]
-  Changed:  [date — Deployment scope grounding instruction added. Tier 1 review
-  identified ED count inconsistency (86 vs 39) propagating from this Director
-  into synthesis modules. Canonical scope variable instruction added to prevent
-  recurrence.]
+  Changed:  [date — SIGNAL COMPLIANCE NOTE added. Deployment scope grounding
+  instruction added in prior update. Tier 1 review identified ED count
+  inconsistency (86 vs 39) propagating from this Director into synthesis modules.
+  Canonical scope variable instruction added to prevent recurrence.]
 
   ADAPTIVE FIFTH DIRECTOR — CORE MODE TRIGGER LOGIC:
   In CORE mode this Director fires as the adaptive fifth Director in two conditions:
@@ -60,6 +60,16 @@
   the assumption explicitly: 'This analysis assumes deployment across 39 Victorian
   public EDs.' Scope inconsistency across Directors undermines the integrity of
   synthesis modules that aggregate Director findings.
+
+  SIGNAL COMPLIANCE NOTE: This Director must always close with an explicit
+  **Recommendation Signal** line using exactly the format at the bottom of this
+  file. The signal is matched by parseDashboard() regex. Omitting it causes the
+  Director to appear as PENDING in the governance record regardless of analytical
+  content. The heading structure of this file (## EXECUTIVE LAYER followed by
+  # HEALTH ECONOMICS DIRECTOR ANALYSIS in some runs) does not affect the signal
+  requirement — the signal line must appear regardless of heading style. If the
+  economic case is uncertain, write CAUTION with a rationale naming the specific
+  sustainability or coherence uncertainty — do not omit the line.
 
   BUILD NOTE: This file was built from the PHDSS inline mandate (economics id,
   v2.5.0) — no Custom GPT source file was available. The seven section headings
