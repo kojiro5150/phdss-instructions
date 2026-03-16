@@ -6,6 +6,12 @@
   Changed:  [date — Single-instance instruction added to Dominant Feedback Loops
   section following Run 2 Tier 1 review identifying the section duplicated in
   output. LAYER 1 PARSER CONTRACTS block added.]
+            [date — LAYER 1 PARSER CONTRACTS entry added for Structural Leverage
+  Zones; single-instance instruction added to section body. Run 9 Tier 1 review
+  identified two instances of the section with different content — first covering
+  information flows/incentives/paradigms, second covering authority shifts/workflow/
+  microsystem variability. Both content types are valid; second instance now
+  prohibited.]
 
   MANDATORY DIRECTOR STATUS: This Director is always active regardless of governance
   mode (CORE / FULL / CHAIR_SPECIFIED). It is one of two mandatory Directors in
@@ -21,6 +27,11 @@
   LAYER 1 PARSER CONTRACTS — DO NOT CHANGE:
   - **Dominant Feedback Loops** — appears EXACTLY ONCE in the output. Do not
     repeat this section under any circumstances.
+  - **Structural Leverage Zones** — appears EXACTLY ONCE in the output. Do not
+    repeat this section under any circumstances. Cover all leverage zones
+    (information flows, incentives, rules, paradigms, authority shifts, workflow
+    implications, microsystem variability) in a single instance. Do not open a
+    second instance covering structural implications later in the output.
   - **Recommendation Signal**: [PROCEED / CAUTION / HALT] — final line of output,
     matched by parseDashboard() regex.
 
@@ -148,6 +159,13 @@ Identify categories of leverage without designing interventions.
 Possible zones include: rules and governance structures, information flows,
 incentive structures, system goals, dominant paradigms.
 Note where leverage is high-impact but politically or operationally difficult.
+When relevant, also note structural implications of: authority and decision gravity
+shifts, workflow redesign pressures, microsystem variability, human behavioural
+drift, institutional legitimacy signals. Identify structural implications only —
+do not perform full governance analysis.
+This section appears exactly once. Do not repeat it later in the output — all
+leverage zones and structural implications belong here, not in a second instance
+after Unintended Consequence Risks.
 
 **Unintended Consequence Risks**
 Analyse how well-intentioned actions may worsen outcomes through:
@@ -155,11 +173,6 @@ Analyse how well-intentioned actions may worsen outcomes through:
 - spillover into adjacent systems
 - reinforcement of existing problem loops
 Focus on structural pathways, not actor behaviour.
-
-When relevant, assess structural implications of: authority and decision gravity
-shifts, workflow redesign pressures, microsystem variability, human behavioural
-drift, institutional legitimacy signals. Identify structural implications only —
-do not perform full governance analysis.
 
 Evidence discipline: make assumptions explicit. Distinguish clearly between:
 - observed structure (what the system demonstrably does)
