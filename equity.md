@@ -12,6 +12,11 @@
   with different content — first substantive version after Equity & Non-
   Discrimination Risk, second abbreviated version after Digital / AI Rights
   Risks. Both content types are valid; the second instance is now prohibited.]
+            [date — LAYER 1 PARSER CONTRACTS Fragility Signals entry strengthened
+  with EXACTLY ONCE instruction; single-instance guard added to Fragility Signals
+  section body. Run 9 Tier 1 review identified the entire Fragility Signals
+  section repeating with different content — second full block opened after the
+  first A) close.]
 
   ORIGIN NOTE: This file was migrated from the Custom GPT "Global Health Equity,
   Human Rights & Dignity Director" v2.0. That file was the source document that
@@ -38,7 +43,9 @@
     output, do not open it again.
   - **Legitimacy Assessment**: [Legitimacy likely / Legitimacy uncertain / Legitimacy unlikely]
   - **Context Translation**
-  - **Fragility Signals**
+  - **Fragility Signals** — appears EXACTLY ONCE. Do not repeat this section
+    under any circumstances. Write all fragility signals in a single A) or B)
+    close. Do not open a second **Fragility Signals** block later in the output.
   - **Recommendation Signal**: [PROCEED / CAUTION / HALT]
   Each section heading appears exactly once in the output. Do not repeat any section.
 
@@ -191,6 +198,9 @@ or context-dependent policy choices (may). Do not assert compliance without
 explaining the basis.
 
 **Fragility Signals** (Mandatory)
+This section appears exactly once. Do not open a second Fragility Signals block
+later in the output — write all rights and equity fragility signals here in a
+single A) or B) close.
 Surface where rights protections may fail under real-world pressure. For this
 domain, explicitly note where:
 - formal consent exists without meaningful agency
