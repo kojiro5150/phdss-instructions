@@ -17,6 +17,11 @@
   Translation. Run 12 Tier 1 review confirmed the section duplicated again despite
   existing prohibition — section body lacked the single-instance instruction,
   relying only on LAYER 1 entry which proved insufficient.]
+            [date — LAYER 1 entry and section body for Dominant Feedback Loops
+  strengthened with explicit prohibition on second instance after Relevant System
+  Archetypes. Run 13 Tier 1 review identified abbreviated second block appearing
+  after Archetypes — section body instruction was bare "exactly once" without
+  naming the specific prohibited location.]
 
   MANDATORY DIRECTOR STATUS: This Director is always active regardless of governance
   mode (CORE / FULL / CHAIR_SPECIFIED). It is one of two mandatory Directors in
@@ -31,7 +36,8 @@
 
   LAYER 1 PARSER CONTRACTS — DO NOT CHANGE:
   - **Dominant Feedback Loops** — appears EXACTLY ONCE in the output. Do not
-    repeat this section under any circumstances.
+    repeat this section under any circumstances. Do not open a second abbreviated
+    instance after Relevant System Archetypes or any other section.
   - **Structural Leverage Zones** — appears EXACTLY ONCE in the output. Do not
     repeat this section under any circumstances. Cover all leverage zones
     (information flows, incentives, rules, paradigms, authority shifts, workflow
@@ -147,7 +153,9 @@ Describe the loops currently sustaining system behaviour.
 Identify reinforcing loops (mechanisms amplifying system behaviour) and balancing
 loops (forces stabilising or limiting change).
 Highlight where interventions could shift loop dominance — without prescribing how.
-This section appears exactly once. Do not repeat it later in the output.
+This section appears exactly once. Do not repeat it later in the output — all
+feedback loop analysis belongs here, not in a second abbreviated instance after
+Relevant System Archetypes.
 
 **Relevant System Archetypes**
 Assess whether the situation resembles known structural archetypes:
