@@ -8,6 +8,12 @@
             [date — Key Trade-offs EXACTLY ONCE instruction added to LAYER 1
   PARSER CONTRACTS and section body. Run 9 Tier 3 review identified a second
   Key Trade-offs block appearing after the first set of named trade-offs.]
+            [date — LAYER 1 entry and section body further strengthened with
+  explicit prohibition on "most consequential trade-off" framing as second
+  block, and prohibition on reopening section after Decision Conditions.
+  Runs 11-12 showed the section duplicating with a single-paragraph second
+  instance despite prior fix — pattern is a brief "most consequential" block
+  appearing after the full named list.]
             [date — Decision Conditions format requirement added to LAYER 1
             PARSER CONTRACTS and section instruction. Numbered-bold format
             mandated for parser compliance — prose paragraph format was
@@ -29,6 +35,9 @@
     repeat this section. Cover all trade-offs (speed/safety, timeline/training,
     standardisation/adaptation, cross-domain fragility convergence) in a single
     instance. Do not open a second Key Trade-offs block later in the output.
+    Do not introduce "The most consequential trade-off is..." as a standalone
+    paragraph that reopens this section — all trade-off content belongs in the
+    single named instance above.
   - **Decision Conditions** — bold section heading. Each condition must be
     formatted as a numbered bold item on its own line:
       1. **Condition name** — description and responsible party.
@@ -236,8 +245,9 @@ artificial, or manufactured.
 Name the explicit governance trade-offs the recommendation must navigate.
 For each: what is gained, what is sacrificed, who bears the cost of the choice.
 This section appears exactly once. Do not repeat it later in the output — all
-trade-offs (individual named trade-offs and cross-domain convergence analysis)
-belong here, not in a second instance after the first set of trade-offs.
+trade-offs belong here, including any "most consequential trade-off" framing.
+Do not open a second Key Trade-offs block after Decision Conditions or elsewhere.
+Name all trade-offs in this single instance and close the section.
 
 <!--
   RATIONALE: Decision Conditions — Layer 1 section heading.
