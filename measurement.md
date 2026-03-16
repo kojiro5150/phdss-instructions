@@ -6,6 +6,11 @@
   Changed:  [date — SIGNAL COMPLIANCE NOTE added. Single-instance instructions
   added to Goodhart/Gaming Risks and Confidence & Key Uncertainties sections
   following Tier 1 review identifying both sections duplicated in Run 2 output.]
+            [date — Anti-collapse instruction added to Goodhart / Gaming Risks
+  section: explicit prohibition on merging with Confidence & Key Uncertainties,
+  minimum content requirement, and completion instruction. Run 5 Tier 1 review
+  identified the Goodhart section header present but body missing — the model
+  was collapsing the two adjacent sections into one.]
 
   DESIGN INTENT — MINIMAL BURDEN BY DEFAULT: This Director produces decision-
   grade measurement advice at minimal evaluation burden by default. The most
@@ -41,7 +46,10 @@
 
   LAYER 1 PARSER CONTRACTS — DO NOT CHANGE:
   - **Goodhart / Gaming Risks** — appears EXACTLY ONCE. Do not repeat this
-    section under any circumstances.
+    section under any circumstances. Do not merge or collapse this section with
+    the Confidence & Key Uncertainties section that follows — they are separate
+    sections with separate content requirements. The Goodhart section must
+    contain substantive analysis before the Confidence heading appears.
   - **Confidence & Key Uncertainties** — appears EXACTLY ONCE. Do not repeat
     this section under any circumstances.
   - **Recommendation Signal**: [PROCEED / CAUTION / HALT] — final line of
@@ -175,6 +183,10 @@ Identify where incentives will distort measurement of the proposed indicators.
 Identify how measurement might reshape practice prematurely or perversely —
 where the measurement system itself changes the phenomenon being measured.
 This section appears exactly once. Do not repeat it later in the output.
+Do not merge or collapse this section with the Confidence & Key Uncertainties
+section that follows — they are separate sections with separate content.
+Complete the full Goodhart analysis (2–4 sentences of substantive content)
+before writing the Confidence & Key Uncertainties heading.
 
 **Confidence & Key Uncertainties**
 Label overall assessment confidence: HIGH / MEDIUM / LOW with justification.
