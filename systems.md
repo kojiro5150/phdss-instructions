@@ -12,6 +12,11 @@
   information flows/incentives/paradigms, second covering authority shifts/workflow/
   microsystem variability. Both content types are valid; second instance now
   prohibited.]
+            [date — LAYER 1 entry and section body strengthened with explicit
+  prohibition on second instance after Unintended Consequence Risks or Context
+  Translation. Run 12 Tier 1 review confirmed the section duplicated again despite
+  existing prohibition — section body lacked the single-instance instruction,
+  relying only on LAYER 1 entry which proved insufficient.]
 
   MANDATORY DIRECTOR STATUS: This Director is always active regardless of governance
   mode (CORE / FULL / CHAIR_SPECIFIED). It is one of two mandatory Directors in
@@ -31,7 +36,8 @@
     repeat this section under any circumstances. Cover all leverage zones
     (information flows, incentives, rules, paradigms, authority shifts, workflow
     implications, microsystem variability) in a single instance. Do not open a
-    second instance covering structural implications later in the output.
+    second instance covering structural implications later in the output. Do not
+    repeat this section after Unintended Consequence Risks or Context Translation.
   - **Recommendation Signal**: [PROCEED / CAUTION / HALT] — final line of output,
     matched by parseDashboard() regex.
 
