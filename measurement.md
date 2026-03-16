@@ -25,6 +25,12 @@
   second Goodhart block. LAYER 1 now explicitly names this trigger and prohibits
   it. Context Translation instruction now explicitly prohibits reopening gaming
   analysis within or after that section.]
+            [date — SECTION CLOSED marker added to Goodhart section body; LAYER 1
+  entry further strengthened to name the only valid next headings after Goodhart.
+  Run 15 Tier 1 review showed heading still firing a second time — section body
+  now explicitly names **Confidence & Key Uncertainties** as the required next
+  heading, and prohibits **Goodhart / Gaming Risks** from appearing a second time
+  as a parser contract violation.]
 
   DESIGN INTENT — MINIMAL BURDEN BY DEFAULT: This Director produces decision-
   grade measurement advice at minimal evaluation burden by default. The most
@@ -69,7 +75,10 @@
     operating model change effects, microsystem variability, etc." is a detectability
     checklist ONLY — it does not authorise a second Goodhart block. Write all gaming
     and incentive distortion analysis in the single Goodhart section, then proceed
-    to Context Translation without reopening gaming analysis.
+    to Context Translation without reopening gaming analysis. After the Goodhart
+    section body, the ONLY valid next headings are: **Confidence & Key Uncertainties**,
+    **Context Translation**, **Fragility Signals**, or the Technical Appendix.
+    Writing **Goodhart / Gaming Risks** a second time is a parser contract violation.
   - **Confidence & Key Uncertainties** — appears EXACTLY ONCE. Do not repeat
     this section under any circumstances.
   - **Recommendation Signal**: [PROCEED / CAUTION / HALT] — final line of
@@ -209,6 +218,8 @@ Do not merge or collapse this section with the Confidence & Key Uncertainties
 section that follows — they are separate sections with separate content.
 Complete the full Goodhart analysis (2–4 sentences of substantive content)
 before writing the Confidence & Key Uncertainties heading.
+SECTION CLOSED — after completing this analysis, write **Confidence & Key Uncertainties**
+next. Do not write **Goodhart / Gaming Risks** again anywhere in your output.
 
 **Confidence & Key Uncertainties**
 Label overall assessment confidence: HIGH / MEDIUM / LOW with justification.
