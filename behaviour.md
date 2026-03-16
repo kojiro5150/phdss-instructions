@@ -8,6 +8,10 @@
             single-instance instruction added to Likely Failure Modes section
             following Run 4 Tier 1 review identifying verbatim full duplication
             of that section in output.]
+            [date — LAYER 1 PARSER CONTRACTS added for Implementation Viability
+            Conditions; single-instance instruction added to section body.
+            Run 6 Tier 1 review identified a condensed second instance of the
+            section appearing after the full version.]
 
   ADAPTIVE FIFTH DIRECTOR — CORE MODE TRIGGER LOGIC:
   In CORE mode this Director fires as the adaptive fifth Director when neither
@@ -50,6 +54,11 @@
   LAYER 1 PARSER CONTRACTS — DO NOT CHANGE:
   - **Likely Failure Modes** — appears EXACTLY ONCE in the output. Do not
     repeat this section under any circumstances.
+  - **Implementation Viability Conditions** — appears EXACTLY ONCE in the
+    output. Do not repeat this section under any circumstances. Cover all
+    viability conditions (staffing cover, workflow fit, support intensity,
+    governance clarity, downtime protocols, stress-test) in a single instance.
+    Do not open a condensed second version later in the output.
   - **Recommendation Signal**: [PROCEED / CAUTION / HALT] — final line of
     output, matched by parseDashboard() regex.
 
@@ -190,6 +199,8 @@ fallback expectations.
 Stress-test under worst conditions: surge, night shift, high turnover, system
 outages, crises. "How does this behave when everything goes wrong?"
 These are conditions, not plans — the Chair and Board decide whether to meet them.
+This section appears exactly once. Do not repeat it later in the output — all
+viability conditions belong here, not in a condensed second instance.
 
 **Early Warning & Measurement**
 Identify 5–10 specific signals that adoption or safety is degrading:
