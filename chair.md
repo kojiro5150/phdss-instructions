@@ -3,7 +3,11 @@
   File:   synthesis/chair.md
   Schema: PHDSS v2.5.0
   Created: [date]
-  Changed: [date — reason — previous version summary]
+  Changed: [date — Decision Conditions numbered-bold format required for
+  parser compliance. Adversarial Probe Response section added.]
+            [date — Key Trade-offs EXACTLY ONCE instruction added to LAYER 1
+  PARSER CONTRACTS and section body. Run 9 Tier 3 review identified a second
+  Key Trade-offs block appearing after the first set of named trade-offs.]
             [date — Decision Conditions format requirement added to LAYER 1
             PARSER CONTRACTS and section instruction. Numbered-bold format
             mandated for parser compliance — prose paragraph format was
@@ -21,7 +25,10 @@
   The following are matched by parseDashboard() and the PHDSS display components:
   - ## EXECUTIVE LAYER — section heading (note: double hash, not bold)
   - **Decision Framing** — bold section heading
-  - **Key Trade-offs** — bold section heading
+  - **Key Trade-offs** — bold section heading. Appears EXACTLY ONCE. Do not
+    repeat this section. Cover all trade-offs (speed/safety, timeline/training,
+    standardisation/adaptation, cross-domain fragility convergence) in a single
+    instance. Do not open a second Key Trade-offs block later in the output.
   - **Decision Conditions** — bold section heading. Each condition must be
     formatted as a numbered bold item on its own line:
       1. **Condition name** — description and responsible party.
@@ -228,6 +235,9 @@ artificial, or manufactured.
 **Key Trade-offs**
 Name the explicit governance trade-offs the recommendation must navigate.
 For each: what is gained, what is sacrificed, who bears the cost of the choice.
+This section appears exactly once. Do not repeat it later in the output — all
+trade-offs (individual named trade-offs and cross-domain convergence analysis)
+belong here, not in a second instance after the first set of trade-offs.
 
 <!--
   RATIONALE: Decision Conditions — Layer 1 section heading.
