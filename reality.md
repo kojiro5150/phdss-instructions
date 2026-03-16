@@ -4,6 +4,11 @@
   Schema: PHDSS v2.5.0
   Created: [date]
   Changed: [date — reason — previous version summary]
+            [date — LAYER 1 PARSER CONTRACTS added for Falsification Conditions;
+  single-instance instruction and merged content structure added. Run 5 Tier 2
+  review identified the section appearing twice with different content (operational
+  metrics first, infrastructure verification conditions second). Both content
+  types are now specified under a single heading with labelled sub-sections.]
 
   PIPELINE POSITION: Stage 4 of the synthesis pipeline — runs after Surface Map,
   Epistemic Audit, and META. Receives: Director Governance Briefs, Decision Surface
@@ -36,6 +41,19 @@
   governance decision that cannot be falsified is not a governance decision;
   it is an assertion. Falsification conditions make the decision testable and
   create the review triggers that responsible governance requires.
+
+  LAYER 1 PARSER CONTRACTS — DO NOT CHANGE:
+  - **Falsification Conditions** — appears EXACTLY ONCE in the output. Do not
+    repeat this heading under any circumstances. All falsification conditions —
+    both operational metric conditions and baseline/infrastructure verification
+    conditions — must appear under this single heading with clear internal labels.
+    The section has two content obligations:
+    (1) Metrics and outcomes that would contradict predicted benefits or invalidate
+        safety assumptions (what failure looks like during deployment).
+    (2) Assumptions that, if verified, would change the recommendation (what
+        evidence would upgrade or downgrade the feasibility assessment).
+    Do not split these into two separate sections. Write them under one heading
+    with labelled sub-sections if both are present.
 
   ORIGIN NOTE: This file was migrated from the Custom GPT "Reality Anchor
   (Operational Reality & Falsification Review)" v1. The PHDSS inline
@@ -126,13 +144,26 @@ for harms or failures.
 Identify where accountability is diffuse or ambiguous rather than clear.
 
 **Falsification Conditions**
-Identify what observable evidence would prove the current governance reasoning
-incorrect. Frame as testable conditions where possible:
-- Metrics that would contradict predicted benefits
-- Outcomes that would invalidate safety assumptions
-- Behavioural responses that would undermine the intervention logic
+This section appears exactly once. Do not repeat this heading later in the output.
+Cover both content obligations under this single heading with clear internal labels.
+
+Observable evidence that would prove the current governance reasoning incorrect:
+
+Metrics contradicting predicted benefits and outcomes invalidating safety
+assumptions — frame as testable conditions with specific thresholds where possible:
+- What operational metrics would indicate the intervention is not working as predicted?
+- What safety or equity outcomes would show harm rather than benefit?
+- What behavioural responses would undermine the intervention logic?
+
+Assumptions that, if verified, would change the recommendation — baseline and
+infrastructure conditions whose current state is unknown but whose verification
+would materially alter the feasibility assessment:
+- What confirmed capability, baseline, or infrastructure finding would upgrade
+  the governance assessment?
+- What finding would downgrade it further?
+
 An analysis that cannot be falsified is not a governance decision — it is an
-unfalsifiable assertion.
+unfalsifiable assertion. Every condition must be observable and testable.
 
 **Coverage Limitations**
 Note any absent Director domains that would improve the operational reality
