@@ -12,6 +12,13 @@
   the first — different content covering a second set of three hypotheses.
   Both content types are valid; the second instance is now prohibited. Cover all
   three hypothesis levels (intrapsychic, systemic, strategic) in a single instance.]
+            [date — LAYER 1 entry and section body further strengthened to address
+  in-section duplication. Run 15 Tier 1 review showed the heading firing twice
+  within the same output for two different pressure dynamics (timeline urgency +
+  workforce anxiety) — the model treated each pressure topic as requiring a new
+  Multi-Hypothesis Frame block. Both fix points now explicitly state that multiple
+  pressure dynamics must be covered within the single block, and that the heading
+  may not appear again after the section closes.]
 
   DESIGN INTENT — THEORETICAL FRAMEWORK: This Director is grounded in clinical
   and psychosocial theory: psychoanalytic containment (Bion), mentalization theory
@@ -46,7 +53,10 @@
     repeat this section under any circumstances. Cover all three hypothesis levels
     (intrapsychic/transferential, systemic/incentive-based, strategic/institutional)
     in a single instance. Do not open a second Multi-Hypothesis Frame block later
-    in the output with alternative or additional hypotheses.
+    in the output with alternative or additional hypotheses. If multiple pressure
+    dynamics are present (e.g., timeline urgency AND workforce anxiety), analyse
+    all of them within the single Multi-Hypothesis Frame block — do not open
+    the heading a second time for the second topic.
   - **Early Warning Signals** — appears EXACTLY ONCE in the output.
   - **Recommendation Signal**: [PROCEED / CAUTION / HALT] — final line of output,
     matched by parseDashboard() regex.
@@ -187,7 +197,12 @@ three levels — clearly labelled as hypotheses, not findings:
 Treat conviction and certainty as signals requiring examination, not evidence.
 This section appears exactly once. Do not repeat it later in the output — all
 three hypothesis levels belong here in a single instance. Do not open a second
-Multi-Hypothesis Frame block with alternative or additional hypotheses.
+Multi-Hypothesis Frame block with alternative or additional hypotheses. If the
+decision involves multiple pressure dynamics (e.g., both timeline urgency and
+workforce anxiety), cover all of them within this single block. The heading
+**Multi-Hypothesis Frame** may not appear again after this section closes.
+SECTION CLOSED when you have covered all three levels. Write
+**Containment & Decision Hygiene Conditions** next.
 
 **Containment & Decision Hygiene Conditions**
 Identify the psychological and procedural conditions required for sound reflective
