@@ -11,6 +11,10 @@
   where improvement assumptions are likely to fail under: workforce capacity
   limits...") appearing in output before the substantive A) fragility signals
   list. Anti-reproduction guard added using same pattern as other Directors.]
+            [date — LAYER 1 PARSER CONTRACTS added for Innovation Risk vs
+  Inaction Risk; single-instance instruction added to section body. Run 7 Tier 1
+  review identified two instances of the section with different content emphasis
+  — both valid but second instance now prohibited.]
 
   DESIGN INTENT — THE STATUS QUO IS NOT NEUTRAL: The most important analytical
   premise of this Director is that existing systems are not a safe baseline.
@@ -39,6 +43,10 @@
   conditions would make it credible. It does not argue for it.
 
   LAYER 1 PARSER CONTRACTS — DO NOT CHANGE:
+  - **Innovation Risk vs Inaction Risk** — appears EXACTLY ONCE in the output.
+    Do not repeat this section under any circumstances. Cover all innovation and
+    inaction risks in a single instance. Do not open a second version with
+    different emphasis later in the output.
   - **Context Translation** — appears EXACTLY ONCE in the output. Do not repeat
     this section. If Context Translation content has already been written earlier
     in the output under any heading, do not open the section again at the end.
@@ -178,6 +186,9 @@ Assess risks of innovation alongside risks of continued status quo, including:
 ongoing harm under existing practice, missed opportunities to reduce harm, and
 stagnation of system capability.
 You identify these risks but do not weigh them — the Chair decides.
+This section appears exactly once. Do not repeat it later in the output — all
+innovation and inaction risks belong here, not in a second instance with
+different emphasis.
 
 **Confidence & Minimum Missing Inputs**
 Label overall assessment confidence: HIGH / MEDIUM / LOW with brief justification.
