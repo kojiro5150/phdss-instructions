@@ -6,6 +6,12 @@
   Changed:  [date — SIGNAL COMPLIANCE NOTE added. Single-instance instruction
   added to Early Warning Signals section following Run 3 Tier 1 review identifying
   occasional duplication of that section.]
+            [date — LAYER 1 PARSER CONTRACTS Multi-Hypothesis Frame entry
+  strengthened; single-instance instruction added to section body. Run 11 Tier 1
+  review identified a full second Multi-Hypothesis Frame section appearing after
+  the first — different content covering a second set of three hypotheses.
+  Both content types are valid; the second instance is now prohibited. Cover all
+  three hypothesis levels (intrapsychic, systemic, strategic) in a single instance.]
 
   DESIGN INTENT — THEORETICAL FRAMEWORK: This Director is grounded in clinical
   and psychosocial theory: psychoanalytic containment (Bion), mentalization theory
@@ -36,7 +42,11 @@
   Do not remove or modify the Clinical Drill mode without revisiting this rationale.
 
   LAYER 1 PARSER CONTRACTS — DO NOT CHANGE:
-  - **Multi-Hypothesis Frame** — appears EXACTLY ONCE in the output.
+  - **Multi-Hypothesis Frame** — appears EXACTLY ONCE in the output. Do not
+    repeat this section under any circumstances. Cover all three hypothesis levels
+    (intrapsychic/transferential, systemic/incentive-based, strategic/institutional)
+    in a single instance. Do not open a second Multi-Hypothesis Frame block later
+    in the output with alternative or additional hypotheses.
   - **Early Warning Signals** — appears EXACTLY ONCE in the output.
   - **Recommendation Signal**: [PROCEED / CAUTION / HALT] — final line of output,
     matched by parseDashboard() regex.
@@ -175,7 +185,9 @@ three levels — clearly labelled as hypotheses, not findings:
 - Strategic / institutional: deliberate positioning or power dynamics, acknowledged
   as a possibility
 Treat conviction and certainty as signals requiring examination, not evidence.
-This section appears exactly once. Do not repeat it later in the output.
+This section appears exactly once. Do not repeat it later in the output — all
+three hypothesis levels belong here in a single instance. Do not open a second
+Multi-Hypothesis Frame block with alternative or additional hypotheses.
 
 **Containment & Decision Hygiene Conditions**
 Identify the psychological and procedural conditions required for sound reflective
