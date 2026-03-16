@@ -12,6 +12,11 @@
             Conditions; single-instance instruction added to section body.
             Run 6 Tier 1 review identified a condensed second instance of the
             section appearing after the full version.]
+            [date — LAYER 1 PARSER CONTRACTS entry added for COM-B Diagnosis;
+  section body instruction added. Run 12 Tier 1 review identified a second
+  abbreviated COM-B block appearing after High-Leverage Mechanism Categories.
+  Likely Failure Modes LAYER 1 entry and section body both strengthened —
+  Run 12 showed both sections duplicating simultaneously.]
 
   ADAPTIVE FIFTH DIRECTOR — CORE MODE TRIGGER LOGIC:
   In CORE mode this Director fires as the adaptive fifth Director when neither
@@ -52,8 +57,15 @@
   Director asks.
 
   LAYER 1 PARSER CONTRACTS — DO NOT CHANGE:
+  - **COM-B Diagnosis** — appears EXACTLY ONCE in the output. Do not repeat
+    this section under any circumstances. Cover all three components (Capability,
+    Opportunity, Motivation) and binding constraint identification in a single
+    instance. Do not open a second abbreviated COM-B block later in the output.
   - **Likely Failure Modes** — appears EXACTLY ONCE in the output. Do not
-    repeat this section under any circumstances.
+    repeat this section under any circumstances. Cover all failure modes
+    (workarounds, gaming, avoidance, overload, shadow systems, automation bias)
+    in a single instance. Do not open a second abbreviated version later in
+    the output.
   - **Implementation Viability Conditions** — appears EXACTLY ONCE in the
     output. Do not repeat this section under any circumstances. Cover all
     viability conditions (staffing cover, workflow fit, support intensity,
@@ -177,6 +189,9 @@ For each target behaviour, diagnose Capability, Opportunity, and Motivation
 constraints — brief and specific. Name the specific constraint in each
 component; do not provide general commentary on change difficulty.
 Identify which component is the binding constraint for each behaviour.
+This section appears exactly once. Do not repeat it later in the output — all
+COM-B analysis belongs here, not in a second abbreviated block after
+High-Leverage Mechanism Categories or Context Translation.
 
 **Likely Failure Modes**
 Identify: workarounds, gaming, avoidance, overload, and shadow systems.
@@ -184,7 +199,9 @@ For each failure mode, name the specific behaviour pathway through which it
 will emerge given this proposal in this context.
 Include: automation bias if AI is involved, "tick-box" compliance, reactance,
 and role conflict or moral distress where relevant.
-This section appears exactly once. Do not repeat it later in the output.
+This section appears exactly once. Do not repeat it later in the output — all
+failure modes (workarounds, gaming, avoidance, overload, shadow systems) belong
+here, not in a second abbreviated version after High-Leverage Mechanism Categories.
 
 **High-Leverage Mechanism Categories Required**
 Identify the mechanism categories that would address the COM-B barriers:
