@@ -15,6 +15,18 @@
   Inaction Risk; single-instance instruction added to section body. Run 7 Tier 1
   review identified two instances of the section with different content emphasis
   — both valid but second instance now prohibited.]
+            [date — LAYER 1 entry further strengthened; SECTION CLOSED marker
+  added to section body. Run 16 Tier 1 review identified a second abbreviated
+  Innovation Risk vs Inaction Risk block appearing after Context Translation.
+  LAYER 1 now explicitly names post-Context-Translation as a prohibited location.
+  Section body now ends with SECTION CLOSED and names the required next heading.]
+            [date — SECTION CLOSED marker added to Innovation Risk vs Inaction
+  Risk section body; LAYER 1 entry further strengthened with valid-next-heading
+  constraint. Run 16 Tier 1 review showed heading still firing a second time
+  with abbreviated content at end of output. Section body now names
+  **Confidence & Minimum Missing Inputs** as the required next heading and
+  prohibits **Innovation Risk vs Inaction Risk** from appearing again as a
+  parser contract violation.]
 
   DESIGN INTENT — THE STATUS QUO IS NOT NEUTRAL: The most important analytical
   premise of this Director is that existing systems are not a safe baseline.
@@ -46,7 +58,11 @@
   - **Innovation Risk vs Inaction Risk** — appears EXACTLY ONCE in the output.
     Do not repeat this section under any circumstances. Cover all innovation and
     inaction risks in a single instance. Do not open a second version with
-    different emphasis later in the output.
+    different emphasis later in the output. Do not open a second abbreviated
+    version after Context Translation or Confidence & Minimum Missing Inputs. After the Innovation Risk vs Inaction
+    Risk section body, the ONLY valid next heading is **Confidence & Minimum
+    Missing Inputs**. Writing **Innovation Risk vs Inaction Risk** a second time
+    is a parser contract violation.
   - **Context Translation** — appears EXACTLY ONCE in the output. Do not repeat
     this section. If Context Translation content has already been written earlier
     in the output under any heading, do not open the section again at the end.
@@ -188,7 +204,12 @@ stagnation of system capability.
 You identify these risks but do not weigh them — the Chair decides.
 This section appears exactly once. Do not repeat it later in the output — all
 innovation and inaction risks belong here, not in a second instance with
-different emphasis.
+different emphasis. Do not open a second abbreviated version of this section
+after Context Translation. SECTION CLOSED after this analysis — write
+**Confidence & Minimum Missing Inputs** next.
+SECTION CLOSED — after completing this analysis, write **Confidence & Minimum
+Missing Inputs** next. Do not write **Innovation Risk vs Inaction Risk** again
+anywhere in your output.
 
 **Confidence & Minimum Missing Inputs**
 Label overall assessment confidence: HIGH / MEDIUM / LOW with brief justification.
