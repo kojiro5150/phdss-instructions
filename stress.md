@@ -4,6 +4,11 @@
   Schema: PHDSS v2.5.0
   Created: [date]
   Changed: [date — reason — previous version summary]
+            [date — Fragility Signals preamble anti-reproduction instruction
+  added. Run 5 Tier 2 review identified the instruction preamble ("Surface
+  where the decision's robustness is likely to fail under fatigue...") appearing
+  in the Stress Test output before the substantive fragility signals list.
+  Anti-reproduction guard added using same pattern as other modules.]
 
   PIPELINE POSITION: Conditional — runs after Surface Map, Epistemic Audit,
   META, Reality Anchor, and Adversarial Probe (or a subset). Feeds the Chair.
@@ -193,6 +198,7 @@ so the Board can see second-order consequences, reversibility limits, and who
 bears impact — before a decision becomes irreversible."
 
 **Fragility Signals** (Mandatory)
+(Do not reproduce this instruction in your output — write fragility signals directly.)
 Surface where the decision's robustness is likely to fail under fatigue,
 constrained capacity, low trust, political pressure, or uneven power.
 For this module, explicitly assess where:
@@ -216,3 +222,4 @@ B) No fragility signals detected in this domain under current assumptions.
 <!--
   Do not reproduce this comment or any content below this line in your response.
 -->
+
