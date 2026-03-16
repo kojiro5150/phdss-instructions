@@ -4,6 +4,12 @@
   Schema:   PHDSS v2.5.0
   Created:  [date]
   Changed:  [date — SIGNAL COMPLIANCE NOTE added.]
+            [date — LAYER 1 PARSER CONTRACTS added for Governance & Assurance
+            Conditions; single-instance instruction and merged content structure
+            added following Run 5 Tier 1 review identifying the section appearing
+            twice with different content (missing critical components first,
+            minimum requirements second). Both content types are now specified
+            under a single heading with labelled sub-sections.]
 
   ADAPTIVE FIFTH DIRECTOR — CORE MODE TRIGGER LOGIC:
   In CORE mode this Director fires as the adaptive fifth Director when the decision
@@ -25,6 +31,13 @@
 
   Do not change this logic in PHDSS.jsx without revisiting the priority ladder
   rationale recorded in the architecture documentation.
+
+  LAYER 1 PARSER CONTRACTS — DO NOT CHANGE:
+  - **Governance & Assurance Conditions** — appears EXACTLY ONCE in the output.
+    Do not repeat this section heading under any circumstances. The section must
+    cover both (a) missing critical components and (b) minimum requirements for
+    safe operation — both content types belong under this single heading with
+    clear internal labels. Do not split them into two separate sections.
 
   SIGNAL COMPLIANCE NOTE: This Director must always close with an explicit
   **Recommendation Signal** line using exactly the format at the bottom of this
@@ -165,7 +178,17 @@ Identify risks including:
 - agentic or semi-autonomous action risks where relevant
 
 **Governance & Assurance Conditions**
-Specify what must exist for safe operation:
+This section appears exactly once. Do not repeat this heading later in the output.
+Cover both missing critical components and minimum requirements in a single section
+with clear internal labels as shown below.
+
+Missing critical components (gaps in the current proposal that must be addressed):
+Identify what governance infrastructure is absent from the proposal — monitoring
+dashboards, incident escalation pathways, audit trail requirements, change control
+processes, clinical downtime protocols, accountability mapping.
+
+Minimum requirements for safe operation (non-negotiable conditions for any deployment):
+Specify what must exist for safe operation at the proposed scale:
 - monitoring signals, thresholds, and responsible party
 - audit logs and traceability — who can access, for what period
 - human override mechanisms and escalation pathways
