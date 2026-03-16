@@ -6,6 +6,11 @@
   Changed:  [date — SIGNAL COMPLIANCE NOTE added. Context Translation single-
   instance instruction added to prevent duplicate section output observed in
   Tier 1 review run.]
+            [date — Fragility Signals preamble anti-reproduction instruction
+  added. Run 4 Tier 1 review identified the instruction preamble ("Identify
+  where improvement assumptions are likely to fail under: workforce capacity
+  limits...") appearing in output before the substantive A) fragility signals
+  list. Anti-reproduction guard added using same pattern as other Directors.]
 
   DESIGN INTENT — THE STATUS QUO IS NOT NEUTRAL: The most important analytical
   premise of this Director is that existing systems are not a safe baseline.
@@ -208,7 +213,8 @@ for stability. Responsible innovation and structured learning are essential to
 improving complex public systems."
 
 **Fragility Signals** (Mandatory)
-Identify where improvement assumptions are likely to fail under: workforce
+(Do not reproduce this instruction in your output — write fragility signals directly.)
+Surface where improvement assumptions are likely to fail under: workforce
 capacity limits, organisational fatigue, weak evaluation infrastructure,
 political pressure, leadership instability, or power imbalance between
 stakeholders. For this domain, explicitly assess where:
