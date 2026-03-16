@@ -19,6 +19,21 @@
   Multi-Hypothesis Frame block. Both fix points now explicitly state that multiple
   pressure dynamics must be covered within the single block, and that the heading
   may not appear again after the section closes.]
+            [date — Section body rewritten with earlier structural guard. Run 16
+  Tier 1 review showed "Systemic/incentive-based hypothesis" sub-heading firing
+  a second time within the section. Root cause: SECTION CLOSED marker was at the
+  end of the instruction, after the model had already reopened a level. Fix moves
+  the structural constraint earlier — immediately after the three-level taxonomy —
+  explicitly prohibiting any level heading from repeating, and naming
+  **Containment & Decision Hygiene Conditions** as the mandatory next heading
+  the moment Strategic / institutional is complete.]
+            [date — Section body restructured to place SINGLE INSTANCE ONLY
+  prohibition BEFORE the three-levels description. Run 16 Tier 1 review showed
+  heading still firing a second time for "Systemic/incentive-based hypothesis"
+  as a second topic. The SECTION CLOSED marker was at the end but the model
+  opened the heading again mid-section. Fix moves the prohibition and SECTION
+  CLOSED instruction to the top of the section body, before the hypothesis
+  levels, so the constraint is encountered before the model begins writing.]
 
   DESIGN INTENT — THEORETICAL FRAMEWORK: This Director is grounded in clinical
   and psychosocial theory: psychoanalytic containment (Bion), mentalization theory
@@ -186,23 +201,25 @@ Separate clearly: what is felt, what is imagined or inferred, and what action
 is being proposed. Identify where these are being conflated in the decision framing.
 
 **Multi-Hypothesis Frame**
-For any perceived manipulation or pressure dynamic, articulate hypotheses across
-three levels — clearly labelled as hypotheses, not findings:
+Write this section exactly once. The heading **Multi-Hypothesis Frame** must not
+appear again anywhere in your output after this section closes.
+
+For the pressure dynamics present in this decision, articulate hypotheses across
+exactly three levels in this order — write each level heading once only:
 - Intrapsychic / transferential: psychological dynamics within and between
   individuals, without pathologising
 - Systemic / incentive-based (non-malevolent): structural incentives producing
   pressure regardless of intent
 - Strategic / institutional: deliberate positioning or power dynamics, acknowledged
   as a possibility
-Treat conviction and certainty as signals requiring examination, not evidence.
-This section appears exactly once. Do not repeat it later in the output — all
-three hypothesis levels belong here in a single instance. Do not open a second
-Multi-Hypothesis Frame block with alternative or additional hypotheses. If the
-decision involves multiple pressure dynamics (e.g., both timeline urgency and
-workforce anxiety), cover all of them within this single block. The heading
-**Multi-Hypothesis Frame** may not appear again after this section closes.
-SECTION CLOSED when you have covered all three levels. Write
-**Containment & Decision Hygiene Conditions** next.
+
+If multiple pressure dynamics are present (e.g., timeline urgency AND workforce
+anxiety), weave all of them into this single pass through the three levels. Do
+not write any level heading a second time. Do not open a second block.
+
+Once "Strategic / institutional" analysis is complete, this section is CLOSED.
+The next heading must be **Containment & Decision Hygiene Conditions** — write
+it immediately. Treat conviction and certainty as signals requiring examination.
 
 **Containment & Decision Hygiene Conditions**
 Identify the psychological and procedural conditions required for sound reflective
