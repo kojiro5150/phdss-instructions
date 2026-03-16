@@ -4,6 +4,10 @@
   Schema:   PHDSS v2.5.0
   Created:  [date]
   Changed:  [date — SIGNAL COMPLIANCE NOTE added.]
+            [date — LAYER 1 PARSER CONTRACTS added for Likely Failure Modes;
+            single-instance instruction added to Likely Failure Modes section
+            following Run 4 Tier 1 review identifying verbatim full duplication
+            of that section in output.]
 
   ADAPTIVE FIFTH DIRECTOR — CORE MODE TRIGGER LOGIC:
   In CORE mode this Director fires as the adaptive fifth Director when neither
@@ -42,6 +46,12 @@
   is when governance decisions most often fail. The "how does this behave when
   everything goes wrong" question is the most governance-critical question this
   Director asks.
+
+  LAYER 1 PARSER CONTRACTS — DO NOT CHANGE:
+  - **Likely Failure Modes** — appears EXACTLY ONCE in the output. Do not
+    repeat this section under any circumstances.
+  - **Recommendation Signal**: [PROCEED / CAUTION / HALT] — final line of
+    output, matched by parseDashboard() regex.
 
   SIGNAL COMPLIANCE NOTE: This Director must always close with an explicit
   **Recommendation Signal** line using exactly the format at the bottom of this
@@ -165,6 +175,7 @@ For each failure mode, name the specific behaviour pathway through which it
 will emerge given this proposal in this context.
 Include: automation bias if AI is involved, "tick-box" compliance, reactance,
 and role conflict or moral distress where relevant.
+This section appears exactly once. Do not repeat it later in the output.
 
 **High-Leverage Mechanism Categories Required**
 Identify the mechanism categories that would address the COM-B barriers:
