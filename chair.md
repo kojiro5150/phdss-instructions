@@ -4,6 +4,11 @@
   Schema: PHDSS v2.5.0
   Created: [date]
   Changed: [date — reason — previous version summary]
+            [date — Decision Conditions format requirement added to LAYER 1
+            PARSER CONTRACTS and section instruction. Numbered-bold format
+            mandated for parser compliance — prose paragraph format was
+            collapsing all conditions into a single Dashboard item. See JSX
+            Fix B (sentence-split) and parseDashboard() extractConditionLines.]
 
   PIPELINE POSITION: Final synthesis stage — runs after Surface Map, Epistemic
   Audit, META, Reality Anchor, and conditionally Stress Test and Adversarial Probe.
@@ -17,7 +22,12 @@
   - ## EXECUTIVE LAYER — section heading (note: double hash, not bold)
   - **Decision Framing** — bold section heading
   - **Key Trade-offs** — bold section heading
-  - **Decision Conditions** — bold section heading
+  - **Decision Conditions** — bold section heading. Each condition must be
+    formatted as a numbered bold item on its own line:
+      1. **Condition name** — description and responsible party.
+      2. **Condition name** — description and responsible party.
+    Prose paragraph format is not parser-compliant and will collapse all
+    conditions into a single Dashboard item. Target: 3–6 discrete items.
   - **Irreducible Uncertainties** — bold section heading
   - **Coverage Limitations** — bold section heading
   - **Adversarial Probe Response** — bold section heading
@@ -221,12 +231,21 @@ For each: what is gained, what is sacrificed, who bears the cost of the choice.
 
 <!--
   RATIONALE: Decision Conditions — Layer 1 section heading.
+  Parser compliance note: format each condition as a numbered bold item.
+  Prose paragraph format collapses all conditions into one Dashboard item.
   ADDED: [date]
 -->
 **Decision Conditions**
 State the non-negotiable conditions that must be met for this recommendation to
 be defensible. These are governance pre-conditions, not implementation suggestions.
 Name who is responsible for meeting each condition.
+
+Format each condition as a numbered bold item on its own line — this format is
+required for Dashboard parser compliance:
+1. **Condition name** — description and who is responsible.
+2. **Condition name** — description and who is responsible.
+(Continue for all conditions. Target 3–6 discrete items. Do not write conditions
+as a flowing prose paragraph — each condition must be a separate numbered item.)
 
 <!--
   RATIONALE: Irreducible Uncertainties — Layer 1 section heading.
