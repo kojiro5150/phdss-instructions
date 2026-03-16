@@ -9,6 +9,11 @@
   fail under fatigue, constrained capacity...") was appearing in output before
   the substantive A) fragility signals list across multiple runs. Anti-reproduction
   guard added using same pattern as innovation.md, stress.md, lived.md.]
+            [date — LAYER 1 PARSER CONTRACTS block added with Coalition & Trust
+  Risks single-instance entry; single-instance instruction added to section body.
+  Run 11 Tier 1 review identified a second abbreviated Coalition & Trust Risks
+  block appearing after Context Translation — different content from the first
+  full instance. Both content types are valid; second instance now prohibited.]
 
   ADAPTIVE FIFTH DIRECTOR — CORE MODE TRIGGER LOGIC:
   In CORE mode this Director fires as the adaptive fifth Director when policy
@@ -56,6 +61,15 @@
   if the evidence is presented clearly. Both are wrong. The correct stance is
   clear-eyed assessment of what is structurally constrained, what is genuinely
   negotiable, and what conditions would need to change for viability.
+
+  LAYER 1 PARSER CONTRACTS — DO NOT CHANGE:
+  - **Coalition & Trust Risks** — appears EXACTLY ONCE in the output. Do not
+    repeat this section under any circumstances. Cover all coalition and trust
+    risks (intergovernmental, sector, community, clinician, public, legitimacy)
+    in a single instance. Do not open a second abbreviated version of this
+    section after Context Translation.
+  - **Recommendation Signal**: [PROCEED / CAUTION / HALT] — final line of
+    output, matched by parseDashboard() regex.
 
   SIGNAL COMPLIANCE NOTE: This Director must always close with an explicit
   **Recommendation Signal** line using exactly the format at the bottom of this
@@ -229,6 +243,9 @@ Identify risks to intergovernmental, sector, and community coalitions.
 Identify trust impacts for clinicians, consumers, and the public.
 Identify legitimacy risks arising from uneven power distribution or perceived
 exclusion from the decision process.
+This section appears exactly once. Do not repeat it later in the output — all
+coalition and trust risks belong here, not in a second abbreviated instance
+after Context Translation.
 
 **Strategic Policy Trade-offs**
 Name the explicit tensions the Board must confront: speed vs legitimacy,
