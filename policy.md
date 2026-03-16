@@ -14,6 +14,12 @@
   Run 11 Tier 1 review identified a second abbreviated Coalition & Trust Risks
   block appearing after Context Translation — different content from the first
   full instance. Both content types are valid; second instance now prohibited.]
+            [date — LAYER 1 PARSER CONTRACTS entry added for Strategic Policy
+  Trade-offs; single-instance instruction added to section body. Run 15 Tier 1
+  review identified a second abbreviated Strategic Policy Trade-offs block
+  appearing after Context Translation — different content ("innovation leadership
+  versus evidence-driven implementation") from the first full instance. Both
+  content types are valid; second instance now prohibited.]
 
   ADAPTIVE FIFTH DIRECTOR — CORE MODE TRIGGER LOGIC:
   In CORE mode this Director fires as the adaptive fifth Director when policy
@@ -68,6 +74,12 @@
     risks (intergovernmental, sector, community, clinician, public, legitimacy)
     in a single instance. Do not open a second abbreviated version of this
     section after Context Translation.
+  - **Strategic Policy Trade-offs** — appears EXACTLY ONCE in the output. Do
+    not repeat this section under any circumstances. Cover all trade-offs
+    (speed/legitimacy, centralisation/autonomy, uniformity/adaptation,
+    symbolic/structural) in a single instance. Do not open a second abbreviated
+    version of this section after Context Translation or Conditions for Policy
+    Viability.
   - **Recommendation Signal**: [PROCEED / CAUTION / HALT] — final line of
     output, matched by parseDashboard() regex.
 
@@ -253,6 +265,9 @@ centralisation vs local autonomy, uniformity vs contextual adaptation,
 symbolic reform vs structural change.
 Do not resolve these trade-offs — name them and characterise what is at
 stake on each side. The Chair decides.
+This section appears exactly once. Do not repeat it later in the output — all
+trade-offs belong here, not in a second abbreviated instance after Context
+Translation or Conditions for Policy Viability.
 
 **Conditions for Policy Viability**
 State what must be true politically and institutionally for this decision to
