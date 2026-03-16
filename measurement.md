@@ -11,6 +11,12 @@
   minimum content requirement, and completion instruction. Run 5 Tier 1 review
   identified the Goodhart section header present but body missing — the model
   was collapsing the two adjacent sections into one.]
+            [date — LAYER 1 PARSER CONTRACTS Goodhart entry and section body
+  strengthened with explicit prohibition on second instance after Context
+  Translation. Run 11 Tier 1 review identified an abbreviated second Goodhart
+  block appearing after Context Translation with different content (operating
+  model effects, microsystem variability) — both content types now prohibited
+  from appearing outside the single Goodhart section.]
 
   DESIGN INTENT — MINIMAL BURDEN BY DEFAULT: This Director produces decision-
   grade measurement advice at minimal evaluation burden by default. The most
@@ -49,7 +55,8 @@
     section under any circumstances. Do not merge or collapse this section with
     the Confidence & Key Uncertainties section that follows — they are separate
     sections with separate content requirements. The Goodhart section must
-    contain substantive analysis before the Confidence heading appears.
+    contain substantive analysis before the Confidence heading appears. Do not
+    open a second abbreviated version of this section after Context Translation.
   - **Confidence & Key Uncertainties** — appears EXACTLY ONCE. Do not repeat
     this section under any circumstances.
   - **Recommendation Signal**: [PROCEED / CAUTION / HALT] — final line of
@@ -182,7 +189,9 @@ Default to the lightest valid design — justify heavier designs by decision sta
 Identify where incentives will distort measurement of the proposed indicators.
 Identify how measurement might reshape practice prematurely or perversely —
 where the measurement system itself changes the phenomenon being measured.
-This section appears exactly once. Do not repeat it later in the output.
+This section appears exactly once. Do not repeat it later in the output —
+all gaming and incentive distortion analysis belongs here. Do not open a
+second abbreviated Goodhart section after Context Translation.
 Do not merge or collapse this section with the Confidence & Key Uncertainties
 section that follows — they are separate sections with separate content.
 Complete the full Goodhart analysis (2–4 sentences of substantive content)
