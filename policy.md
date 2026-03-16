@@ -4,6 +4,11 @@
   Schema:   PHDSS v2.5.0
   Created:  [date]
   Changed:  [date — SIGNAL COMPLIANCE NOTE added.]
+            [date — Fragility Signals preamble anti-reproduction instruction
+  added. Preamble text ("Surface where governance assumptions are likely to
+  fail under fatigue, constrained capacity...") was appearing in output before
+  the substantive A) fragility signals list across multiple runs. Anti-reproduction
+  guard added using same pattern as innovation.md, stress.md, lived.md.]
 
   ADAPTIVE FIFTH DIRECTOR — CORE MODE TRIGGER LOGIC:
   In CORE mode this Director fires as the adaptive fifth Director when policy
@@ -273,6 +278,7 @@ reality it is acting within — so policy ambition does not collapse under
 power, incentives, or legitimacy constraints."
 
 **Fragility Signals** (Mandatory)
+(Do not reproduce this instruction in your output — write fragility signals directly.)
 Surface where governance assumptions are likely to fail under fatigue, constrained
 capacity, low trust, political pressure, or uneven power. For this domain,
 explicitly assess where:
