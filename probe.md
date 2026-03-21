@@ -16,6 +16,14 @@
   stakeholders, the second added aged care, ED, and First Nations workers.
   Both sets of content are valid; the second instance is now prohibited.
   All absent perspectives must be covered in the single instance.]
+            [date — Where AI Limitation Is Most Visible given single-instance
+  and unbroken-block guard. Audit of all Director files after Run 23 identified
+  this section (7,333 chars in outputs) as the longest unguarded section in the
+  entire system and at high risk of mid-section restart under complex decisions.
+  LAYER 1 SECTION CLOSED on Whose Perspective Is Absent already names the next
+  heading — this fix adds the equivalent guard to Where AI Limitation, naming
+  Coverage-Induced Blind Spots as the mandatory next heading. Both sections
+  now have single-instance and next-heading guards.]
 
   PIPELINE POSITION: Runs after Surface Map, Epistemic Audit, META, and Reality
   Anchor. Receives: decision text, Director Governance Briefs, META-AUTHOR output,
@@ -42,6 +50,11 @@
     absent stakeholders, populations, and affected parties in a single instance.
     SECTION CLOSED after this analysis — write **Where AI Limitation Is Most
     Visible** next.
+  - **Where AI Limitation Is Most Visible** — appears EXACTLY ONCE in the
+    output as a single unbroken block. Do not pause mid-section and re-open
+    this heading. Cover all specific AI limitation failure modes relevant to
+    this decision in a single instance. SECTION CLOSED once complete — the
+    ONLY valid next heading is **Coverage-Induced Blind Spots**.
 
   DESIGN INTENT — STRUCTURED ADVERSARIAL ROLE: The Probe's function is
   adversarial — it challenges the Board's reasoning from a position of deliberate
@@ -204,12 +217,18 @@ additional absent perspectives. SECTION CLOSED after this analysis — write
 **Where AI Limitation Is Most Visible** next.
 
 **Where AI Limitation Is Most Visible**
+Write this section exactly once as a single unbroken block. Do not pause
+mid-section and re-open this heading. This section appears exactly once —
+all AI limitation analysis belongs here.
+
 Name the specific ways AI analysis is most likely to mislead on this particular
 decision — not generic AI limitations, but the specific failure modes most
 relevant here. Examples: pattern-matching to superficially similar decisions,
 overconfidence in evidence that may not transfer to this context, inability to
 assess political dynamics or organisational culture that a human governance
 advisor would read from context.
+SECTION CLOSED — the next heading must be **Coverage-Induced Blind Spots** —
+write it immediately.
 
 **Coverage-Induced Blind Spots**
 Name what each absent Director domain would specifically have surfaced on this
