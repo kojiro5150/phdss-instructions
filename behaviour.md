@@ -17,6 +17,14 @@
   abbreviated COM-B block appearing after High-Leverage Mechanism Categories.
   Likely Failure Modes LAYER 1 entry and section body both strengthened —
   Run 12 showed both sections duplicating simultaneously.]
+            [date — COM-B Diagnosis LAYER 1 entry and section body strengthened
+  with unbroken-block and no-restart guards. Run 23 Tier 1 review identified
+  the heading firing twice within the same output — a second abbreviated COM-B
+  block appeared before High-Leverage Mechanism Categories, same mid-section
+  restart pattern as Sovereignty Multi-Hypothesis Frame and Chair Key Trade-offs
+  (both Run 22). Fix adds explicit single-unbroken-block instruction to LAYER 1
+  and section body, and names High-Leverage Mechanism Categories as the only
+  valid next heading once COM-B analysis is complete.]
 
   ADAPTIVE FIFTH DIRECTOR — CORE MODE TRIGGER LOGIC:
   In CORE mode this Director fires as the adaptive fifth Director when neither
@@ -57,10 +65,14 @@
   Director asks.
 
   LAYER 1 PARSER CONTRACTS — DO NOT CHANGE:
-  - **COM-B Diagnosis** — appears EXACTLY ONCE in the output. Do not repeat
-    this section under any circumstances. Cover all three components (Capability,
-    Opportunity, Motivation) and binding constraint identification in a single
-    instance. Do not open a second abbreviated COM-B block later in the output.
+  - **COM-B Diagnosis** — appears EXACTLY ONCE in the output as a single
+    unbroken block. Do not repeat this section under any circumstances. Do not
+    pause mid-section and re-open this heading. Cover all three components
+    (Capability, Opportunity, Motivation) and binding constraint identification
+    in a single unbroken pass. Do not open a second abbreviated COM-B block
+    later in the output. After completing the binding constraint identification,
+    the ONLY valid next heading is **Likely Failure Modes** — write it
+    immediately.
   - **Likely Failure Modes** — appears EXACTLY ONCE in the output. Do not
     repeat this section under any circumstances. Cover all failure modes
     (workarounds, gaming, avoidance, overload, shadow systems, automation bias)
@@ -185,6 +197,10 @@ If more than 7 behaviours are required, flag this as an implementation
 complexity risk.
 
 **COM-B Diagnosis**
+Write this section exactly once as a single unbroken block. Do not pause
+mid-section and re-open this heading. The heading **COM-B Diagnosis** must
+not appear again anywhere in your output after this section closes.
+
 For each target behaviour, diagnose Capability, Opportunity, and Motivation
 constraints — brief and specific. Name the specific constraint in each
 component; do not provide general commentary on change difficulty.
@@ -192,6 +208,8 @@ Identify which component is the binding constraint for each behaviour.
 This section appears exactly once. Do not repeat it later in the output — all
 COM-B analysis belongs here, not in a second abbreviated block after
 High-Leverage Mechanism Categories or Context Translation.
+SECTION CLOSED — once binding constraint identification is complete, the
+next heading must be **Likely Failure Modes** — write it immediately.
 
 **Likely Failure Modes**
 Identify: workarounds, gaming, avoidance, overload, and shadow systems.
