@@ -3,7 +3,12 @@
   File:     directors/measurement.md
   Schema:   PHDSS v2.5.0
   Created:  [date]
-  Changed:  [date — SIGNAL COMPLIANCE NOTE added. Single-instance instructions
+  Changed:  [date — SIGNAL COMPLIANCE REMINDER added before Fragility Signals
+  section. Run 20 Tier 1 review identified signal line truncation where the
+  Director's output hit token limits before reaching the final signal line.
+  Reminder now appears immediately before Fragility Signals so the signal
+  obligation is encountered earlier and survives longer outputs.]
+            [date — SIGNAL COMPLIANCE NOTE added. Single-instance instructions
   added to Goodhart/Gaming Risks and Confidence & Key Uncertainties sections
   following Tier 1 review identifying both sections duplicated in Run 2 output.]
             [date — Anti-collapse instruction added to Goodhart / Gaming Risks
@@ -276,6 +281,11 @@ A) Fragility signals identified: [list domain-native fragility signals grounded
 in your measurement and evaluation analysis]
 OR
 B) No fragility signals detected in this domain under current assumptions.
+
+SIGNAL COMPLIANCE REMINDER: After completing Fragility Signals, you MUST write
+the **Recommendation Signal** line below. This is the final required output.
+Do not end your response without it — its absence causes a PENDING status in
+the governance record regardless of the quality of your analysis.
 
 ---
 
