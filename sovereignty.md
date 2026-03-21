@@ -42,6 +42,14 @@
   before moving on. SECTION CLOSED now explicitly prohibits any content after
   Strategic / institutional, and names Containment & Decision Hygiene Conditions
   as the only valid next heading.]
+            [date — Mid-section restart prohibition added. LAYER 1 entry further
+  strengthened to block "(continued)" label and mid-section heading re-opens.
+  Run 22 Tier 1 review identified the section re-opening mid-way through with
+  a "Multi-Hypothesis Frame (continued)" label before Strategic / institutional
+  had completed. The re-open occurred because the model ran out of space and
+  attempted to resume the section under a new heading. Fix adds explicit
+  prohibition of any "(continued)" variant and requires the three levels to be
+  completed without interruption in a single unbroken block.]
 
   DESIGN INTENT — THEORETICAL FRAMEWORK: This Director is grounded in clinical
   and psychosocial theory: psychoanalytic containment (Bion), mentalization theory
@@ -72,17 +80,20 @@
   Do not remove or modify the Clinical Drill mode without revisiting this rationale.
 
   LAYER 1 PARSER CONTRACTS — DO NOT CHANGE:
-  - **Multi-Hypothesis Frame** — appears EXACTLY ONCE in the output. Do not
-    repeat this section under any circumstances. Cover all three hypothesis levels
-    (intrapsychic/transferential, systemic/incentive-based, strategic/institutional)
-    in a single instance. Do not open a second Multi-Hypothesis Frame block later
-    in the output with alternative or additional hypotheses. If multiple pressure
-    dynamics are present (e.g., timeline urgency AND workforce anxiety), analyse
-    all of them within the single Multi-Hypothesis Frame block — do not open
-    the heading a second time for the second topic. After Strategic / institutional
-    is complete, the ONLY valid next heading is **Containment & Decision Hygiene
-    Conditions**. Do not write a transitional sentence, summary, or any content
-    under the Multi-Hypothesis Frame heading after Strategic / institutional closes.
+  - **Multi-Hypothesis Frame** — appears EXACTLY ONCE in the output. The heading
+    must appear unmodified — never as "Multi-Hypothesis Frame (continued)" or any
+    variant. Do not repeat this section under any circumstances. Cover all three
+    hypothesis levels (intrapsychic/transferential, systemic/incentive-based,
+    strategic/institutional) in a single unbroken block. Do not pause mid-section
+    and re-open the heading. Do not open a second Multi-Hypothesis Frame block
+    later in the output with alternative or additional hypotheses. If multiple
+    pressure dynamics are present (e.g., timeline urgency AND workforce anxiety),
+    analyse all of them within the single Multi-Hypothesis Frame block — do not
+    open the heading a second time for the second topic. After Strategic /
+    institutional is complete, the ONLY valid next heading is **Containment &
+    Decision Hygiene Conditions**. Do not write a transitional sentence, summary,
+    or any content under the Multi-Hypothesis Frame heading after Strategic /
+    institutional closes.
   - **Early Warning Signals** — appears EXACTLY ONCE in the output.
   - **Recommendation Signal**: [PROCEED / CAUTION / HALT] — final line of output,
     matched by parseDashboard() regex.
@@ -212,8 +223,10 @@ Separate clearly: what is felt, what is imagined or inferred, and what action
 is being proposed. Identify where these are being conflated in the decision framing.
 
 **Multi-Hypothesis Frame**
-Write this section exactly once. The heading **Multi-Hypothesis Frame** must not
-appear again anywhere in your output after this section closes.
+Write this section exactly once as a single unbroken block. Do not pause and
+re-open this heading mid-way through. Do not add "(continued)" or any label
+variant to this heading. The heading **Multi-Hypothesis Frame** must appear
+unmodified — not as "Multi-Hypothesis Frame (continued)" or any other variant.
 
 For the pressure dynamics present in this decision, articulate hypotheses across
 exactly three levels in this order — write each level heading once only:
@@ -226,7 +239,8 @@ exactly three levels in this order — write each level heading once only:
 
 If multiple pressure dynamics are present (e.g., timeline urgency AND workforce
 anxiety), weave all of them into this single pass through the three levels. Do
-not write any level heading a second time. Do not open a second block.
+not write any level heading a second time. Do not open a second block. Do not
+pause mid-section and resume under a new heading.
 
 Once "Strategic / institutional" analysis is complete, this section is CLOSED.
 The next heading must be **Containment & Decision Hygiene Conditions** — write
