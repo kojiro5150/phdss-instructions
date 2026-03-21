@@ -19,6 +19,15 @@
             mandated for parser compliance — prose paragraph format was
             collapsing all conditions into a single Dashboard item. See JSX
             Fix B (sentence-split) and parseDashboard() extractConditionLines.]
+            [date — Key Trade-offs mid-section restart and Coverage Limitations
+  duplicate fixes. Run 22 Tier 3 review identified two failures: (1) Key
+  Trade-offs section re-opened mid-section with the same heading before all
+  named trade-offs were complete — model ran out of context mid-section and
+  attempted to resume under the original heading. Fix adds explicit prohibition
+  of mid-section heading restart and "(continued)" variant. (2) Coverage
+  Limitations appeared twice in the same output. Fix adds single-instance
+  instruction to LAYER 1 and section body. Both patterns match the
+  Multi-Hypothesis Frame re-open failure mode in Sovereignty Director.]
 
   PIPELINE POSITION: Final synthesis stage — runs after Surface Map, Epistemic
   Audit, META, Reality Anchor, and conditionally Stress Test and Adversarial Probe.
@@ -31,8 +40,10 @@
   The following are matched by parseDashboard() and the PHDSS display components:
   - ## EXECUTIVE LAYER — section heading (note: double hash, not bold)
   - **Decision Framing** — bold section heading
-  - **Key Trade-offs** — bold section heading. Appears EXACTLY ONCE. Do not
-    repeat this section. Cover all trade-offs (speed/safety, timeline/training,
+  - **Key Trade-offs** — bold section heading. Appears EXACTLY ONCE as a single
+    unbroken block. Do not repeat this section. Do not pause mid-section and
+    re-open the heading. Do not add "(continued)" or any label variant to this
+    heading. Cover all trade-offs (speed/safety, timeline/training,
     standardisation/adaptation, cross-domain fragility convergence) in a single
     instance. Do not open a second Key Trade-offs block later in the output.
     Do not introduce "The most consequential trade-off is..." as a standalone
@@ -45,7 +56,8 @@
     Prose paragraph format is not parser-compliant and will collapse all
     conditions into a single Dashboard item. Target: 3–6 discrete items.
   - **Irreducible Uncertainties** — bold section heading
-  - **Coverage Limitations** — bold section heading
+  - **Coverage Limitations** — bold section heading. Appears EXACTLY ONCE.
+    Do not repeat this section later in the output. 2–3 sentences maximum.
   - **Adversarial Probe Response** — bold section heading
   - **Chair Recommendation**: — bold prefix before the recommendation value
   - **Verification Phase** — conditional section heading (CONDITIONAL APPROVAL)
@@ -242,12 +254,17 @@ artificial, or manufactured.
   ADDED: [date]
 -->
 **Key Trade-offs**
-Name the explicit governance trade-offs the recommendation must navigate.
-For each: what is gained, what is sacrificed, who bears the cost of the choice.
-This section appears exactly once. Do not repeat it later in the output — all
-trade-offs belong here, including any "most consequential trade-off" framing.
-Do not open a second Key Trade-offs block after Decision Conditions or elsewhere.
-Name all trade-offs in this single instance and close the section.
+Write this section exactly once as a single unbroken block. Do not pause
+mid-section and re-open this heading. Do not add "(continued)" or any label
+variant to this heading. Name the explicit governance trade-offs the
+recommendation must navigate. For each: what is gained, what is sacrificed,
+who bears the cost of the choice. This section is CLOSED once all named
+trade-offs are written — do not repeat it later in the output. All trade-offs
+belong here, including any "most consequential trade-off" framing. Do not open
+a second Key Trade-offs block after Decision Conditions or elsewhere. Name all
+trade-offs in this single instance and close the section.
+SECTION CLOSED after the final named trade-off. The next heading must be
+**Decision Conditions** — write it immediately.
 
 <!--
   RATIONALE: Decision Conditions — Layer 1 section heading.
@@ -279,14 +296,15 @@ its governance significance is. This is the Chair's explicit acceptance of
 residual risk.
 
 <!--
-  RATIONALE: Coverage Limitations — Layer 1 section heading.
+  RATIONALE: Coverage Limitations — Layer 1 section heading. EXACTLY ONCE.
   ADDED: [date]
 -->
-**Coverage Limitations** (2–3 sentences maximum)
-Name the most governance-critical absent Director domain(s) and the specific
-blind spot they create for this recommendation. Do not restate what META-AUTHOR
-has already mapped — refer the reader to that analysis for the full coverage
-picture.
+**Coverage Limitations**
+This section appears exactly once. Do not repeat it later in the output.
+2–3 sentences maximum. Name the most governance-critical absent Director
+domain(s) and the specific blind spot they create for this recommendation.
+Do not restate what META-AUTHOR has already mapped — refer the reader to
+that analysis for the full coverage picture.
 
 <!--
   RATIONALE: Adversarial Probe Response — required section before Chair
