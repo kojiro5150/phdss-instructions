@@ -34,6 +34,14 @@
   opened the heading again mid-section. Fix moves the prohibition and SECTION
   CLOSED instruction to the top of the section body, before the hypothesis
   levels, so the constraint is encountered before the model begins writing.]
+            [date — Section body SECTION CLOSED marker strengthened with explicit
+  next-heading constraint and no-transitional-content prohibition. LAYER 1 entry
+  extended with explicit valid-next-heading rule. Run 21 Tier 1 review identified
+  a brief single-sentence re-open of Multi-Hypothesis Frame after Strategic /
+  institutional completed. The model added a trailing sentence under the heading
+  before moving on. SECTION CLOSED now explicitly prohibits any content after
+  Strategic / institutional, and names Containment & Decision Hygiene Conditions
+  as the only valid next heading.]
 
   DESIGN INTENT — THEORETICAL FRAMEWORK: This Director is grounded in clinical
   and psychosocial theory: psychoanalytic containment (Bion), mentalization theory
@@ -71,7 +79,10 @@
     in the output with alternative or additional hypotheses. If multiple pressure
     dynamics are present (e.g., timeline urgency AND workforce anxiety), analyse
     all of them within the single Multi-Hypothesis Frame block — do not open
-    the heading a second time for the second topic.
+    the heading a second time for the second topic. After Strategic / institutional
+    is complete, the ONLY valid next heading is **Containment & Decision Hygiene
+    Conditions**. Do not write a transitional sentence, summary, or any content
+    under the Multi-Hypothesis Frame heading after Strategic / institutional closes.
   - **Early Warning Signals** — appears EXACTLY ONCE in the output.
   - **Recommendation Signal**: [PROCEED / CAUTION / HALT] — final line of output,
     matched by parseDashboard() regex.
@@ -220,6 +231,9 @@ not write any level heading a second time. Do not open a second block.
 Once "Strategic / institutional" analysis is complete, this section is CLOSED.
 The next heading must be **Containment & Decision Hygiene Conditions** — write
 it immediately. Treat conviction and certainty as signals requiring examination.
+SECTION CLOSED — do not write **Multi-Hypothesis Frame** again anywhere in your
+output. Do not add a summary sentence or transitional paragraph under this heading.
+Write **Containment & Decision Hygiene Conditions** as the immediate next heading.
 
 **Containment & Decision Hygiene Conditions**
 Identify the psychological and procedural conditions required for sound reflective
