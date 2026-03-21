@@ -10,6 +10,12 @@
   Counterfactual's scenario comparison function is absorbed into The Strongest
   Counter-Argument and Coverage-Induced Blind Spots sections. See counterfactual.md
   retirement note for rationale.]
+            [date — LAYER 1 entry and section body guards added for Whose
+  Perspective Is Absent. Run 19 Tier 2 review identified the heading firing
+  twice in a single output — the first instance covered primary absent
+  stakeholders, the second added aged care, ED, and First Nations workers.
+  Both sets of content are valid; the second instance is now prohibited.
+  All absent perspectives must be covered in the single instance.]
 
   PIPELINE POSITION: Runs after Surface Map, Epistemic Audit, META, and Reality
   Anchor. Receives: decision text, Director Governance Briefs, META-AUTHOR output,
@@ -31,6 +37,11 @@
     wording.
   - {DOMINANT_SIGNAL} — runtime placeholder replaced by the caller with the
     plurality Director signal before this file is sent to the API.
+  - **Whose Perspective Is Absent** — appears EXACTLY ONCE in the output. Do
+    not open a second instance with additional absent perspectives. Cover all
+    absent stakeholders, populations, and affected parties in a single instance.
+    SECTION CLOSED after this analysis — write **Where AI Limitation Is Most
+    Visible** next.
 
   DESIGN INTENT — STRUCTURED ADVERSARIAL ROLE: The Probe's function is
   adversarial — it challenges the Board's reasoning from a position of deliberate
@@ -187,7 +198,10 @@ consequences, or framings not surfaced by any Director. Specifically check:
 Name the specific populations, stakeholders, or affected parties whose
 perspectives are absent from the governance analysis — and what that absence
 means for the reliability of the dominant signal. Be specific to this decision,
-not generic.
+not generic. Cover all absent perspectives in this single instance.
+This section appears exactly once. Do not open a second instance with
+additional absent perspectives. SECTION CLOSED after this analysis — write
+**Where AI Limitation Is Most Visible** next.
 
 **Where AI Limitation Is Most Visible**
 Name the specific ways AI analysis is most likely to mislead on this particular
