@@ -28,6 +28,15 @@
   Limitations appeared twice in the same output. Fix adds single-instance
   instruction to LAYER 1 and section body. Both patterns match the
   Multi-Hypothesis Frame re-open failure mode in Sovereignty Director.]
+            [date — Key Trade-offs SECTION CLOSED moved to top of section body.
+  Run 24 Tier 3 review identified a clean second opening of the Key Trade-offs
+  heading after a full first block — not a "(continued)" label but the heading
+  firing again after sufficient output separated it from the first block. The
+  SECTION CLOSED marker was at the bottom of the section instruction; the model
+  generated the second opening before encountering it. Fix moves the single-
+  instance prohibition to the FIRST LINE of the section body, before the
+  analytical instruction, matching the Sovereignty Multi-Hypothesis Frame fix
+  pattern (Run 23). The constraint must be encountered before writing begins.]
 
   PIPELINE POSITION: Final synthesis stage — runs after Surface Map, Epistemic
   Audit, META, Reality Anchor, and conditionally Stress Test and Adversarial Probe.
@@ -40,12 +49,16 @@
   The following are matched by parseDashboard() and the PHDSS display components:
   - ## EXECUTIVE LAYER — section heading (note: double hash, not bold)
   - **Decision Framing** — bold section heading
-  - **Key Trade-offs** — bold section heading. Appears EXACTLY ONCE as a single
-    unbroken block. Do not repeat this section. Do not pause mid-section and
-    re-open the heading. Do not add "(continued)" or any label variant to this
-    heading. Cover all trade-offs (speed/safety, timeline/training,
-    standardisation/adaptation, cross-domain fragility convergence) in a single
-    instance. Do not open a second Key Trade-offs block later in the output.
+  - **Key Trade-offs** — bold section heading. Appears EXACTLY ONCE in the
+    entire output — not twice, regardless of how much content separates the
+    second opening from the first. Do not repeat this section under any
+    circumstances. Do not pause mid-section and re-open the heading. Do not
+    add "(continued)" or any label variant to this heading. Cover all trade-offs
+    (speed/safety, timeline/training, standardisation/adaptation, cross-domain
+    fragility convergence) in a single unbroken instance. Do not open a second
+    Key Trade-offs block later in the output — not after Decision Conditions,
+    not after Irreducible Uncertainties, not anywhere. The heading **Key
+    Trade-offs** must not appear a second time anywhere in your output.
     Do not introduce "The most consequential trade-off is..." as a standalone
     paragraph that reopens this section — all trade-off content belongs in the
     single named instance above.
@@ -254,17 +267,20 @@ artificial, or manufactured.
   ADDED: [date]
 -->
 **Key Trade-offs**
-Write this section exactly once as a single unbroken block. Do not pause
-mid-section and re-open this heading. Do not add "(continued)" or any label
-variant to this heading. Name the explicit governance trade-offs the
-recommendation must navigate. For each: what is gained, what is sacrificed,
-who bears the cost of the choice. This section is CLOSED once all named
-trade-offs are written — do not repeat it later in the output. All trade-offs
-belong here, including any "most consequential trade-off" framing. Do not open
-a second Key Trade-offs block after Decision Conditions or elsewhere. Name all
-trade-offs in this single instance and close the section.
+SINGLE INSTANCE ONLY — this heading must not appear again anywhere in your
+output. The heading **Key Trade-offs** is now open. Write all trade-offs in
+this single unbroken block and then close it. Do not open a second Key Trade-
+offs block anywhere in your output — not after Decision Conditions, not after
+any other section, not under any framing or label variant.
+
+Name the explicit governance trade-offs the recommendation must navigate. For
+each: what is gained, what is sacrificed, who bears the cost of the choice.
+All trade-offs belong here, including any "most consequential trade-off"
+framing. Do not pause mid-section and re-open this heading.
+
 SECTION CLOSED after the final named trade-off. The next heading must be
-**Decision Conditions** — write it immediately.
+**Decision Conditions** — write it immediately. Do not write **Key Trade-offs**
+again anywhere in your output after this point.
 
 <!--
   RATIONALE: Decision Conditions — Layer 1 section heading.
