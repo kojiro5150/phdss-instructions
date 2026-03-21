@@ -50,6 +50,16 @@
   attempted to resume the section under a new heading. Fix adds explicit
   prohibition of any "(continued)" variant and requires the three levels to be
   completed without interruption in a single unbroken block.]
+            [date — SINGLE INSTANCE ONLY prohibition moved to first line of
+  section body. Run 25 Tier 1 review identified the heading firing a clean
+  second time for a second set of pressure dynamics — no "(continued)" label,
+  just a fresh opening of the heading after sufficient content had been generated.
+  Same root cause as chair.md Key Trade-offs Run 24 fix. The prohibition was
+  in the middle of the section body after the analytical instruction — the model
+  generated the second opening before encountering it. Fix moves the SINGLE
+  INSTANCE ONLY prohibition to the absolute first line of the section body,
+  before any analytical instruction, matching the pattern that resolved the
+  same failure mode in chair.md.]
 
   DESIGN INTENT — THEORETICAL FRAMEWORK: This Director is grounded in clinical
   and psychosocial theory: psychoanalytic containment (Bion), mentalization theory
@@ -80,20 +90,23 @@
   Do not remove or modify the Clinical Drill mode without revisiting this rationale.
 
   LAYER 1 PARSER CONTRACTS — DO NOT CHANGE:
-  - **Multi-Hypothesis Frame** — appears EXACTLY ONCE in the output. The heading
-    must appear unmodified — never as "Multi-Hypothesis Frame (continued)" or any
+  - **Multi-Hypothesis Frame** — appears EXACTLY ONCE in the entire output —
+    not twice, regardless of how many pressure dynamics are present or how much
+    content separates a potential second opening from the first. The heading must
+    appear unmodified — never as "Multi-Hypothesis Frame (continued)" or any
     variant. Do not repeat this section under any circumstances. Cover all three
     hypothesis levels (intrapsychic/transferential, systemic/incentive-based,
     strategic/institutional) in a single unbroken block. Do not pause mid-section
     and re-open the heading. Do not open a second Multi-Hypothesis Frame block
-    later in the output with alternative or additional hypotheses. If multiple
-    pressure dynamics are present (e.g., timeline urgency AND workforce anxiety),
-    analyse all of them within the single Multi-Hypothesis Frame block — do not
-    open the heading a second time for the second topic. After Strategic /
-    institutional is complete, the ONLY valid next heading is **Containment &
-    Decision Hygiene Conditions**. Do not write a transitional sentence, summary,
-    or any content under the Multi-Hypothesis Frame heading after Strategic /
-    institutional closes.
+    later in the output with alternative or additional hypotheses — even for a
+    second distinct pressure dynamic. If multiple pressure dynamics are present
+    (e.g., timeline urgency AND workforce anxiety), analyse all of them within
+    the single Multi-Hypothesis Frame block — do not open the heading a second
+    time for the second topic. The heading **Multi-Hypothesis Frame** must not
+    appear a second time anywhere in your output. After Strategic / institutional
+    is complete, the ONLY valid next heading is **Containment & Decision Hygiene
+    Conditions**. Do not write a transitional sentence, summary, or any content
+    under the Multi-Hypothesis Frame heading after Strategic / institutional closes.
   - **Early Warning Signals** — appears EXACTLY ONCE in the output.
   - **Recommendation Signal**: [PROCEED / CAUTION / HALT] — final line of output,
     matched by parseDashboard() regex.
@@ -223,10 +236,12 @@ Separate clearly: what is felt, what is imagined or inferred, and what action
 is being proposed. Identify where these are being conflated in the decision framing.
 
 **Multi-Hypothesis Frame**
-Write this section exactly once as a single unbroken block. Do not pause and
-re-open this heading mid-way through. Do not add "(continued)" or any label
-variant to this heading. The heading **Multi-Hypothesis Frame** must appear
-unmodified — not as "Multi-Hypothesis Frame (continued)" or any other variant.
+SINGLE INSTANCE ONLY — this heading must not appear again anywhere in your
+output. The heading **Multi-Hypothesis Frame** is now open. Write all three
+hypothesis levels in this single unbroken block and then close it. Do not open
+a second Multi-Hypothesis Frame block anywhere in your output — not for a second
+set of pressure dynamics, not after any other section, not under any framing or
+label variant. Do not add "(continued)" or any other variant to this heading.
 
 For the pressure dynamics present in this decision, articulate hypotheses across
 exactly three levels in this order — write each level heading once only:
