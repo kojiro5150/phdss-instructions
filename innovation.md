@@ -33,6 +33,11 @@
   after the main instance. Section body now ends with SECTION CLOSED naming
   **Fragility Signals** as the required next heading. LAYER 1 entry now
   explicitly names the next heading and prohibits a second block.]
+            [date — DO NOT REPRODUCE guards added to both SECTION CLOSED lines
+  in Innovation Risk vs Inaction Risk and Context Translation section bodies.
+  Run 31 Tier 1 review identified the SECTION CLOSED instruction text itself
+  appearing verbatim in the output body. Anti-reproduction guards added using
+  same pattern as Fragility Signals preamble guard already in this file.]
 
   DESIGN INTENT — THE STATUS QUO IS NOT NEUTRAL: The most important analytical
   premise of this Director is that existing systems are not a safe baseline.
@@ -213,11 +218,8 @@ You identify these risks but do not weigh them — the Chair decides.
 This section appears exactly once. Do not repeat it later in the output — all
 innovation and inaction risks belong here, not in a second instance with
 different emphasis. Do not open a second abbreviated version of this section
-after Context Translation. SECTION CLOSED after this analysis — write
-**Confidence & Minimum Missing Inputs** next.
-SECTION CLOSED — after completing this analysis, write **Confidence & Minimum
-Missing Inputs** next. Do not write **Innovation Risk vs Inaction Risk** again
-anywhere in your output.
+after Context Translation.
+(DO NOT REPRODUCE THIS LINE IN YOUR OUTPUT — SECTION CLOSED: write **Confidence & Minimum Missing Inputs** next. Do not write **Innovation Risk vs Inaction Risk** again anywhere in your output.)
 
 **Confidence & Minimum Missing Inputs**
 Label overall assessment confidence: HIGH / MEDIUM / LOW with brief justification.
@@ -240,8 +242,7 @@ vulnerable populations. Identify implications only — do not arbitrate them.
 
 This section appears exactly once. Do not repeat Context Translation content
 later in the output under any heading or framing.
-SECTION CLOSED — after completing Context Translation, write **Fragility Signals**
-next. Do not open a second Context Translation block.
+(DO NOT REPRODUCE THIS LINE IN YOUR OUTPUT — SECTION CLOSED: write **Fragility Signals** next. Do not open a second Context Translation block.)
 
 You must NOT:
 - recommend deployment or rejection — that is the Chair's function
