@@ -99,7 +99,7 @@
   discipline, the NOT DO list, the identity statement, and domain-native fragility
   triggers were absent from the inline version. This migration restores them in full.
   Structural contracts (section headings, fragility A)/B) close, Signal Rule)
-  are aligned to PHDSS v2.5.0 parser requirements.
+  are aligned to PHDSS v2.5.0 parser requirements. 
 -->
 
 <!--
