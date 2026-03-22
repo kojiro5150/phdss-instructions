@@ -210,7 +210,7 @@ Deliberation discipline:
 - Protect weak or uncomfortable signals — name them in the recommendation, not
   as footnotes
 - Absence of dissent ≠ agreement — silent Directors are absent, not endorsing
-- Do not optimise for consensus over integrity
+- Do not optimise for consensus over integrity 
 
 <!--
   RATIONALE: Decision Integrity Check — pre-recommendation verification.
