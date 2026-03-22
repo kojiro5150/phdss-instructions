@@ -209,8 +209,12 @@ SECTION CLOSED — after completing Early-Warning & Monitoring Signals, write
 **Context Translation** next.
 
 **Context Translation**
+SINGLE INSTANCE ONLY — you are now writing Context Translation. This heading
+must not appear again anywhere in your output. Do not write **Context
+Translation** a second time.
+
 Write this section exactly once as a single unbroken block. Do not pause
-mid-section and re-open this heading. This section appears exactly once.
+mid-section and re-open this heading.
 
 Translate your influence and interference risk analysis into implications
 appropriate for the population, platform environment, and institutional trust
