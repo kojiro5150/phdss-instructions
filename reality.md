@@ -9,6 +9,11 @@
   review identified the section appearing twice with different content (operational
   metrics first, infrastructure verification conditions second). Both content
   types are now specified under a single heading with labelled sub-sections.]
+            [date — Downgrade conditions made explicitly mandatory in Falsification
+  Conditions section. Runs 33-35 Tier 2 review identified downgrade conditions
+  appearing intermittently while upgrade conditions were consistently strong.
+  The instruction now explicitly requires BOTH upgrade AND downgrade conditions
+  to be named — neither is optional.]
 
   PIPELINE POSITION: Stage 4 of the synthesis pipeline — runs after Surface Map,
   Epistemic Audit, and META. Receives: Director Governance Briefs, Decision Surface
@@ -41,6 +46,17 @@
   governance decision that cannot be falsified is not a governance decision;
   it is an assertion. Falsification conditions make the decision testable and
   create the review triggers that responsible governance requires.
+
+  FALSIFICATION CONDITIONS — BOTH DIRECTIONS REQUIRED: The section has an
+  obligation to name conditions in BOTH directions:
+  — Upgrade conditions: what verified finding would improve the feasibility
+    assessment and move the recommendation toward PROCEED?
+  — Downgrade conditions: what verified finding would worsen the feasibility
+    assessment and move the recommendation toward DEFER or DO NOT PROCEED?
+  Both are mandatory. An analysis that only names upgrade conditions is
+  incomplete — downgrade conditions are equally important to governance
+  integrity. Do not omit downgrade conditions even when the current signal
+  is already CAUTION or HALT.
 
   LAYER 1 PARSER CONTRACTS — DO NOT CHANGE:
   - **Falsification Conditions** — appears EXACTLY ONCE in the output. Do not
@@ -155,12 +171,21 @@ assumptions — frame as testable conditions with specific thresholds where poss
 - What safety or equity outcomes would show harm rather than benefit?
 - What behavioural responses would undermine the intervention logic?
 
-Assumptions that, if verified, would change the recommendation — baseline and
-infrastructure conditions whose current state is unknown but whose verification
-would materially alter the feasibility assessment:
-- What confirmed capability, baseline, or infrastructure finding would upgrade
-  the governance assessment?
-- What finding would downgrade it further?
+Assumptions that, if verified, would change the recommendation — name conditions
+in BOTH directions. Both upgrade and downgrade conditions are mandatory:
+
+*Upgrade conditions* — confirmed capability, baseline, or infrastructure findings
+that would improve the feasibility assessment and move the recommendation toward
+PROCEED or a stronger approval:
+- What verified finding would upgrade the governance assessment?
+
+*Downgrade conditions* — confirmed findings that would worsen the feasibility
+assessment and move the recommendation toward DEFER or DO NOT PROCEED:
+- What verified finding would further downgrade the governance assessment?
+
+Both upgrade and downgrade conditions must be named. An analysis that names
+only upgrade conditions is incomplete — downgrade conditions are equally
+important to governance integrity and must always be included.
 
 An analysis that cannot be falsified is not a governance decision — it is an
 unfalsifiable assertion. Every condition must be observable and testable.
