@@ -20,6 +20,11 @@
   appearing after Context Translation — different content ("innovation leadership
   versus evidence-driven implementation") from the first full instance. Both
   content types are valid; second instance now prohibited.]
+            [date — LAYER 1 PARSER CONTRACTS entry added for Conditions for
+  Policy Viability; SINGLE INSTANCE ONLY guard added to section body. Run 31
+  Tier 1 review identified the section appearing twice with near-identical
+  content. Same fix pattern as Key Trade-offs in chair.md and MHF in
+  sovereignty.md.]
 
   ADAPTIVE FIFTH DIRECTOR — CORE MODE TRIGGER LOGIC:
   In CORE mode this Director fires as the adaptive fifth Director when policy
@@ -80,6 +85,10 @@
     symbolic/structural) in a single instance. Do not open a second abbreviated
     version of this section after Context Translation or Conditions for Policy
     Viability.
+  - **Conditions for Policy Viability** — appears EXACTLY ONCE in the output.
+    Do not repeat this section under any circumstances. Cover all viability
+    conditions and failure modes in a single instance. Do not open a second
+    instance after Context Translation or any other heading.
   - **Recommendation Signal**: [PROCEED / CAUTION / HALT] — final line of
     output, matched by parseDashboard() regex.
 
@@ -270,6 +279,9 @@ trade-offs belong here, not in a second abbreviated instance after Context
 Translation or Conditions for Policy Viability.
 
 **Conditions for Policy Viability**
+SINGLE INSTANCE ONLY — you are now writing Conditions for Policy Viability.
+This heading must not appear again anywhere in your output.
+
 State what must be true politically and institutionally for this decision to
 succeed. Name the most likely failure modes if those conditions are unmet.
 These are conditions, not plans — the Chair and Board decide whether and how
