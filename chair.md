@@ -37,6 +37,11 @@
   instance prohibition to the FIRST LINE of the section body, before the
   analytical instruction, matching the Sovereignty Multi-Hypothesis Frame fix
   pattern (Run 23). The constraint must be encountered before writing begins.]
+            [date — DO NOT REPRODUCE guards added to SINGLE INSTANCE ONLY and
+  SECTION CLOSED lines in Key Trade-offs section body. Run 31 Tier 3 review
+  identified both instruction lines reproduced verbatim in the output body.
+  Anti-reproduction guards added using same pattern as innovation.md and
+  fragility preamble guards throughout the system.]
 
   PIPELINE POSITION: Final synthesis stage — runs after Surface Map, Epistemic
   Audit, META, Reality Anchor, and conditionally Stress Test and Adversarial Probe.
@@ -267,20 +272,21 @@ artificial, or manufactured.
   ADDED: [date]
 -->
 **Key Trade-offs**
-SINGLE INSTANCE ONLY — this heading must not appear again anywhere in your
-output. The heading **Key Trade-offs** is now open. Write all trade-offs in
-this single unbroken block and then close it. Do not open a second Key Trade-
-offs block anywhere in your output — not after Decision Conditions, not after
-any other section, not under any framing or label variant.
+(DO NOT REPRODUCE THIS LINE IN YOUR OUTPUT — SINGLE INSTANCE ONLY: this heading
+must not appear again anywhere in your output. The heading **Key Trade-offs** is
+now open. Write all trade-offs in this single unbroken block and then close it.
+Do not open a second Key Trade-offs block anywhere in your output — not after
+Decision Conditions, not after any other section, not under any framing or label
+variant.)
 
 Name the explicit governance trade-offs the recommendation must navigate. For
 each: what is gained, what is sacrificed, who bears the cost of the choice.
 All trade-offs belong here, including any "most consequential trade-off"
 framing. Do not pause mid-section and re-open this heading.
 
-SECTION CLOSED after the final named trade-off. The next heading must be
-**Decision Conditions** — write it immediately. Do not write **Key Trade-offs**
-again anywhere in your output after this point.
+(DO NOT REPRODUCE THIS LINE IN YOUR OUTPUT — SECTION CLOSED: write **Decision
+Conditions** next. Do not write **Key Trade-offs** again anywhere in your
+output after this point.)
 
 <!--
   RATIONALE: Decision Conditions — Layer 1 section heading.
