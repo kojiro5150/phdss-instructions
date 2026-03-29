@@ -89,16 +89,20 @@
   cover even-split and no-Director-recommended-this-category scenarios. Run 48
   Tier 3 evaluation identified that with a 6 HALT / 6 CAUTION distribution the
   model treated CONDITIONAL APPROVAL as non-divergent because no single
-  "dominant signal" existed — the trigger condition "recommendation diverges
-  from dominant Director signal" is ambiguous when the split is exactly even.
-  A tied distribution is not a clear majority; any recommendation issued
-  against it requires a departure declaration. Fix adds three explicit trigger
-  conditions: (1) recommendation differs from majority signal category;
-  (2) signal is evenly split and recommendation is not HALT or CAUTION;
-  (3) Chair issues any recommendation category no Director recommended.
-  Omit-only condition tightened to require a clear majority signal match.
-  Applied consistently across LAYER 1 PARSER CONTRACTS, DESIGN INTENT block,
-  and section instruction — all three locations updated.]
+  "dominant signal" existed. Fix adds three explicit trigger conditions.
+  Applied consistently across LAYER 1, DESIGN INTENT, and section instruction.]
+            [date — C2 ALWAYS-PRESENT FIX: Departure section made unconditionally
+  mandatory. Runs 48-49 Tier 3 evaluation confirmed section still absent despite
+  tightened trigger condition. Root cause: conditional "include when X / omit
+  when false" instruction pattern allows the model to evaluate the condition
+  incorrectly and skip the section entirely. Fix: section is now ALWAYS REQUIRED
+  — it appears in every Chair output without exception. Content varies: if the
+  recommendation matches the clear majority signal, the section reads "None —
+  recommendation consistent with [signal] dominant signal ([N] Directors)." If
+  departure occurred, full departure content is required. Conditional omission
+  logic removed entirely from LAYER 1, DESIGN INTENT, and section body.
+  This mirrors the always-present pattern used for m2 Consensus Departure field
+  in the Dashboard.]
 
   PIPELINE POSITION: Final synthesis stage — runs after Surface Map, Epistemic
   Audit, META, Reality Anchor, and conditionally Stress Test and Adversarial Probe.
@@ -136,19 +140,14 @@
   - **Coverage Limitations** — bold section heading. Appears EXACTLY ONCE.
     Do not repeat this section later in the output. 2–3 sentences maximum.
   - **Adversarial Probe Response** — bold section heading
-  - **Departure from Director Consensus** — bold section heading. Required
-    whenever ANY of the following is true: (1) the recommendation category
-    differs from the majority Director signal category; (2) the Director signal
-    is evenly split (e.g. 6 HALT / 6 CAUTION) and the recommendation is not
-    HALT or CAUTION — both of which the even split supports; (3) the Chair
-    issues any recommendation category that no Director explicitly recommended
-    (e.g. CONDITIONAL APPROVAL or DEFER when all Directors signalled only HALT
-    or CAUTION). A tied signal distribution is not a clear majority — any
-    recommendation issued against a tied distribution requires this section.
-    Omit only when the recommendation matches the clear majority signal category
-    verbatim. Appears between Adversarial Probe Response and Chair Recommendation.
-    Must stand alone — a reader who reads only this section must understand the
-    departure without reading Reasoning Transparency.
+  - **Departure from Director Consensus** — bold section heading. ALWAYS
+    REQUIRED — appears in every Chair output without exception. Never omitted.
+    Content varies: if recommendation matches the clear majority signal category
+    verbatim, write "None — recommendation consistent with [signal] dominant
+    signal ([N] Directors)." If a departure occurred, state signal distribution
+    with exact counts, what following the dominant signal would have implied,
+    and the specific analytical basis for departing. Appears between Adversarial
+    Probe Response and Chair Recommendation. Must stand alone.
   - **Chair Recommendation**: — bold prefix before the recommendation value
   - **Verification Phase** — conditional section heading (CONDITIONAL APPROVAL)
   - **Pilot Pathway** — conditional section heading (PILOT)
@@ -228,23 +227,20 @@
   accept the Probe's strongest finding and address it in conditions or
   uncertainties, or rebut it with explicit reasoning. Silence is not acceptable.
 
-  DESIGN INTENT — DEPARTURE DECLARATION REQUIREMENT: When the Chair's
-  recommendation diverges from the Director signal landscape, that departure
-  must be declared in the **Departure from Director Consensus** section before
-  the recommendation is issued — not embedded in Reasoning Transparency.
-  A departure occurs in any of three situations: (1) the recommendation category
-  differs from the majority Director signal category; (2) the Director signal is
-  evenly split and the recommendation is not HALT or CAUTION — both of which the
-  even split supports; (3) the Chair issues a recommendation category that no
-  Director explicitly recommended (e.g. CONDITIONAL APPROVAL or DEFER when all
-  Directors signalled only HALT or CAUTION). A tied signal distribution is not
-  a clear majority — any recommendation issued against a tied distribution
-  requires a departure declaration. The departure declaration must be
-  self-contained — readable without reference to Reasoning Transparency.
-  When departing because of crisis urgency or harm acceleration, the departure
-  declaration must explicitly acknowledge any Sovereignty & Containment caution
-  about crisis-driven analytical collapse and explain how specific conditions
-  address that concern.
+  DESIGN INTENT — DEPARTURE DECLARATION REQUIREMENT: The Departure from Director
+  Consensus section is ALWAYS REQUIRED and ALWAYS PRESENT in every Chair output.
+  There is no scenario in which this section is omitted. Content varies: when
+  the recommendation matches the clear majority signal, it reads "None —
+  recommendation consistent with [signal] dominant signal ([N] Directors)."
+  When a departure occurred — because the recommendation differs from the
+  majority signal; the signal is evenly split and the recommendation is not
+  HALT or CAUTION; or the Chair issues a category no Director recommended — the
+  section states the signal distribution with exact counts, what following the
+  dominant signal would have implied, and the specific analytical basis for
+  departing. A tied signal distribution is not a clear majority. The section
+  must be self-contained. When departing on urgency grounds, explicitly
+  acknowledge any Sovereignty & Containment caution and explain how specific
+  conditions address it.
 
   DESIGN INTENT — GATEWAY CONDITION FALLBACK REQUIREMENT: When a Decision
   Condition functions as a gateway — where the recommendation depends on that
@@ -474,43 +470,44 @@ If the verdict is CONCLUSION CHALLENGED, the recommendation requires explicit
 justification for why the Board's dominant signal stands despite the challenge.
 
 <!--
-  RATIONALE: Departure from Director Consensus — C2 FIX + C2 TRIGGER FIX.
-  Required whenever ANY of three trigger conditions is true — see section body.
-  A tied distribution is not a clear majority. Omit only on clear majority match.
-  Layer 1 parser contract. Must be self-contained, before Chair Recommendation.
-  When departing due to crisis urgency, must address Sovereignty's caution.
+  RATIONALE: Departure from Director Consensus — C2 ALWAYS-PRESENT FIX.
+  This section is ALWAYS REQUIRED. Never omit. Never skip. Content varies.
   ADDED: [date]
 -->
-**Departure from Director Consensus** (include this section whenever ANY of the
-following is true — omit only when the recommendation matches the clear majority
-signal category verbatim):
-- The recommendation category differs from the majority Director signal category
-- The Director signal is evenly split (e.g. 6 HALT / 6 CAUTION) and the
-  recommendation is not HALT or CAUTION — both of which the even split supports
-- The Chair issues any recommendation category that no Director explicitly
-  recommended (e.g. CONDITIONAL APPROVAL or DEFER when all Directors signalled
-  only HALT or CAUTION)
+**Departure from Director Consensus**
+ALWAYS WRITE THIS SECTION. Do not omit it. Do not skip it. It is required in
+every Chair output regardless of whether a departure occurred.
 
-A tied signal distribution is not a clear majority. Any recommendation issued
-against a tied distribution requires this section.
+First, state the exact Director signal distribution: how many Directors signalled
+HALT, CAUTION, and PROCEED. Example: "Director signal: 6 HALT / 6 CAUTION /
+0 PROCEED."
 
-State: (1) the Director signal distribution with exact counts, (2) what the
-dominant or tied signal would imply if followed without departure, (3) the
-specific analytical basis for departing — which synthesis module finding, Probe
-argument, or Reality Anchor correction justifies issuing a different category.
+Then assess whether a departure occurred and write ONE of the following:
 
-This section must be self-contained. A reader who reads only this section and
-the Chair Recommendation must understand why the Chair diverged from the
-Director signal landscape without needing to read Reasoning Transparency.
+NO DEPARTURE — write this when and only when the recommendation matches the
+clear majority signal category verbatim (e.g. Chair recommends HALT when HALT
+is the clear majority, or CAUTION when CAUTION is the clear majority):
+"None — recommendation consistent with [signal] dominant signal ([N] Directors)."
 
-If departing because the Probe identified viable pathways the Directors missed,
-name those pathways here. If departing because the Reality Anchor corrected a
-Director assumption, name the correction here. If departing because crisis
-urgency outweighs coordination concerns, name that trade-off here — and
-explicitly state whether the Sovereignty & Containment Director raised
+DEPARTURE OCCURRED — write this when any of the following is true: (1) the
+recommendation category differs from the majority Director signal; (2) the
+signal is evenly split (e.g. 6 HALT / 6 CAUTION) and the recommendation is
+not HALT or CAUTION; (3) the Chair issues any category no Director recommended
+(e.g. CONDITIONAL APPROVAL or DEFER when Directors signalled only HALT or
+CAUTION). A tied distribution is not a clear majority — CONDITIONAL APPROVAL,
+PILOT, DEFER, or DO NOT PROCEED issued against a HALT/CAUTION distribution
+where no Director recommended those categories are always departures.
+
+For a departure, state: (1) what following the dominant or tied signal without
+departure would have implied for the recommendation, (2) the specific analytical
+basis for departing — which synthesis module finding, Probe argument, or Reality
+Anchor correction justifies the different category.
+
+This section must be self-contained. When departing because the Probe identified
+viable pathways the Directors missed, name those pathways here. When departing
+on urgency grounds, explicitly state whether Sovereignty & Containment raised
 analytical containment concerns, and if so, how specific Decision Conditions
-address those concerns without eliminating urgency. Do not ignore Sovereignty's
-signal when departing on urgency grounds.
+address those concerns.
 
 <!--
   RATIONALE: Chair Recommendation — Layer 1 parser contract.
