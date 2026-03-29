@@ -6,6 +6,15 @@
   Changed:  [date — Mandatory Director status note updated: Counterfactual &
   Scenario Analysis retired from mandatory set. Safety, Quality & Harm now
   mandatory alongside Systems & Dynamics only. SIGNAL COMPLIANCE NOTE added.]
+            [date — m4 FIX: Fragility signal prioritisation requirement added.
+  Housing and Iran run Tier 1 reviews identified that Fragility Signals sections
+  across multiple Directors produced comprehensive signal lists without specifying
+  which signals are most diagnostically valuable — leaving the Chair without
+  guidance on which fragility risks to monitor most closely. Fix adds instruction
+  to Fragility Signals: when more than five fragility signals are identified,
+  rank the top three by proximity to failure — the signals most likely to
+  indicate imminent safety system breakdown — and specify the observable threshold
+  in each that would trigger mandatory escalation or strategic review.]
 
   MANDATORY DIRECTOR STATUS: This Director is always active regardless of governance
   mode (CORE / FULL / CHAIR_SPECIFIED). It is one of two mandatory Directors in
@@ -156,6 +165,14 @@ explicitly assess where:
 - assurance mechanisms substitute for real-world reliability
 - safety depends on consistent human behaviour under stress
 - early warning signals are likely to be delayed, suppressed, or normalised
+
+When more than five fragility signals are identified, rank the top three by
+proximity to failure — the signals most likely to indicate imminent safety
+system breakdown in this specific context. For each of the top three, specify
+the observable threshold that would trigger mandatory escalation or immediate
+review. Format: "Signal: [name]. Threshold: [specific observable condition that
+triggers escalation]." Do not apply this threshold requirement to all signals —
+only the top three ranked by proximity to failure.
 
 Do not propose solutions, mitigation strategies, or new interventions.
 Do not speculate about intent or individual psychology.
