@@ -4,6 +4,21 @@
   Schema: PHDSS v2.5.0
   Created: [date]
   Changed: [date — reason — previous version summary]
+            [date — I7 FIX: Option Space section added to FULL MODE OUTPUT
+  STRUCTURE. Housing and Iran run Tier 2 reviews identified that the Decision
+  Surface Map was operating as a signal aggregation and categorisation tool
+  rather than a genuine navigation tool for the Chair. Directors and their
+  convergence clusters were mapped, but the viable strategic postures available
+  to the Chair were not — leaving the Chair to infer the option space from the
+  landscape description rather than receiving an explicit map of it.
+  Fix adds a required Option Space section to FULL MODE OUTPUT STRUCTURE between
+  Fragility Hotspots and Cross-Domain Convergence. The section specifies the
+  viable strategic postures available to the Chair and locates each one relative
+  to the Director convergence and conflict zones. No recommendations — the section
+  identifies which conditions would need to be true for each posture to be
+  defensible, not which posture is preferred. Omitted from ABBREVIATED STRUCTURE
+  as partial director sets do not provide sufficient signal coverage for reliable
+  option space mapping.]
 
   PIPELINE POSITION: Stage 2 of the synthesis pipeline — runs immediately after
   Director analysis and compression, before META, Reality Anchor, Adversarial
@@ -40,7 +55,9 @@
   advocating for any pathway. The Dominant Signal is a descriptive output (what
   the director signals collectively say) not a prescriptive one (what should happen).
   The Chair decides. Editing that adds recommendation language to any section
-  of this module violates its core design.
+  of this module violates its core design. The Option Space section added in the
+  I7 fix is explicitly conditional — it identifies what would need to be true for
+  each posture to be defensible, not which posture should be chosen.
 
   DESIGN INTENT — FULL vs NON-FULL MODE STRUCTURES: This module has two distinct
   output structures depending on analysis mode. FULL mode (14 directors) produces
@@ -56,6 +73,18 @@
   automatically. Writing about fragility in the Fragility Hotspots section using
   this language is correct and intentional — it is the governance mechanism by
   which high-tension decisions automatically receive additional scrutiny.
+
+  DESIGN INTENT — OPTION SPACE MAPPING (I7): The Option Space section exists
+  because signal aggregation is not the same as navigation. A Chair who receives
+  a well-described landscape still needs to know what postures are available in
+  that landscape and where each one sits relative to the Director signals. The
+  section maps viable strategic postures (e.g. full implementation, conditional
+  approval with gateway conditions, emergency provision through existing authority,
+  phased implementation, defer pending evidence, do not proceed) and specifies
+  which Director convergence clusters support or constrain each one. It is
+  explicitly conditional — not "choose X" but "X becomes defensible when Y."
+  This preserves the no-recommendation mandate while giving the Chair genuine
+  navigational information.
 
   ORIGIN NOTE: This file was migrated from two sources:
   1. PHDSS inline surfaceMapperSystem() function (primary) — provided the full
@@ -230,6 +259,32 @@ what you gain on one side, what you sacrifice on the other.
 Where the decision is most exposed — conditions or assumptions whose failure
 would most change the governance landscape. Use specific language: name where
 significant fragility, high tension, or highly contested conditions exist.
+
+**Option Space**
+Map the viable strategic postures available to the Chair given this landscape.
+For each posture, state: (1) what it would involve at a governance level, and
+(2) which Director convergence clusters support or constrain it. Frame each
+posture conditionally — "this posture becomes defensible when [condition]" —
+not as a recommendation.
+
+Postures to consider (use those relevant to this decision; add decision-specific
+postures where the Director analysis warrants them):
+- Full implementation / PROCEED — what would need to be true across the
+  Director signal landscape for this to be defensible
+- Conditional approval with gateway conditions — which convergence clusters
+  support a conditioned approach and what the gateway conditions would address
+- Modified or phased implementation — whether Director signals support a
+  narrower or staged version that resolves key fragility hotspots
+- Emergency or existing-authority pathway — whether Director signals identify
+  existing mechanisms that bypass identified coordination constraints
+- Defer pending evidence or infrastructure — which evidence or governance
+  gaps would need to close for this to convert to a proceed posture
+- Do not proceed / HALT — which Director signals, if accurate, make any
+  implementation currently indefensible
+
+Do not rank postures. Do not advocate for any posture. Name which postures
+the Director convergence clusters most directly constrain or enable, and what
+the load-bearing conditions are for each.
 
 **Cross-Domain Convergence**
 Which findings appear across multiple unrelated domains — these are the most
