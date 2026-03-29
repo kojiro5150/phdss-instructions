@@ -24,6 +24,20 @@
   feasibility, flag the absence of comparative precedent evidence as a primary
   gap — not a secondary note — and specify what question that evidence would
   need to answer to ground the reform feasibility claim.]
+            [date — I6 LABEL FIX: PRIMARY EPISTEMIC GAP label made mandatory
+  with exact text and placement requirement. Run 52 Tier 2 evaluation identified
+  that the model correctly identifies the comparative evidence gap and positions
+  it as item 1 in a numbered list under "Cross-cutting gaps" — but does not
+  apply the required PRIMARY EPISTEMIC GAP label. The gap appears as "1.
+  Comparative federalism evidence: ..." rather than as a standalone labelled
+  primary gap. Root cause: the instruction specified the gap must be flagged
+  "as a PRIMARY epistemic gap (not a secondary note)" but did not specify the
+  exact label text or require it to appear as a standalone entry before the
+  numbered list. Fix: adds mandatory label text "PRIMARY EPISTEMIC GAP —"
+  that must appear verbatim, specifies it must precede the numbered list as a
+  standalone entry, and prohibits embedding it as a numbered list item. The
+  label text is parser-matched by the Tier 2 evaluation and must appear exactly
+  as specified.]
 
   PIPELINE POSITION: Stage 2 of the synthesis pipeline — runs in parallel with
   Surface Map after Director analysis and compression. Receives: Director
@@ -213,6 +227,9 @@ constraints as definitively preventing outcomes without testing feasibility).
 <!--
   RATIONALE: Epistemic Gaps — Layer 1 section heading with two sub-analyses.
   I6 FIX: Comparative evidence gap elevation requirement added.
+  I6 LABEL FIX: PRIMARY EPISTEMIC GAP label made mandatory with exact text
+  and placement. The label must appear as a standalone entry before any
+  numbered list — not embedded as item 1 within the list.
   ADDED: [date]
 -->
 **Epistemic Gaps**
@@ -224,19 +241,37 @@ Identify two categories of epistemic gap:
    present Director can supply regardless of analytical depth (baseline data
    absent, validation evidence missing, population subgroup data unavailable).
 
-Comparative evidence gap — primary gap flag: When Directors recommend structural
-reforms — particularly governance architecture redesign, coordination mechanism
-creation, or multi-jurisdictional policy reform — flag as a PRIMARY epistemic
-gap (not a secondary note) if no Director has examined whether comparable
-systems have achieved analogous reforms. State explicitly: (a) what comparative
-question the evidence would need to answer (e.g. "Has any federal system with
-constitutional division of powers comparable to Australia achieved sustained
-multi-jurisdictional housing policy coordination without single-point override
-authority?"), and (b) how the absence of this evidence affects the confidence
-rating of every Director whose reform recommendations depend on feasibility
-assumptions that comparative evidence would ground or refute. Do not treat the
-absence of comparative evidence as merely an academic gap — it is an evidential
-gap that directly affects the defensibility of reform feasibility claims.
+Comparative evidence gap — mandatory label and placement: When Directors
+recommend structural reforms that depend on coordination or governance feasibility
+claims not tested against comparable precedents, you MUST write the following
+label as a standalone entry, exactly as shown, before the numbered cross-cutting
+gaps list:
+
+"PRIMARY EPISTEMIC GAP — Comparative evidence: [specific comparative question
+the evidence would need to answer]. This gap affects the confidence rating of
+every Director whose reform recommendations depend on feasibility assumptions
+that comparative evidence would ground or refute."
+
+The label text "PRIMARY EPISTEMIC GAP —" must appear verbatim. Do not embed
+this finding as item 1 in the numbered list. Do not write it as a sub-bullet.
+Write it as a standalone paragraph before the numbered list, so it is visually
+distinct and immediately identifiable as the primary gap.
+
+Example of correct format:
+PRIMARY EPISTEMIC GAP — Comparative evidence: No Director has examined whether
+federal systems with comparable constitutional divisions of power have achieved
+sustained multi-jurisdictional housing policy coordination without constitutional
+change. This gap affects the confidence rating of every Director whose reform
+recommendations depend on feasibility assumptions about coordination mechanisms
+or intergovernmental compacts.
+
+Cross-cutting gaps:
+1. [Additional gap...]
+2. [Additional gap...]
+
+Do not treat the absence of comparative evidence as merely an academic gap —
+it is an evidential gap that directly affects the defensibility of reform
+feasibility claims.
 
 <!--
   RATIONALE: Coverage Impact on Epistemic Quality — Layer 1 section heading.
