@@ -25,6 +25,14 @@
   (both Run 22). Fix adds explicit single-unbroken-block instruction to LAYER 1
   and section body, and names High-Leverage Mechanism Categories as the only
   valid next heading once COM-B analysis is complete.]
+            [date — m4 FIX: Early warning indicator prioritisation requirement
+  added. Housing and Iran run Tier 1 reviews identified that Early Warning &
+  Measurement sections produced comprehensive indicator lists without specifying
+  which indicators are most diagnostically valuable — leaving the Chair without
+  guidance on which signals to monitor most closely. Fix adds instruction: when
+  more than five early warning indicators are identified, rank the top three by
+  diagnostic value and specify the observable threshold in each that would
+  trigger mandatory strategic review.]
 
   ADAPTIVE FIFTH DIRECTOR — CORE MODE TRIGGER LOGIC:
   In CORE mode this Director fires as the adaptive fifth Director when neither
@@ -242,6 +250,14 @@ Identify 5–10 specific signals that adoption or safety is degrading:
 adoption decay rates, workaround proliferation, rising risk indicators,
 equity drift, and fatigue and burnout indicators.
 Be specific — name the signal and what it would look like in this context.
+
+When more than five indicators are identified, rank the top three by diagnostic
+value — the indicators most likely to detect implementation failure earliest
+and most reliably in this specific context. For each of the top three, specify
+the observable threshold that would trigger mandatory escalation or strategic
+review. Format: "Signal: [name]. Threshold: [specific observable condition that
+triggers review]." Do not apply this threshold requirement to all indicators —
+only the top three ranked by diagnostic value.
 
 **Ethics & Equity Flags**
 Identify where burden or coercion risk could emerge from the implementation design.
