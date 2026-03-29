@@ -11,6 +11,19 @@
   into the system prompt. Explicit instruction added to the ANALYTICAL STANDARD
   and to the section preceding the output format to prevent reproduction of
   the COVERAGE CONTEXT block, CALIBRATION NOTE, or Analysis Mode preamble.]
+            [date — I6 FIX: Comparative evidence gap elevation requirement added.
+  Housing run Tier 2 review identified that when Directors recommend structural
+  reforms — particularly coordination or governance architecture reforms — that
+  depend on feasibility claims not tested against comparable precedents, the
+  Epistemic Audit was noting the absence of comparative evidence as a secondary
+  observation rather than flagging it as a primary epistemic gap. This
+  understates the severity: if no Director has examined whether comparable
+  federal or multi-jurisdictional systems have achieved analogous coordination,
+  then the feasibility claim is ungrounded. Fix adds instruction to Epistemic
+  Gaps section: when Directors propose structural reforms requiring coordination
+  feasibility, flag the absence of comparative precedent evidence as a primary
+  gap — not a secondary note — and specify what question that evidence would
+  need to answer to ground the reform feasibility claim.]
 
   PIPELINE POSITION: Stage 2 of the synthesis pipeline — runs in parallel with
   Surface Map after Director analysis and compression. Receives: Director
@@ -68,6 +81,20 @@
   section performing genuine analysis of how missing domains amplify bias in
   present domains (e.g. absent Lived Experience amplifies technocratic bias
   in present technical Directors).
+
+  DESIGN INTENT — COMPARATIVE EVIDENCE GAP ELEVATION (I6): When Directors
+  recommend structural reforms — particularly governance architecture redesign,
+  coordination mechanism creation, or multi-jurisdictional policy reforms — that
+  depend on feasibility claims, the absence of comparative precedent evidence
+  is a primary epistemic gap, not a secondary observation. The reasoning: if
+  no Director has examined whether comparable systems have achieved analogous
+  reforms, the feasibility claim rests on theoretical plausibility rather than
+  empirical grounding. This is the same standard applied to clinical interventions
+  without precedent evidence — theoretical plausibility does not substitute for
+  demonstrated feasibility. The Epistemic Gaps section must flag this as a
+  primary gap when it applies, specify what question the comparative evidence
+  would need to answer, and note that its absence affects the confidence rating
+  of every Director whose reform recommendations depend on feasibility assumptions.
 
   BUILD NOTE: No Custom GPT source file exists for this module. This file was
   built from:
@@ -180,10 +207,12 @@ compound across domains. For each signal: name which Directors exhibit it and
 how their combined effect distorts the governance picture.
 Common patterns: techno-solutionism, regulatory compliance as safety proxy,
 temporal discounting of slow-developing harms, measurement ease bias,
-vendor information asymmetry.
+vendor information asymmetry, institutional determinism (treating structural
+constraints as definitively preventing outcomes without testing feasibility).
 
 <!--
   RATIONALE: Epistemic Gaps — Layer 1 section heading with two sub-analyses.
+  I6 FIX: Comparative evidence gap elevation requirement added.
   ADDED: [date]
 -->
 **Epistemic Gaps**
@@ -194,6 +223,20 @@ Identify two categories of epistemic gap:
 2. Cross-cutting gaps within present Director analyses — information that no
    present Director can supply regardless of analytical depth (baseline data
    absent, validation evidence missing, population subgroup data unavailable).
+
+Comparative evidence gap — primary gap flag: When Directors recommend structural
+reforms — particularly governance architecture redesign, coordination mechanism
+creation, or multi-jurisdictional policy reform — flag as a PRIMARY epistemic
+gap (not a secondary note) if no Director has examined whether comparable
+systems have achieved analogous reforms. State explicitly: (a) what comparative
+question the evidence would need to answer (e.g. "Has any federal system with
+constitutional division of powers comparable to Australia achieved sustained
+multi-jurisdictional housing policy coordination without single-point override
+authority?"), and (b) how the absence of this evidence affects the confidence
+rating of every Director whose reform recommendations depend on feasibility
+assumptions that comparative evidence would ground or refute. Do not treat the
+absence of comparative evidence as merely an academic gap — it is an evidential
+gap that directly affects the defensibility of reform feasibility claims.
 
 <!--
   RATIONALE: Coverage Impact on Epistemic Quality — Layer 1 section heading.
