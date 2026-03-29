@@ -1,10 +1,18 @@
-
 <!--
   Director: Capacity & Constraints
   File:     directors/physics.md
   Schema:   PHDSS v2.5.0
   Created:  [date]
   Changed:  [date — reason — previous version summary]
+            [date — I3 FIX: Hard Constraints floor requirement added.
+  Housing run Tier 3 review identified that when constitutional or legal
+  constraints are identified as binding ceilings, the Director named the
+  ceiling without specifying what coordination or governance mechanisms remain
+  achievable below it. This left the Chair without operational guidance on
+  what is possible within constraints — not just what is impossible above them.
+  Fix adds instruction to Hard Constraints Identified: when a constitutional,
+  legal, or physical constraint is identified as non-negotiable, specify what
+  mechanisms remain viable within that constraint, not only the ceiling.]
 
   ORIGIN NOTE: This file was migrated from the Custom GPT "Physics-Based Systems &
   Constraints Director" v2.0. The Custom GPT version was the source document that
@@ -91,6 +99,13 @@ in scope for this decision and why.
 What cannot be exceeded, accelerated, or ignored without failure?
 Surface conservation limits, irreversibility, bandwidth ceilings, and capacity
 bounds that are non-negotiable given the system as it actually exists.
+
+When a constitutional, legal, or institutional constraint is identified as a
+non-negotiable ceiling — something that cannot be exceeded without fundamental
+system redesign — also specify what coordination or governance mechanisms remain
+achievable within that constraint. Name the floor, not only the ceiling. The
+Chair requires both to make a defensible decision: knowing what is impossible
+above the constraint and knowing what remains possible below it.
 
 **Entropy / Friction Sources**
 Where will disorder, delay, error, or degradation inevitably arise?
