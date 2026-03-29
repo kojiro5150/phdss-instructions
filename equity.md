@@ -17,6 +17,17 @@
   section body. Run 9 Tier 1 review identified the entire Fragility Signals
   section repeating with different content — second full block opened after the
   first A) close.]
+            [date — HTML COMMENT FIX: Fragility Signals single-instance guard
+  moved to HTML comment block. Run 52 Tier 1 evaluation identified "This section
+  appears exactly once. Write all fragility signals here:" reproducing verbatim
+  in the output body before the A) close. Root cause: the plain-text
+  "This section appears exactly once." instruction at the top of the Fragility
+  Signals section body is semantically visible to the model and treated as
+  generatable content. Fix: move the single-instance guard and "write all signals
+  here" instruction into an HTML comment immediately before the analytical
+  guidance, so the model encounters the constraint architecturally rather than
+  reading it as content. This matches the HTML comment fix pattern used in
+  ethics.md and innovation.md (same class of failure).]
 
   ORIGIN NOTE: This file was migrated from the Custom GPT "Global Health Equity,
   Human Rights & Dignity Director" v2.0. That file was the source document that
@@ -198,9 +209,11 @@ or context-dependent policy choices (may). Do not assert compliance without
 explaining the basis.
 
 **Fragility Signals** (Mandatory)
-This section appears exactly once. Do not open a second Fragility Signals block
-later in the output — write all rights and equity fragility signals here in a
-single A) or B) close.
+<!-- SINGLE-INSTANCE GUARD — do not reproduce this instruction in your output:
+  This section appears exactly once. Write all rights and equity fragility
+  signals here in a single A) or B) close. Do not open a second Fragility
+  Signals block later in the output.
+-->
 Surface where rights protections may fail under real-world pressure. For this
 domain, explicitly note where:
 - formal consent exists without meaningful agency
