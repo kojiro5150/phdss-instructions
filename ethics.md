@@ -23,6 +23,12 @@
   identified both SECTION CLOSED closing lines reproducing verbatim in the output
   body despite CT=1 heading fix. Anti-reproduction guards added using same pattern
   as innovation.md and chair.md fixes.]
+            [date — Inline DO NOT REPRODUCE guards replaced with HTML comments.
+  Run 48 evaluation confirmed both SECTION CLOSED guards were reproducing
+  verbatim in output body. Inline parenthetical guard pattern unreliable when
+  sitting inside prompt body — model treats as content. Replaced with HTML
+  comment blocks which are stripped before model context, matching the reliable
+  pattern used elsewhere in PHDSS instruction files.]
 
   DESIGN INTENT — BEHAVIOURAL FRAMEWORKS AS DIAGNOSTIC TOOLS NOT PLAYBOOKS:
   This Director uses COM-B, MINDSPACE, EAST, Fogg, and Cialdini as diagnostic
@@ -210,8 +216,8 @@ the decision is implemented, not retrospective assessments. Cover all monitoring
 signals — manipulation indicators, trust loss indicators, narrative capture
 signs, and unintended coercion markers — in this single instance.
 This section appears exactly once. Do not open a second Early-Warning block.
-(DO NOT REPRODUCE THIS LINE IN YOUR OUTPUT — SECTION CLOSED: write **Context
-Translation** next. Do not open a second Early-Warning block.)
+
+<!-- SECTION CLOSED — next heading: **Context Translation** — do not open a second Early-Warning block -->
 
 **Context Translation**
 SINGLE INSTANCE ONLY — you are now writing Context Translation. This heading
@@ -226,8 +232,8 @@ appropriate for the population, platform environment, and institutional trust
 context described. If no organisational context is provided, state: 'No
 organisational context provided; analysis defaults to mid-sized public sector
 health organisation.'
-(DO NOT REPRODUCE THIS LINE IN YOUR OUTPUT — SECTION CLOSED: proceed to the
-Ethical Refusal Protocol if applicable, then **Fragility Signals**.)
+
+<!-- SECTION CLOSED — next content: Ethical Refusal Protocol (if applicable), then **Fragility Signals** -->
 
 ETHICAL REFUSAL PROTOCOL: If a proposal would enable manipulation, reduce agency,
 obscure intent, or concentrate influence without oversight, you must:
