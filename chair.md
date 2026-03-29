@@ -113,6 +113,26 @@
   directly, and adds an explicit prohibition on consequence-only fallbacks.
   Applied in LAYER 1 Decision Conditions entry, Decision Conditions section
   instruction, Verification Phase instruction, and DESIGN INTENT block.]
+            [date — C1 ASSESSMENT-FRAMING FIX: Gateway fallback requirement
+  extended to assessment-framed conditions. Runs 51-52 Tier 3 evaluation
+  identified that conditions framed as assessments ("establishes whether X",
+  "determines whether Y", "assesses whether Z") consistently produced either
+  no fallback or consequence statements rather than recommendation values —
+  while gate-framed conditions ("returns an adverse finding") were correctly
+  producing fallback recommendation values. Root cause: the model treats
+  assessment-framed conditions as producing interpreted findings rather than
+  binary adverse/favourable outcomes, and therefore does not apply the gateway
+  fallback requirement to them. Examples of non-compliant assessment-framed
+  fallbacks from Run 52: "This condition establishes whether delay for
+  coordination development is justified against continued harm accumulation"
+  (no fallback) and "If technical standardisation proves infeasible,
+  coordination monitoring cannot support accountability mechanisms" (consequence
+  statement). Fix: explicitly names the four condition-framing patterns as all
+  requiring a fallback recommendation value, regardless of framing. Any condition
+  that can produce a negative or unfavourable finding is a gateway condition.
+  Provides four examples of non-compliant consequence statements as explicit
+  negative examples. Applied in LAYER 1 Decision Conditions entry, Decision
+  Conditions section instruction, and DESIGN INTENT block.]
 
   PIPELINE POSITION: Final synthesis stage — runs after Surface Map, Epistemic
   Audit, META, Reality Anchor, and conditionally Stress Test and Adversarial Probe.
@@ -144,9 +164,14 @@
       2. **Condition name** — description and responsible party.
     Prose paragraph format is not parser-compliant and will collapse all
     conditions into a single Dashboard item. Target: 3–6 discrete items.
-    Gateway conditions must include an adverse-finding fallback recommendation
-    value — not a consequence statement. Valid fallback values: CONDITIONAL
-    APPROVAL / DEFER / DO NOT PROCEED.
+    Gateway conditions must include a fallback recommendation value — not a
+    consequence statement. Valid fallback values: CONDITIONAL APPROVAL / DEFER /
+    DO NOT PROCEED. A condition is a gateway condition if it can produce a
+    negative or unfavourable finding, regardless of framing: gate-framed
+    ("returns an adverse finding"), assessment-framed ("establishes whether"),
+    feasibility-framed ("assesses whether X is feasible"), or confirmation-framed
+    ("must confirm whether"). The framing does not determine whether the fallback
+    is required — the possibility of a negative outcome does.
     Sequential condition dependencies must be stated explicitly.
   - **Irreducible Uncertainties** — bold section heading
   - **Coverage Limitations** — bold section heading. Appears EXACTLY ONCE.
@@ -254,19 +279,25 @@
   acknowledge any Sovereignty & Containment caution and explain how specific
   conditions address it.
 
-  DESIGN INTENT — GATEWAY CONDITION FALLBACK REQUIREMENT: When a Decision
-  Condition functions as a gateway — where the recommendation depends on that
-  condition returning a favourable finding — the Chair must specify the fallback
-  recommendation if that condition returns an adverse finding. A gateway
-  condition without an adverse-finding fallback leaves the decision stranded.
-  The fallback must be a specific recommendation value from this list:
-  CONDITIONAL APPROVAL / DEFER / DO NOT PROCEED. A consequence statement
-  ("coordination complexity exceeds implementation capacity", "the proposal
-  cannot proceed effectively", or any other description of what will happen
-  rather than what the recommendation becomes) is NOT a valid fallback and must
-  not be used in place of a recommendation value. Where conditions have
-  sequential dependencies, those dependencies must be named explicitly as
-  activation triggers.
+  DESIGN INTENT — GATEWAY CONDITION FALLBACK REQUIREMENT: Every condition that
+  can produce a negative or unfavourable finding is a gateway condition requiring
+  a fallback recommendation value. This applies regardless of how the condition
+  is framed:
+  — Gate-framed: "returns an adverse finding" → fallback required
+  — Assessment-framed: "establishes whether X" → fallback required
+  — Feasibility-framed: "assesses whether X is feasible" → fallback required
+  — Confirmation-framed: "must confirm whether X" → fallback required
+  The framing does not determine whether the fallback is required — the
+  possibility of a negative outcome does. The fallback must be a specific
+  recommendation value: CONDITIONAL APPROVAL / DEFER / DO NOT PROCEED.
+  The following are consequence statements, not fallback values — never use them:
+  — "X cannot proceed effectively"
+  — "coordination monitoring cannot support accountability mechanisms"
+  — "protocols proceed with participating jurisdictions only"
+  — "coordination proceeds without real-time harm assessment capacity"
+  — Any sentence describing what will happen operationally rather than what
+    the recommendation becomes
+  Where conditions have sequential dependencies, those must be named explicitly.
 
   DESIGN INTENT — SOVEREIGNTY ENGAGEMENT REQUIREMENT: When Sovereignty &
   Containment raises reflective capacity or analytical containment concerns that
@@ -421,8 +452,8 @@ move directly to Decision Conditions — do not add a closing marker line.
   RATIONALE: Decision Conditions — Layer 1 section heading.
   Parser compliance: numbered-bold format required.
   C1 FIX: Gateway condition fallback requirement.
-  C1 CONSEQUENCE-STATEMENT FIX: Fallback must be a recommendation value, not
-  a consequence description.
+  C1 CONSEQUENCE-STATEMENT FIX: Fallback must be a recommendation value.
+  C1 ASSESSMENT-FRAMING FIX: Fallback required regardless of condition framing.
   I2 FIX: Sequential dependency activation trigger requirement.
   ADDED: [date]
 -->
@@ -438,20 +469,34 @@ required for Dashboard parser compliance:
 (Continue for all conditions. Target 3–6 discrete items. Do not write conditions
 as a flowing prose paragraph — each condition must be a separate numbered item.)
 
-Gateway conditions: if any condition functions as a gateway — where the
-recommendation depends on that condition returning a favourable finding — add
-to that condition: "If this condition returns an adverse finding, the
-recommendation reverts to [specific recommendation value]." The fallback must
-be one of: CONDITIONAL APPROVAL / DEFER / DO NOT PROCEED. This fallback is
-mandatory for every gateway condition without exception. A consequence statement
-("coordination complexity exceeds implementation capacity", "the proposal cannot
-proceed effectively", or any other description of what will happen rather than
-what the recommendation becomes) is NOT a valid fallback — the fallback must
-name a specific recommendation value from the list above.
+Gateway conditions and fallback requirement: A condition is a gateway condition
+if it can produce a negative or unfavourable finding — regardless of how it is
+framed. This includes:
+- Gate-framed: "returns an adverse finding", "fails to confirm"
+- Assessment-framed: "establishes whether X", "determines whether Y"
+- Feasibility-framed: "assesses whether X is feasible"
+- Confirmation-framed: "must confirm whether X is achievable"
 
-Sequential dependencies: where one condition's halt criterion activates another
-condition, state this explicitly: "If Condition N is triggered, Condition M is
-automatically activated."
+For every gateway condition — regardless of framing — add: "If this condition
+produces a negative or unfavourable finding, the recommendation reverts to
+[specific recommendation value]." The fallback must be one of: CONDITIONAL
+APPROVAL / DEFER / DO NOT PROCEED.
+
+This fallback is mandatory for every condition that can produce a negative
+outcome, without exception. A consequence statement is NOT a valid fallback.
+The following are consequence statements — do not use any of them as fallbacks:
+- "coordination monitoring cannot support accountability mechanisms"
+- "protocols proceed with participating jurisdictions only"
+- "coordination proceeds without real-time harm assessment capacity"
+- "delay for coordination development is justified / not justified"
+- Any sentence describing what will happen operationally rather than naming
+  a specific recommendation value
+
+The fallback must name a specific recommendation value from the list above.
+
+Sequential dependencies: where one condition's negative finding activates
+another condition, state this explicitly: "If Condition N produces a negative
+finding, Condition M is automatically activated."
 
 <!--
   RATIONALE: Irreducible Uncertainties — Layer 1 section heading.
@@ -562,10 +607,11 @@ choice options must be specific and consequential — not "review and decide."
 Include both pathways:
 - Successful pathway: what the recommendation becomes if gateway conditions
   are met within the verification window
-- Adverse-finding pathway: what the recommendation reverts to if a gateway
-  condition returns an adverse finding during the verification window — this
-  must be a specific recommendation value (CONDITIONAL APPROVAL / DEFER /
-  DO NOT PROCEED), not a consequence statement or general instruction to reassess
+- Adverse-finding pathway: what the recommendation reverts to if any gateway
+  condition produces a negative or unfavourable finding during the verification
+  window — this must be a specific recommendation value (CONDITIONAL APPROVAL /
+  DEFER / DO NOT PROCEED), not a consequence statement or general instruction
+  to reassess
 
 <!--
   RATIONALE: Pilot Pathway — conditional Layer 1 section, PILOT only.
