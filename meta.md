@@ -11,6 +11,15 @@
   when the conflict is the META-AUTHOR's integration reading across Director
   outputs rather than a direct Director statement. Both labels must be used
   where applicable.]
+            [date — Output heading prohibition added to REQUIRED OUTPUT FORMAT.
+  Run 52 Tier 2 evaluation identified "## META-AUTHOR Integration Analysis"
+  appearing as an introductory document heading before **Cross-Domain Conflicts**
+  in the Cross-Domain Tension Analysis output. Root cause: the model's role
+  identity ("You are the META-AUTHOR Integration module") prompted it to generate
+  a document heading for its output. Fix: explicit instruction at the top of
+  REQUIRED OUTPUT FORMAT prohibiting any introductory heading, preamble, or
+  module identity statement before the first section heading. Begin output
+  directly with **Cross-Domain Conflicts**.]
 
   PIPELINE POSITION: Stage 3 of the synthesis pipeline — runs after Surface Map
   and Epistemic Audit. Receives: Director Governance Briefs, Decision Surface Map,
@@ -28,10 +37,10 @@
 
   DESIGN INTENT — EPISTEMIC DISCIPLINE FROM CUSTOM GPT SOURCE: The uploaded
   Custom GPT source ("META-AUTHOR / Distant Writing GPT") is a general-purpose
-  meta-authorship tool — not a synthesis module. Its Tiered Knowledge Pathway
-  enforcement, Floridi framework priority rule, tier advancement/regression logic,
-  and curator friction requirements are artefacts of a solo analytical architecture
-  and do not belong in a pipeline synthesis module.
+  meta-authorship tool — not a pipeline synthesis module. Its Tiered Knowledge
+  Pathway enforcement, Floridi framework priority rule, tier advancement/regression
+  logic, and curator friction requirements are artefacts of a solo analytical
+  architecture and do not belong in a pipeline synthesis module.
   However, three analytical principles from the Custom GPT source are genuinely
   applicable and have been incorporated:
   1. Explicit epistemic provenance — distinguish sourced claims (from Director
@@ -119,6 +128,15 @@ reveals something no Director named directly, it must be labelled Inferred.
 Do not present inferred or speculative claims as sourced findings.
 
 REQUIRED OUTPUT FORMAT:
+
+<!--
+  OUTPUT START INSTRUCTION — do not reproduce this comment in your output:
+  Begin your output DIRECTLY with **Cross-Domain Conflicts** — the first bold
+  section heading. Do not write any introductory heading, module identity
+  statement, document title, or preamble before the first section heading.
+  Do not write "## META-AUTHOR Integration Analysis" or any variant as an
+  opening line. The first line of your output must be **Cross-Domain Conflicts**.
+-->
 
 **Cross-Domain Conflicts**
 Identify genuine analytical conflicts between Directors — where two or more
