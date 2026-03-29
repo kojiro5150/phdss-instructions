@@ -14,6 +14,19 @@
   appearing intermittently while upgrade conditions were consistently strong.
   The instruction now explicitly requires BOTH upgrade AND downgrade conditions
   to be named — neither is optional.]
+            [date — I8 FIX: Active vs latent friction signal classification
+  requirement added. Housing run Tier 2 review identified that Reality Friction
+  Signals were presented as an undifferentiated list of equivalent present risks,
+  when some signals are currently operating and others activate only conditionally
+  upon specific reform attempts. This distinction matters: the Chair's response
+  differs by category — currently active signals require monitoring now; signals
+  that activate upon coordination attempts require preparation before action;
+  signals that activate upon constitutional reform attempts are relevant only
+  to a specific pathway. Fix adds instruction to Reality Friction Signals section
+  requiring classification of each signal as: (a) currently active, (b) activated
+  upon coordination attempt, or (c) activated upon constitutional/structural reform
+  attempt. The classification must appear alongside each signal, not as a
+  separate section.]
 
   PIPELINE POSITION: Stage 4 of the synthesis pipeline — runs after Surface Map,
   Epistemic Audit, and META. Receives: Director Governance Briefs, Decision Surface
@@ -46,6 +59,18 @@
   governance decision that cannot be falsified is not a governance decision;
   it is an assertion. Falsification conditions make the decision testable and
   create the review triggers that responsible governance requires.
+
+  DESIGN INTENT — FRICTION SIGNAL CLASSIFICATION (I8): Reality Friction Signals
+  presented as an undifferentiated list of present risks misrepresent the actual
+  risk landscape — some frictions are operating now and require monitoring
+  regardless of any decision; others activate only if a specific governance
+  pathway is chosen. The Chair cannot respond appropriately to a friction signal
+  without knowing whether it is a current condition or a conditional one. The
+  classification (currently active / activated upon coordination attempt /
+  activated upon constitutional or structural reform attempt) is not a separate
+  analytical section — it is a label attached to each signal to make the signal
+  actionable. This design intent must be preserved: the classification appears
+  alongside each signal, not as a separate taxonomy section.
 
   FALSIFICATION CONDITIONS — BOTH DIRECTIONS REQUIRED: The section has an
   obligation to name conditions in BOTH directions:
@@ -225,11 +250,29 @@ Explicitly assess where:
 - reversibility is assumed but operationally or politically unlikely
 - monitoring systems cannot realistically validate the outcomes claimed
 
+For each friction signal identified, classify it as one of three states and
+include the classification alongside the signal — not as a separate section:
+- [CURRENTLY ACTIVE] — this friction is operating now regardless of any
+  decision taken; requires monitoring immediately
+- [ACTIVATES ON COORDINATION ATTEMPT] — this friction becomes operative if
+  a coordination or implementation pathway is chosen; requires preparation
+  before action
+- [ACTIVATES ON CONSTITUTIONAL/STRUCTURAL REFORM] — this friction becomes
+  operative only if a deeper structural reform pathway is chosen; relevant
+  to that pathway specifically
+
+Use whichever classifications apply to this decision — not all three will
+always be relevant. If the decision is not a multi-pathway governance question,
+use [CURRENTLY ACTIVE] and [ACTIVATES ON IMPLEMENTATION] as the two states.
+The classification makes each signal actionable: the Chair's response differs
+depending on whether a friction is present now or conditional on a specific
+pathway choice.
+
 Do not propose solutions or mitigation strategies.
 
 Conclude with exactly one of:
-A) Reality friction signals identified: [list signals grounded in the operational
-reality assessment above]
+A) Reality friction signals identified: [list signals with classifications
+grounded in the operational reality assessment above]
 OR
 B) No material reality frictions detected under current assumptions.
 
