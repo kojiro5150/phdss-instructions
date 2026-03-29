@@ -42,6 +42,15 @@
   identified both instruction lines reproduced verbatim in the output body.
   Anti-reproduction guards added using same pattern as innovation.md and
   fragility preamble guards throughout the system.]
+            [date — FIX: Inline parenthetical guard lines removed from Key
+  Trade-offs section body and replaced with HTML comment constraints. Run 31
+  guards partially failed — the model reproduced the protected phrases even
+  when wrapped in DO NOT REPRODUCE. Root cause: guard phrases in the prompt
+  token stream are still semantically visible and echoed. Fix: move all
+  constraints into HTML comment blocks, which the model treats as architectural
+  context rather than generatable content. This matches the pattern already
+  working in ANALYTICAL STANDARD FOR THIS RUN and all RATIONALE blocks.
+  No inline parenthetical constraints remain in the output body of this file.]
 
   PIPELINE POSITION: Final synthesis stage — runs after Surface Map, Epistemic
   Audit, META, Reality Anchor, and conditionally Stress Test and Adversarial Probe.
@@ -269,24 +278,22 @@ artificial, or manufactured.
 
 <!--
   RATIONALE: Key Trade-offs — Layer 1 section heading.
+  CONSTRAINT: This heading appears EXACTLY ONCE in the entire output. Do not
+  repeat it under any circumstances — not after Decision Conditions, not after
+  any other section, not under any framing or label variant, not as a
+  "(continued)" block, not as a "most consequential trade-off" standalone
+  paragraph. All trade-off content belongs in the single unbroken block below.
+  Write all trade-offs, then move immediately to Decision Conditions.
+  The constraint is architectural — the parser will misread a second instance.
   ADDED: [date]
 -->
 **Key Trade-offs**
-(DO NOT REPRODUCE THIS LINE IN YOUR OUTPUT — SINGLE INSTANCE ONLY: this heading
-must not appear again anywhere in your output. The heading **Key Trade-offs** is
-now open. Write all trade-offs in this single unbroken block and then close it.
-Do not open a second Key Trade-offs block anywhere in your output — not after
-Decision Conditions, not after any other section, not under any framing or label
-variant.)
-
 Name the explicit governance trade-offs the recommendation must navigate. For
 each: what is gained, what is sacrificed, who bears the cost of the choice.
-All trade-offs belong here, including any "most consequential trade-off"
-framing. Do not pause mid-section and re-open this heading.
-
-(DO NOT REPRODUCE THIS LINE IN YOUR OUTPUT — SECTION CLOSED: write **Decision
-Conditions** next. Do not write **Key Trade-offs** again anywhere in your
-output after this point.)
+All trade-offs belong here, including any cross-domain fragility convergence
+trade-off. Write this section as a single unbroken block. Do not pause
+mid-section and re-open this heading. When the final trade-off is written,
+move directly to Decision Conditions — do not add a closing marker line.
 
 <!--
   RATIONALE: Decision Conditions — Layer 1 section heading.
@@ -319,10 +326,10 @@ residual risk.
 
 <!--
   RATIONALE: Coverage Limitations — Layer 1 section heading. EXACTLY ONCE.
+  Do not repeat this section later in the output. 2–3 sentences maximum.
   ADDED: [date]
 -->
 **Coverage Limitations**
-This section appears exactly once. Do not repeat it later in the output.
 2–3 sentences maximum. Name the most governance-critical absent Director
 domain(s) and the specific blind spot they create for this recommendation.
 Do not restate what META-AUTHOR has already mapped — refer the reader to
