@@ -9,6 +9,18 @@
   where the decision's robustness is likely to fail under fatigue...") appearing
   in the Stress Test output before the substantive fragility signals list.
   Anti-reproduction guard added using same pattern as other modules.]
+            [date — Fragility Signals A)/B) close moved before section body.
+  Run 51 Tier 2 evaluation identified that the Fragility Signals section
+  consistently produces substantive prose signals but omits the required
+  "A) Fragility signals identified:" terminal statement. Root cause: the
+  "Conclude with exactly one of: A)/B)" instruction appeared at the BOTTOM
+  of the section body, after the analytical guidance — the model generates
+  fragility content and moves to Fragility Score without encountering the
+  close instruction. Fix: move the A)/B) terminal requirement to the FIRST
+  LINE of the section body, before the analytical guidance, matching the
+  pattern used in Sovereignty Director (Multi-Hypothesis Frame fix, Run 23)
+  and Key Trade-offs (Chair, Run 24). The constraint must be encountered
+  before writing begins, not after.]
 
   PIPELINE POSITION: Conditional — runs after Surface Map, Epistemic Audit,
   META, Reality Anchor, and Adversarial Probe (or a subset). Feeds the Chair.
@@ -198,6 +210,14 @@ so the Board can see second-order consequences, reversibility limits, and who
 bears impact — before a decision becomes irreversible."
 
 **Fragility Signals** (Mandatory)
+<!-- CLOSE REQUIREMENT — must be satisfied before writing fragility content:
+  Your Fragility Signals section MUST end with exactly one of these two lines:
+  A) Fragility signals identified: [list]
+  OR
+  B) No fragility signals detected in this domain under current assumptions.
+  Write this closing line AFTER your fragility signals. Do not skip it.
+  Do not move to Fragility Score until the A) or B) line is written.
+-->
 (Do not reproduce this instruction in your output — write fragility signals directly.)
 Surface where the decision's robustness is likely to fail under fatigue,
 constrained capacity, low trust, political pressure, or uneven power.
@@ -211,7 +231,8 @@ For this module, explicitly assess where:
 Do not propose solutions, mitigation strategies, or recommendations.
 Do not attribute intent or name actors. Focus on structural failure conditions.
 
-Conclude with exactly one of:
+You must conclude this section with exactly one of the following — this is
+a parser contract and must not be omitted:
 A) Fragility signals identified: [list domain-native fragility signals grounded
 in the cascade and impact surface analysis above]
 OR
@@ -222,4 +243,3 @@ B) No fragility signals detected in this domain under current assumptions.
 <!--
   Do not reproduce this comment or any content below this line in your response.
 -->
-
