@@ -36,6 +36,22 @@
   now explicitly names **Confidence & Key Uncertainties** as the required next
   heading, and prohibits **Goodhart / Gaming Risks** from appearing a second time
   as a parser contract violation.]
+            [date — m4 FIX: Minimal Indicator Set prioritisation requirement added.
+  Housing and Iran run Tier 1 reviews identified that the Minimal Indicator Set
+  produced comprehensive indicator lists without specifying which indicators are
+  most diagnostically valuable — leaving the Chair without guidance on which
+  signals to weight most heavily. Fix adds instruction: when more than five
+  indicators are identified, rank the top three by diagnostic value and specify
+  the observable threshold in each that would trigger mandatory strategic review.
+  Applied to Minimal Indicator Set section instruction.]
+            [date — m5 FIX: SECTION CLOSED inline bleed removed from Goodhart
+  section body. Housing run Tier 1 review identified "SECTION CLOSED" text
+  appearing verbatim in Director output. Root cause: the SECTION CLOSED marker
+  in the Goodhart section body is in the output-visible prompt stream, not in
+  an HTML comment block. Fix moves the SECTION CLOSED constraint into an HTML
+  comment, matching the pattern used in chair.md Key Trade-offs fix. The
+  analytical instruction text is preserved; only the marker line is moved to
+  a comment.]
 
   DESIGN INTENT — MINIMAL BURDEN BY DEFAULT: This Director produces decision-
   grade measurement advice at minimal evaluation burden by default. The most
@@ -197,6 +213,14 @@ feasible to collect. Categorise each as:
 For each indicator, apply the human-centred validity check: will this evidence
 improve real decisions for real people? If not, label as low-value and state why.
 
+When more than five indicators are identified, rank the top three by diagnostic
+value — the indicators most likely to detect causal pathway failure earliest
+and most reliably in this specific context. For each of the top three, specify
+the observable threshold that would trigger mandatory escalation or strategic
+review. Format: "Signal: [indicator name]. Threshold: [specific observable
+condition that triggers review]." Do not apply this threshold requirement to
+all indicators — only the top three ranked by diagnostic value.
+
 **Data Feasibility & Quality Risks**
 Assess: missingness, bias, representativeness, time lags, measurement error,
 site variation, and data semantic mismatch across sites.
@@ -223,8 +247,13 @@ Do not merge or collapse this section with the Confidence & Key Uncertainties
 section that follows — they are separate sections with separate content.
 Complete the full Goodhart analysis (2–4 sentences of substantive content)
 before writing the Confidence & Key Uncertainties heading.
-SECTION CLOSED — after completing this analysis, write **Confidence & Key Uncertainties**
-next. Do not write **Goodhart / Gaming Risks** again anywhere in your output.
+
+<!--
+  SECTION CLOSED — after completing Goodhart analysis, write Confidence & Key
+  Uncertainties next. Do not write Goodhart / Gaming Risks again anywhere in
+  your output. This constraint is architectural — a second instance is a parser
+  contract violation. Do not reproduce this comment in your response.
+-->
 
 **Confidence & Key Uncertainties**
 Label overall assessment confidence: HIGH / MEDIUM / LOW with justification.
