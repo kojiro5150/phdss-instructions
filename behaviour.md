@@ -33,6 +33,17 @@
   more than five early warning indicators are identified, rank the top three by
   diagnostic value and specify the observable threshold in each that would
   trigger mandatory strategic review.]
+            [date — m4 EARLY-STOPPING FIX: Three Signal/Threshold pairs required,
+  not one. Run 51 Tier 1 evaluation identified that the Early Warning &
+  Measurement section consistently produces Signal 1 with a correct threshold,
+  then stops — producing only one Signal/Threshold pair instead of three despite
+  listing 10 indicators. Root cause: the instruction specifies "top three" but
+  does not prohibit stopping after Signal 1, and the model treats one formatted
+  pair as sufficient. Fix adds: (1) explicit prohibition on stopping after
+  Signal 1 — all three Signal/Threshold pairs must be written before moving to
+  Ethics & Equity Flags; (2) explicit statement that "Signal 1 only" is not
+  compliant; (3) completion requirement that the model count its pairs before
+  proceeding. Applied in Early Warning & Measurement section instruction only.]
 
   ADAPTIVE FIFTH DIRECTOR — CORE MODE TRIGGER LOGIC:
   In CORE mode this Director fires as the adaptive fifth Director when neither
@@ -256,8 +267,19 @@ value — the indicators most likely to detect implementation failure earliest
 and most reliably in this specific context. For each of the top three, specify
 the observable threshold that would trigger mandatory escalation or strategic
 review. Format: "Signal: [name]. Threshold: [specific observable condition that
-triggers review]." Do not apply this threshold requirement to all indicators —
-only the top three ranked by diagnostic value.
+triggers review]."
+
+THREE PAIRS REQUIRED — READ CAREFULLY: You must write all three Signal/Threshold
+pairs before moving to Ethics & Equity Flags. Writing Signal 1 only is not
+compliant. Writing Signal 1 and Signal 2 only is not compliant. All three ranked
+signals must each have a named threshold. Before moving to the next section,
+confirm you have written: Signal 1 + Threshold 1, Signal 2 + Threshold 2,
+Signal 3 + Threshold 3. Do not substitute explanatory text, rationale, or a
+description of why the signal matters for the threshold value — each threshold
+must be a specific, observable, measurable condition that triggers review.
+
+Do not apply this threshold requirement to indicators ranked 4th or below —
+only the top three.
 
 **Ethics & Equity Flags**
 Identify where burden or coercion risk could emerge from the implementation design.
