@@ -15,6 +15,21 @@
   rank the top three by proximity to failure — the signals most likely to
   indicate imminent safety system breakdown — and specify the observable threshold
   in each that would trigger mandatory escalation or strategic review.]
+            [date — m4 THRESHOLD ESCAPE FIX: Signal 3 threshold substitution
+  pattern closed. Run 50 Tier 1 evaluation identified that Signal 3 (Childhood
+  developmental screening results deteriorate) stated a rationale for why early
+  detection matters ("housing policy impact manifests in health outcomes with
+  2-3 year lag, making early detection critical") rather than a measurable
+  threshold. The model correctly identified the signal but substituted explanatory
+  text for a trigger threshold. Root cause: the instruction permitted any
+  "observable condition" without prohibiting explanatory substitution, and the
+  lagging-indicator nature of Signal 3 created ambiguity about what a threshold
+  looks like for a slow-moving metric. Fix adds: (1) explicit prohibition on
+  substituting explanatory text, timing notes, or rationale for a threshold
+  value; (2) guidance that lagging-indicator signals require a proxy measure
+  threshold — an early observable that precedes the outcome — rather than the
+  outcome measure itself; (3) a worked example of a lagging-indicator threshold.
+  Applied in Fragility Signals section instruction.]
 
   MANDATORY DIRECTOR STATUS: This Director is always active regardless of governance
   mode (CORE / FULL / CHAIR_SPECIFIED). It is one of two mandatory Directors in
@@ -171,8 +186,26 @@ proximity to failure — the signals most likely to indicate imminent safety
 system breakdown in this specific context. For each of the top three, specify
 the observable threshold that would trigger mandatory escalation or immediate
 review. Format: "Signal: [name]. Threshold: [specific observable condition that
-triggers escalation]." Do not apply this threshold requirement to all signals —
-only the top three ranked by proximity to failure.
+triggers escalation]."
+
+THRESHOLD REQUIREMENT — READ CAREFULLY: The threshold must be a measurable
+trigger, not an explanation of why the signal matters. Do not substitute timing
+notes ("impact manifests with 2-3 year lag"), rationale ("making early detection
+critical"), or consequence descriptions ("safety system will break down") for a
+threshold value. Every signal — including lagging indicators — requires a
+threshold.
+
+For lagging-indicator signals where the outcome itself takes years to manifest,
+specify a proxy measure threshold: an early observable that reliably precedes
+the outcome. Example of a valid lagging-indicator threshold: "Signal: Childhood
+developmental screening results deteriorate. Threshold: Screening participation
+rate falls below 80% in postcodes with documented housing affordability decline
+for two consecutive quarters, OR mean developmental score drops >0.5 SD below
+age-matched baseline in the same postcodes." The proxy measure (participation
+rate, score shift) is observable now and precedes the lagging outcome.
+
+Do not apply this threshold requirement to all signals — only the top three
+ranked by proximity to failure.
 
 Do not propose solutions, mitigation strategies, or new interventions.
 Do not speculate about intent or individual psychology.
