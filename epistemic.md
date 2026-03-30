@@ -38,6 +38,16 @@
   standalone entry, and prohibits embedding it as a numbered list item. The
   label text is parser-matched by the Tier 2 evaluation and must appear exactly
   as specified.]
+            [date — I6 LABEL WORD FIX: "EPISTEMIC" word reinforced as mandatory.
+  Run 53 Tier 2 evaluation identified the label appearing as "PRIMARY GAP —"
+  instead of "PRIMARY EPISTEMIC GAP —" — the word "EPISTEMIC" was dropped
+  despite the verbatim requirement. Root cause: "PRIMARY GAP" is a valid
+  English abbreviation and the model treats it as equivalent. Fix: adds explicit
+  wrong-form example showing "PRIMARY GAP —" as incorrect, adds word-level
+  check instruction naming "EPISTEMIC" as the second word that cannot be
+  omitted, and repeats the exact three-word label "PRIMARY EPISTEMIC GAP"
+  immediately before the "must appear verbatim" statement to eliminate any
+  ambiguity about which words are required.]
 
   PIPELINE POSITION: Stage 2 of the synthesis pipeline — runs in parallel with
   Surface Map after Director analysis and compression. Receives: Director
@@ -252,18 +262,29 @@ the evidence would need to answer]. This gap affects the confidence rating of
 every Director whose reform recommendations depend on feasibility assumptions
 that comparative evidence would ground or refute."
 
-The label text "PRIMARY EPISTEMIC GAP —" must appear verbatim. Do not embed
-this finding as item 1 in the numbered list. Do not write it as a sub-bullet.
-Write it as a standalone paragraph before the numbered list, so it is visually
-distinct and immediately identifiable as the primary gap.
+The exact three-word label is: PRIMARY EPISTEMIC GAP
+The label text "PRIMARY EPISTEMIC GAP —" must appear verbatim — all three
+words, in this order: PRIMARY, then EPISTEMIC, then GAP. The word "EPISTEMIC"
+is the second word and cannot be omitted. "PRIMARY GAP —" is WRONG — it is
+missing the required word "EPISTEMIC" and will fail parser matching. Do not
+abbreviate. Do not shorten. The label must be written as: PRIMARY EPISTEMIC GAP —
 
-Example of correct format:
+Do not embed this finding as item 1 in the numbered list. Do not write it as
+a sub-bullet. Write it as a standalone paragraph before the numbered list, so
+it is visually distinct and immediately identifiable as the primary gap.
+
+Example of CORRECT format (use this exact pattern):
 PRIMARY EPISTEMIC GAP — Comparative evidence: No Director has examined whether
 federal systems with comparable constitutional divisions of power have achieved
 sustained multi-jurisdictional housing policy coordination without constitutional
 change. This gap affects the confidence rating of every Director whose reform
 recommendations depend on feasibility assumptions about coordination mechanisms
 or intergovernmental compacts.
+
+Example of WRONG format (do not use):
+PRIMARY GAP — Comparative evidence: [missing the word EPISTEMIC — INCORRECT]
+Comparative federalism evidence: [no label at all — INCORRECT]
+1. Comparative evidence gap: [embedded in numbered list — INCORRECT]
 
 Cross-cutting gaps:
 1. [Additional gap...]
