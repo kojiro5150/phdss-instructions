@@ -15,21 +15,21 @@
   rank the top three by proximity to failure — the signals most likely to
   indicate imminent safety system breakdown — and specify the observable threshold
   in each that would trigger mandatory escalation or strategic review.]
-            [date — m4 THRESHOLD ESCAPE FIX: Signal 3 threshold substitution
-  pattern closed. Run 50 Tier 1 evaluation identified that Signal 3 (Childhood
-  developmental screening results deteriorate) stated a rationale for why early
-  detection matters ("housing policy impact manifests in health outcomes with
-  2-3 year lag, making early detection critical") rather than a measurable
-  threshold. The model correctly identified the signal but substituted explanatory
-  text for a trigger threshold. Root cause: the instruction permitted any
-  "observable condition" without prohibiting explanatory substitution, and the
-  lagging-indicator nature of Signal 3 created ambiguity about what a threshold
-  looks like for a slow-moving metric. Fix adds: (1) explicit prohibition on
-  substituting explanatory text, timing notes, or rationale for a threshold
-  value; (2) guidance that lagging-indicator signals require a proxy measure
-  threshold — an early observable that precedes the outcome — rather than the
-  outcome measure itself; (3) a worked example of a lagging-indicator threshold.
-  Applied in Fragility Signals section instruction.]
+            [date — m4 EARLY-STOPPING AND NUMBERING FIX: Three Signal/Threshold
+  pairs required for top-three selection; numbered-list-without-threshold pattern
+  prohibited. Run 54 Tier 1 evaluation identified that the Fragility Signals
+  section produced a numbered list of five signals (1-5) but applied thresholds
+  only to Signals 2 and 5 — leaving Signals 1, 3, 4 as descriptive entries
+  without thresholds. Root cause: the instruction requires "rank the top three
+  by proximity to failure" and "for each of the top three, specify the threshold"
+  but does not prohibit the numbered-all-signals-first format, and the "Do not
+  apply this threshold requirement to all signals" line creates ambiguity about
+  which signals need thresholds. The model applies thresholds to whichever
+  signals have obvious metrics, not specifically to the ranked top three. Fix:
+  adds THREE PAIRS REQUIRED block prohibiting the numbered-list format as the
+  primary output; requires explicit selection of top three before writing
+  thresholds; names the wrong-pattern from Run 54 as an explicit example.
+  Mirrors the behaviour.md THREE PAIRS REQUIRED fix applied at Run 51.]
 
   MANDATORY DIRECTOR STATUS: This Director is always active regardless of governance
   mode (CORE / FULL / CHAIR_SPECIFIED). It is one of two mandatory Directors in
@@ -206,6 +206,28 @@ rate, score shift) is observable now and precedes the lagging outcome.
 
 Do not apply this threshold requirement to all signals — only the top three
 ranked by proximity to failure.
+
+THREE PAIRS REQUIRED — READ CAREFULLY: You must explicitly select the top three
+signals by proximity to failure and write all three Signal/Threshold pairs before
+moving to the Conclude section. The following patterns are NOT compliant:
+- Listing all signals as a numbered list (1, 2, 3, 4, 5...) and applying
+  thresholds only to whichever signals have obvious metrics — this is the wrong
+  approach even if two signals happen to have thresholds.
+- Writing "Signal 1: [name with threshold]. Signal 2: [name with threshold].
+  Signal 3: [name with no threshold]." — all three ranked signals require a
+  threshold.
+- Ranking implicitly through list position without stating which three are
+  the top-three selection.
+
+Correct approach: First identify all fragility signals, then explicitly select
+the top three by proximity to failure, then write three Signal/Threshold pairs
+in this exact format for each selected signal:
+"Signal: [name]. Threshold: [specific observable condition]."
+
+Before writing the Conclude line, confirm you have written:
+Signal 1 + Threshold 1, Signal 2 + Threshold 2, Signal 3 + Threshold 3.
+All three must have named thresholds. Do not substitute explanatory text,
+timing notes, or consequence descriptions for threshold values.
 
 Do not propose solutions, mitigation strategies, or new interventions.
 Do not speculate about intent or individual psychology.
