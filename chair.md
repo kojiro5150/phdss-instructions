@@ -113,26 +113,20 @@
   directly, and adds an explicit prohibition on consequence-only fallbacks.
   Applied in LAYER 1 Decision Conditions entry, Decision Conditions section
   instruction, Verification Phase instruction, and DESIGN INTENT block.]
-            [date — C1 ASSESSMENT-FRAMING FIX: Gateway fallback requirement
-  extended to assessment-framed conditions. Runs 51-52 Tier 3 evaluation
-  identified that conditions framed as assessments ("establishes whether X",
-  "determines whether Y", "assesses whether Z") consistently produced either
-  no fallback or consequence statements rather than recommendation values —
-  while gate-framed conditions ("returns an adverse finding") were correctly
-  producing fallback recommendation values. Root cause: the model treats
-  assessment-framed conditions as producing interpreted findings rather than
-  binary adverse/favourable outcomes, and therefore does not apply the gateway
-  fallback requirement to them. Examples of non-compliant assessment-framed
-  fallbacks from Run 52: "This condition establishes whether delay for
-  coordination development is justified against continued harm accumulation"
-  (no fallback) and "If technical standardisation proves infeasible,
-  coordination monitoring cannot support accountability mechanisms" (consequence
-  statement). Fix: explicitly names the four condition-framing patterns as all
-  requiring a fallback recommendation value, regardless of framing. Any condition
-  that can produce a negative or unfavourable finding is a gateway condition.
-  Provides four examples of non-compliant consequence statements as explicit
-  negative examples. Applied in LAYER 1 Decision Conditions entry, Decision
-  Conditions section instruction, and DESIGN INTENT block.]
+            [date — C1 OMISSION FIX: Per-condition completion check added.
+  Run 53 Tier 3 evaluation identified that Conditions 2 and 3 ended with no
+  adverse-finding statement at all — not a wrong-form fallback but complete
+  omission. The model wrote the condition description and moved to the next
+  numbered item without writing any fallback. Examples of non-compliant
+  omissions from Run 53: Condition 2 ended "...mitigation strategies
+  specified." (no if-clause), Condition 3 ended "...before pilot
+  implementation." (no if-clause). Root cause: the instruction requires a
+  fallback "for every gateway condition" but does not require the model to
+  verify completion before writing the next condition. Fix: adds a mandatory
+  per-condition completion check requiring the model to confirm that each
+  condition ends with "If this condition..." before starting the next numbered
+  item. Also adds Run 53 wrong-form examples as explicit negative patterns.
+  Applied in Decision Conditions section instruction and DESIGN INTENT block.]
 
   PIPELINE POSITION: Final synthesis stage — runs after Surface Map, Epistemic
   Audit, META, Reality Anchor, and conditionally Stress Test and Adversarial Probe.
@@ -290,11 +284,17 @@
   The framing does not determine whether the fallback is required — the
   possibility of a negative outcome does. The fallback must be a specific
   recommendation value: CONDITIONAL APPROVAL / DEFER / DO NOT PROCEED.
+  Complete omission of the fallback clause is also a violation — a condition
+  that ends with its description without any "If this condition..." clause
+  is non-compliant, regardless of how the condition is framed. The model must
+  verify that each condition ends with a fallback clause before writing the
+  next condition.
   The following are consequence statements, not fallback values — never use them:
   — "X cannot proceed effectively"
   — "coordination monitoring cannot support accountability mechanisms"
   — "protocols proceed with participating jurisdictions only"
   — "coordination proceeds without real-time harm assessment capacity"
+  — "pilot scope must be reduced to single electoral cycle timeframe"
   — Any sentence describing what will happen operationally rather than what
     the recommendation becomes
   Where conditions have sequential dependencies, those must be named explicitly.
@@ -493,6 +493,30 @@ The following are consequence statements — do not use any of them as fallbacks
   a specific recommendation value
 
 The fallback must name a specific recommendation value from the list above.
+
+Per-condition completion check — MANDATORY: Before writing the next numbered
+condition, confirm that the condition you just wrote ends with an "If this
+condition..." clause naming a specific recommendation value. A condition that
+ends with a description of what will be done (e.g. "...mitigation strategies
+specified.", "...before pilot implementation.", "...exit criteria specified.")
+without a following "If this condition produces a negative or unfavourable
+finding, the recommendation reverts to [value]" is INCOMPLETE. Do not proceed
+to the next condition until the current condition has its fallback clause.
+
+Examples of INCOMPLETE conditions from prior runs — do not replicate:
+- "...Legal challenge pathways must be assessed and mitigation strategies
+  specified." [INCOMPLETE — no fallback clause after the description]
+- "...Crisis escalation triggers and emergency coordination protocols must
+  be specified before pilot implementation." [INCOMPLETE — no fallback clause]
+- "...with specified continuation triggers and exit criteria. If sustained
+  commitment mechanisms cannot be designed, pilot scope must be reduced to
+  single electoral cycle timeframe." [WRONG FORM — consequence statement,
+  not a recommendation value]
+
+Each condition must follow this pattern:
+"[Description of condition and who is responsible]. If this condition produces
+a negative or unfavourable finding, the recommendation reverts to [DEFER /
+DO NOT PROCEED / CONDITIONAL APPROVAL]."
 
 Sequential dependencies: where one condition's negative finding activates
 another condition, state this explicitly: "If Condition N produces a negative
