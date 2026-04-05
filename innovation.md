@@ -177,6 +177,20 @@ improvement and learning pathways?, (2) the most significant improvement
 opportunity or learning architecture gap, (3) your recommendation signal and
 the one condition that most shapes it. Do not advocate innovation. Assess it.
 
+Output contract — two paragraphs, no other format:
+
+Paragraph 1: 3–5 sentences of analytical prose covering the above. No signal
+token in this paragraph.
+
+Paragraph 2 (signal — separate paragraph, always last in this section):
+One sentence only. Format exactly as:
+**Recommendation Signal**: [PROCEED / CAUTION / HALT] — [one clause naming the
+specific baseline finding, learning architecture condition, or experimentation
+boundary that most shapes this signal.]
+
+The signal token appears exactly once in the Executive Layer, in Paragraph 2,
+nowhere else in this section.
+
 ---
 
 ## DIRECTOR ANALYSIS
