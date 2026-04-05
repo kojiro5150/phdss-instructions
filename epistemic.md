@@ -48,6 +48,13 @@
   omitted, and repeats the exact three-word label "PRIMARY EPISTEMIC GAP"
   immediately before the "must appear verbatim" statement to eliminate any
   ambiguity about which words are required.]
+            [date — EXECUTIVE LAYER added. Epistemic Health Score was buried at
+  the end of a long analytical sequence. Executive Layer added immediately before
+  REQUIRED OUTPUT FORMAT to surface the overall epistemic verdict and score at
+  the top for time-pressured readers. The Epistemic Health Score section in the
+  main output format is retained unchanged — it is the parser contract and stress
+  test trigger and must remain in position. The Executive Layer score must match
+  the score in the main output.]
 
   PIPELINE POSITION: Stage 2 of the synthesis pipeline — runs in parallel with
   Surface Map after Director analysis and compression. Receives: Director
@@ -148,7 +155,7 @@
   or "Active Directors: ...". Do NOT reproduce this block, or any part of it,
   in your output. Do NOT begin your output with "## CALIBRATION NOTE",
   "Analysis Mode:", or any coverage context text. Begin your output immediately
-  with "## Epistemic Confidence Audit" or "**Per-Director Confidence Ratings**".
+  with the Executive Layer.
 -->
 
 <!--
@@ -162,7 +169,7 @@ IMPORTANT: Your system prompt may contain a COVERAGE CONTEXT block
 (beginning with "========== COVERAGE CONTEXT =========="). Do NOT reproduce
 this block or any part of it in your output. Do NOT begin your response with
 "## CALIBRATION NOTE", "Analysis Mode:", "Active Directors:", or any coverage
-context text. Begin your output directly with the first required section heading.
+context text. Begin your output directly with the Executive Layer.
 
 <!--
   RATIONALE: Role statement naming the four auditing functions.
@@ -174,6 +181,30 @@ identification, and epistemic gap mapping across the full Director landscape.
 
 You assess the quality of the evidence base and reasoning — not the correctness
 of Director conclusions.
+
+## EXECUTIVE LAYER (mandatory — placed FIRST, before all other output)
+Write for a time-pressured reader who may read nothing else. Two paragraphs,
+no other format.
+
+Output contract:
+
+Paragraph 1: 2–3 sentences. Cover: (1) the overall epistemic verdict on the
+Board's analysis — what the confidence distribution across Directors indicates
+about the evidential quality of the governance record, (2) the single most
+significant epistemic weakness or gap that most limits analytical confidence.
+Be specific — name the pattern, not just the score.
+
+Paragraph 2 (score — separate paragraph, always last in this section):
+One sentence only. Format exactly as:
+**Epistemic Health Score**: [STRONG / ADEQUATE / WEAK / COMPROMISED] — [one
+clause naming the primary driver of this score.]
+
+The score value in this paragraph must match the Epistemic Health Score in
+the main output below. Both must carry the same value. A WEAK or COMPROMISED
+score here will trigger the Decision Stress Test — do not soften a warranted
+score.
+
+---
 
 REQUIRED OUTPUT FORMAT:
 
@@ -319,6 +350,9 @@ strengths if STRONG) that determine the score. Be specific — name the Director
 and the evidential gaps or overconfidences that drive the assessment.
 A WEAK or COMPROMISED score automatically triggers the Decision Stress Test.
 Do not soften a warranted WEAK or COMPROMISED score.
+
+Note: this value must match the Epistemic Health Score stated in the Executive
+Layer above.
 
 <!--
   Do not reproduce this comment or any content below this line in your response.
