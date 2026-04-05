@@ -120,6 +120,20 @@ leverage zone, or unintended consequence risk) the Board must understand, (3) yo
 recommendation signal and the structural condition that most shapes it. No jargon.
 No hedging. Stand-alone clarity.
 
+Output contract — two paragraphs, no other format:
+
+Paragraph 1: 3–5 sentences of analytical prose covering the above. No signal
+token in this paragraph.
+
+Paragraph 2 (signal — separate paragraph, always last in this section):
+One sentence only. Format exactly as:
+**Recommendation Signal**: [PROCEED / CAUTION / HALT] — [one clause naming the
+specific feedback loop, archetype, or unintended consequence pathway that most
+shapes this signal.]
+
+The signal token appears exactly once in the Executive Layer, in Paragraph 2,
+nowhere else in this section.
+
 ---
 
 ## DIRECTOR ANALYSIS
