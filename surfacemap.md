@@ -19,6 +19,15 @@
   defensible, not which posture is preferred. Omitted from ABBREVIATED STRUCTURE
   as partial director sets do not provide sufficient signal coverage for reliable
   option space mapping.]
+            [date — EXECUTIVE LAYER added. Surface Map output buried the Dominant
+  Signal near the bottom of a long analytical sequence. Executive Layer added
+  immediately before {ACTIVE_STRUCTURE} to surface the landscape character and
+  Dominant Signal at the top for time-pressured readers. The Dominant Signal
+  section in the main output structure is retained unchanged — it is the parser
+  contract and must remain in position. The Executive Layer Dominant Signal is
+  for human readability; both coexist with identical values. No-recommendation
+  mandate preserved throughout — Executive Layer prose describes the landscape,
+  not advocates for a pathway.]
 
   PIPELINE POSITION: Stage 2 of the synthesis pipeline — runs immediately after
   Director analysis and compression, before META, Reality Anchor, Adversarial
@@ -58,6 +67,16 @@
   of this module violates its core design. The Option Space section added in the
   I7 fix is explicitly conditional — it identifies what would need to be true for
   each posture to be defensible, not which posture should be chosen.
+
+  DESIGN INTENT — EXECUTIVE LAYER NO-RECOMMENDATION CONSTRAINT: The Executive
+  Layer for this module follows the same two-paragraph structure as Director
+  Executive Layers, with one critical difference: the prose paragraph must
+  describe the landscape character only — not advocate for any governance pathway.
+  "The signal distribution shows..." and "Director convergence is concentrated
+  on..." are correct. "The decision should be deferred..." or "the Board should
+  proceed conditionally..." are violations of the no-recommendation mandate.
+  The Dominant Signal paragraph is descriptive (what the signals collectively
+  say), not prescriptive (what should happen).
 
   DESIGN INTENT — FULL vs NON-FULL MODE STRUCTURES: This module has two distinct
   output structures depending on analysis mode. FULL mode (14 directors) produces
@@ -192,46 +211,51 @@ Reasoning principles:
 7. Use only conditions grounded in prior Director analysis — do not invent
    new evidence claims
 
+## EXECUTIVE LAYER (mandatory — placed FIRST, before all other output)
+Write for a time-pressured reader who may read nothing else. Two paragraphs,
+no other format. No-recommendation mandate applies throughout.
+
+Output contract:
+
+Paragraph 1: 2–3 sentences describing the landscape character in plain language.
+Cover: (1) the overall signal distribution and what it indicates about director
+convergence, (2) the single most consequential feature of the landscape — the
+finding, tension, or fragility hotspot that most governs the decision space.
+Describe the landscape. Do not advocate for any pathway. Do not use language
+such as "should," "must proceed," or "the Board should" — these violate the
+no-recommendation mandate.
+
+Paragraph 2 (dominant signal — separate paragraph, always last in this section):
+One sentence only. Format exactly as:
+**Dominant Signal**: [PROCEED / CAUTION / HALT / MIXED] — [one clause
+characterising the distribution that produces this signal.]
+
+If in PRELIMINARY mode (FULL mode with partial director set), format as:
+**Dominant Signal**: PRELIMINARY [PROCEED / CAUTION / HALT / MIXED]
+([N]/[total] directors) — [one clause.]
+
+The Dominant Signal value in this paragraph must match the Dominant Signal
+value in the main output structure below. Both must carry the same value.
+
+---
+
 {ACTIVE_STRUCTURE}
 
 <!--
-  RATIONALE: The {ACTIVE_STRUCTURE} placeholder above is replaced by the caller
-             at runtime with one of the two structures below, based on analysis
-             mode and active director count. This is a runtime injection, not a
-             file-level branch. The caller selects the correct structure string
-             and passes it as a replacement value.
-
-             FULL MODE STRUCTURE applies when: analysisMode === "FULL" AND
-             activeCount === totalCount (all 14 directors active).
-             It includes Signal Tally, Cross-Domain Convergence, and
-             Decision-Determinative Signals — sections that require a full
-             director set to be analytically meaningful.
-
-             ABBREVIATED STRUCTURE applies when: CORE mode, CHAIR_SPECIFIED
-             mode, or FULL mode with fewer than all directors active (preliminary).
-             It omits the extended signal analysis sections but retains the
-             core landscape mapping.
-
-             PRELIMINARY NOTE: If analysisMode === "FULL" AND activeCount <
-             totalCount, the caller injects this note before the structure:
-             "⚠ PRELIMINARY SIGNAL: You are receiving [N] of [14] expected
-             directors. Label your Dominant Signal clearly as PRELIMINARY
-             ([N]/14 directors)."
-
-             The signal analysis instructions (HALT-dominant, CAUTION-dominant,
-             cross-domain convergence logic) are injected dynamically by the
-             caller in FULL mode and are not stored in this file — they depend
-             on the active director count at runtime.
-
-  LAYER 1 PARSER CONTRACTS — DO NOT CHANGE:
-  The following strings are matched by parseDashboard() and downstream modules:
-  - **Dominant Signal** — section heading, matched exactly
-  - [PROCEED / CAUTION / HALT / MIXED] — the four valid Dominant Signal values
-  - **Fragility Hotspots** — matched by shouldRunStressTest() regex
-  - "high tension", "highly contested", "significant fragility", "fragility hotspot"
-    — phrases matched by shouldRunStressTest() to trigger automatic Stress Test
-  - **Landscape Summary** — section heading, matched by dashboard extraction
-  Do not rename these sections or change these phrase patterns.
+  RATIONALE: The caller-side assembly for this module differs from Director files.
+             The caller must:
+             1. Load this file and strip comment blocks.
+             2. Select the appropriate structure block (FULL or ABBREVIATED)
+                based on analysisMode and activeCount.
+             3. Inject any preliminary note if FULL mode with partial directors.
+             4. Replace {ACTIVE_STRUCTURE} with the selected structure text.
+             5. Inject signal analysis instructions dynamically for FULL mode
+                (these are runtime-generated based on activeCount and are not
+                stored in this file).
+             6. Append the coverage preamble (buildCoveragePreamble()).
+             The file therefore has three static sections (role identity,
+             conditional pathway definitions, reasoning principles) and one
+             runtime-resolved section (output structure).
   ADDED: [date]
 -->
 
@@ -301,6 +325,8 @@ Name absent director domains and what this means for landscape completeness.
 [PROCEED / CAUTION / HALT / MIXED] — exact tally, distribution characterisation,
 and (if PRELIMINARY) explicit note that signal is based on partial director set.
 
+Note: this value must match the Dominant Signal stated in the Executive Layer above.
+
 **Landscape Summary**
 Three sentences: (1) overall landscape character, (2) the single most consequential
 finding, (3) what would most change the current signal.
@@ -335,6 +361,8 @@ State which director domains are absent and what this means for the landscape ma
 **Dominant Signal**
 [PROCEED / CAUTION / HALT / MIXED] — exact tally from received directors only.
 If not all expected directors were received, prefix with PRELIMINARY.
+
+Note: this value must match the Dominant Signal stated in the Executive Layer above.
 
 **Landscape Summary**
 Two sentences: (1) overall landscape character, (2) the single most consequential
