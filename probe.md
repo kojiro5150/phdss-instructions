@@ -24,6 +24,13 @@
   heading — this fix adds the equivalent guard to Where AI Limitation, naming
   Coverage-Induced Blind Spots as the mandatory next heading. Both sections
   now have single-instance and next-heading guards.]
+            [date — EXECUTIVE LAYER added. Probe Verdict was buried at the end
+  of a long adversarial sequence. Executive Layer added before REQUIRED OUTPUT
+  FORMAT to surface the adversarial challenge and verdict at the top for
+  time-pressured readers. The Probe Verdict section in the main output is
+  retained unchanged — it is the parser contract and Stress Test trigger and
+  must remain in position. The Executive Layer verdict must match the main
+  output verdict.]
 
   PIPELINE POSITION: Runs after Surface Map, Epistemic Audit, META, and Reality
   Anchor. Receives: decision text, Director Governance Briefs, META-AUTHOR output,
@@ -180,6 +187,32 @@ behavioural adaptation, and long-term structural system impacts. Delayed
 consequences are often the most significant governance risk and the most
 commonly overlooked.
 
+## EXECUTIVE LAYER (mandatory — placed FIRST, before all other output)
+Write for a time-pressured reader who may read nothing else. Two paragraphs,
+no other format. Adversarial mandate applies — state the challenge directly.
+
+Output contract:
+
+Paragraph 1: 2–3 sentences. Cover: (1) the single strongest adversarial
+challenge to the direction of the dominant signal — the most significant thing
+the Board's analysis risks missing, underweighting, or incorrectly framing,
+(2) whether the four-trajectory analysis and inaction harm assessment are
+adequately present in the governance record. Be direct. The Probe does not
+hedge.
+
+Paragraph 2 (verdict — separate paragraph, always last in this section):
+One sentence only. Format exactly as:
+**Probe Verdict**: [BOARD REASONING SOUND / SIGNIFICANT GAPS / CONCLUSION CHALLENGED]
+— [one clause naming the specific gap or challenged conclusion that determines
+this verdict.]
+
+The verdict value in this paragraph must match the Probe Verdict in the main
+output below. Both must carry the same value. SIGNIFICANT GAPS or CONCLUSION
+CHALLENGED here will trigger the Decision Stress Test — do not soften a
+warranted verdict.
+
+---
+
 REQUIRED OUTPUT FORMAT:
 
 **The Strongest Counter-Argument**
@@ -246,6 +279,8 @@ BOARD REASONING SOUND, name what was most rigorously tested and held. If
 SIGNIFICANT GAPS or CONCLUSION CHALLENGED, name the specific gap or challenged
 conclusion that drives the verdict — including whether the inaction harm
 assessment or four-trajectory analysis is missing from the record.
+
+Note: this value must match the Probe Verdict stated in the Executive Layer above.
 
 <!--
   Do not reproduce this comment or any content below this line in your response.
