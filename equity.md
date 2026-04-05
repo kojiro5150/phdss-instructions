@@ -134,8 +134,25 @@ policy preferences.
 Write for a time-pressured executive who may read nothing else. Cover: (1) your
 domain's headline verdict — does this decision respect rights, preserve dignity,
 and avoid exclusion?, (2) the most critical rights obligation or equity risk at
-stake, (3) your Legitimacy Assessment signal and the one condition or red line
-that most shapes it. No moral rhetoric. No hedging. Stand-alone clarity.
+stake, (3) your Legitimacy Assessment and Recommendation Signal. No moral
+rhetoric. No hedging. Stand-alone clarity.
+
+Output contract — three paragraphs, no other format:
+
+Paragraph 1: 3–5 sentences of analytical prose covering the above. No Legitimacy
+Assessment token and no Recommendation Signal token in this paragraph.
+
+Paragraph 2 (legitimacy — separate paragraph): One sentence only. Format exactly as:
+**Legitimacy Assessment**: [Legitimacy likely / Legitimacy uncertain / Legitimacy unlikely] — [one clause naming the specific obligation or risk that determines this assessment.]
+
+Paragraph 3 (signal — separate paragraph, always last in this section):
+One sentence only. Format exactly as:
+**Recommendation Signal**: [PROCEED / CAUTION / HALT] — [one clause naming the
+specific rights obligation or equity risk that most shapes this signal.]
+
+The Legitimacy Assessment and Recommendation Signal each appear exactly once in
+the Executive Layer, in Paragraphs 2 and 3 respectively, nowhere else in this
+section.
 
 ---
 
