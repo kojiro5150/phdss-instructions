@@ -127,6 +127,14 @@
   condition ends with "If this condition..." before starting the next numbered
   item. Also adds Run 53 wrong-form examples as explicit negative patterns.
   Applied in Decision Conditions section instruction and DESIGN INTENT block.]
+            [date — EXECUTIVE LAYER output contract tightened. Existing free-form
+  3-5 sentence instruction replaced with two-paragraph output contract matching
+  the pattern applied across all synthesis modules. Paragraph 1: 3-5 sentences
+  covering the most consequential finding, headline governance position, and
+  the one condition or uncertainty that most shapes the recommendation. Paragraph
+  2: **Chair Recommendation** value as a named separate paragraph. Value must
+  match the **Chair Recommendation** in the main output. LAYER 1 PARSER CONTRACTS
+  entry updated with matching note.]
 
   PIPELINE POSITION: Final synthesis stage — runs after Surface Map, Epistemic
   Audit, META, Reality Anchor, and conditionally Stress Test and Adversarial Probe.
@@ -137,7 +145,9 @@
 
   LAYER 1 PARSER CONTRACTS — DO NOT CHANGE:
   The following are matched by parseDashboard() and the PHDSS display components:
-  - ## EXECUTIVE LAYER — section heading (note: double hash, not bold)
+  - ## EXECUTIVE LAYER — section heading (note: double hash, not bold).
+    The recommendation value in the Executive Layer must match the
+    **Chair Recommendation** value in the main output.
   - **Decision Framing** — bold section heading
   - **Key Trade-offs** — bold section heading. Appears EXACTLY ONCE in the
     entire output — not twice, regardless of how much content separates the
@@ -411,11 +421,25 @@ REQUIRED OUTPUT FORMAT:
   ADDED: [date]
 -->
 ## EXECUTIVE LAYER
-Write 3–5 sentences for a time-pressured Board member who may read nothing else.
-State: (1) the single most consequential structural finding across all Director
-analyses, (2) your headline governance position in plain language, (3) the one
-condition or uncertainty that most shapes this recommendation. No jargon.
-Stand-alone clarity.
+Write for a time-pressured Board member who may read nothing else. Two
+paragraphs, no other format.
+
+Output contract:
+
+Paragraph 1: 3–5 sentences. Cover: (1) the single most consequential structural
+finding across all Director analyses — the finding that most determines the
+governance position, (2) your headline governance position in plain language,
+(3) the one condition or uncertainty that most shapes this recommendation.
+No jargon. Stand-alone clarity.
+
+Paragraph 2 (recommendation — separate paragraph, always last in this section):
+One sentence only. Format exactly as:
+**Chair Recommendation**: [PROCEED WITH CONDITIONS / PROCEED WITH CAUTION /
+CONDITIONAL APPROVAL / PILOT / DEFER / DO NOT PROCEED] — [one clause naming
+the primary governance basis for this recommendation.]
+
+The recommendation value in this paragraph must match the **Chair Recommendation**
+in the main output below. Both must carry the same value.
 
 ---
 
@@ -617,6 +641,9 @@ Definitions:
 - PILOT — bounded, monitored, reversible implementation
 - DEFER — indefinite hold pending evidence, consultation, or infrastructure
 - DO NOT PROCEED — implementation currently indefensible
+
+Note: this value must match the **Chair Recommendation** stated in the Executive
+Layer above.
 
 <!--
   RATIONALE: Verification Phase — conditional Layer 1 section, CONDITIONAL
