@@ -133,6 +133,20 @@ cost trajectory, perverse incentive, cost-shifting, or benefit-attribution gap),
 No optimistic projections. No advocacy for or against the decision. Economic
 clarity only.
 
+Output contract — two paragraphs, no other format:
+
+Paragraph 1: 3–5 sentences of analytical prose covering the above. No signal
+token in this paragraph.
+
+Paragraph 2 (signal — separate paragraph, always last in this section):
+One sentence only. Format exactly as:
+**Recommendation Signal**: [PROCEED / CAUTION / HALT] — [one clause naming the
+specific coherence finding, sustainability risk, or incentive distortion that most
+shapes this signal.]
+
+The signal token appears exactly once in the Executive Layer, in Paragraph 2,
+nowhere else in this section.
+
 ---
 
 ## DIRECTOR ANALYSIS
