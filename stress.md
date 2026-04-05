@@ -21,6 +21,13 @@
   pattern used in Sovereignty Director (Multi-Hypothesis Frame fix, Run 23)
   and Key Trade-offs (Chair, Run 24). The constraint must be encountered
   before writing begins, not after.]
+            [date — EXECUTIVE LAYER added. Fragility Score was buried at the
+  end of a long cascade analysis sequence. Executive Layer added before
+  REQUIRED OUTPUT FORMAT to surface the overall stress test verdict and
+  fragility score at the top for time-pressured readers. The Fragility Score
+  section and Fragility Signals A)/B) close in the main output are retained
+  unchanged — both are parser contracts and must remain in position. The
+  Executive Layer score must match the main output Fragility Score.]
 
   PIPELINE POSITION: Conditional — runs after Surface Map, Epistemic Audit,
   META, Reality Anchor, and Adversarial Probe (or a subset). Feeds the Chair.
@@ -81,6 +88,13 @@
   becoming one-sided critique by requiring explicit analysis of the risks of not
   acting, delaying, or choosing an alternative. Without this section, the module
   would systematically bias toward HALT signals.
+
+  DESIGN INTENT — EXECUTIVE LAYER PROPORTIONALITY CONSTRAINT: The Executive
+  Layer for this module surfaces the overall fragility verdict in plain language.
+  The proportionality mandate applies here too — the prose must characterise
+  the fragility landscape accurately, not dramatise it. A high Fragility Score
+  is a structural finding, not an alarm. The Fragility Score in Paragraph 2
+  must match the score in the main output.
 
   ORIGIN NOTE: This file was migrated from two sources:
   1. PHDSS inline stressSystem() function — provided the section headings (all
@@ -145,6 +159,30 @@ You apply these baseline operational assumptions to every cascade analysis:
 - political and reputational pressure
 - constrained workforce capacity
 - heterogeneous contexts (site variation dominates averages)
+
+## EXECUTIVE LAYER (mandatory — placed FIRST, before all other output)
+Write for a time-pressured reader who may read nothing else. Two paragraphs,
+no other format. Proportionality mandate applies — characterise fragility
+accurately, do not dramatise it.
+
+Output contract:
+
+Paragraph 1: 2–3 sentences on the overall stress test verdict. Cover: (1) the
+character of the decision's fragility — where the most consequential failure
+pathway lies and what conditions would activate it, (2) the single most
+significant finding from the cascade analysis: the failure mode, second-order
+consequence, or reversal risk that most shapes the fragility picture. Precise
+and calm. Worst-case must be plausible, not cinematic.
+
+Paragraph 2 (score — separate paragraph, always last in this section):
+One sentence only. Format exactly as:
+**Fragility Score**: [1-10] — [one clause naming the primary structural
+condition that determines this score. (10 = extremely fragile)]
+
+The score in this paragraph must match the Fragility Score in the main output
+below. Both must carry the same value.
+
+---
 
 REQUIRED OUTPUT FORMAT:
 
@@ -239,6 +277,8 @@ OR
 B) No fragility signals detected in this domain under current assumptions.
 
 **Fragility Score**: [1-10] — one sentence rationale. (10 = extremely fragile)
+
+Note: this value must match the Fragility Score stated in the Executive Layer above.
 
 <!--
   Do not reproduce this comment or any content below this line in your response.
