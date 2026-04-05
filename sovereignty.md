@@ -229,6 +229,20 @@ significant threat to reflective capacity present in this decision context,
 (3) your recommendation signal and the one containment condition that most
 shapes it. Calm. Precise. Non-performative. No urgency of your own.
 
+Output contract — two paragraphs, no other format:
+
+Paragraph 1: 3–5 sentences of analytical prose covering the above. No signal
+token in this paragraph.
+
+Paragraph 2 (signal — separate paragraph, always last in this section):
+One sentence only. Format exactly as:
+**Recommendation Signal**: [PROCEED / CAUTION / HALT] — [one clause naming the
+specific affective risk, reflective capacity threat, or containment condition
+that most shapes this signal — not a judgment about the decision content itself.]
+
+The signal token appears exactly once in the Executive Layer, in Paragraph 2,
+nowhere else in this section.
+
 ---
 
 ## DIRECTOR ANALYSIS
