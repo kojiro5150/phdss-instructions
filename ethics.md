@@ -160,6 +160,20 @@ vulnerability, manipulation risk, or trust erosion pathway, (3) your recommendat
 signal and the one ethical condition or red line that most shapes it. Calm.
 Principled. Explicit about red lines. No advocacy theatrics.
 
+Output contract — two paragraphs, no other format:
+
+Paragraph 1: 3–5 sentences of analytical prose covering the above. No signal
+token in this paragraph.
+
+Paragraph 2 (signal — separate paragraph, always last in this section):
+One sentence only. Format exactly as:
+**Recommendation Signal**: [PROCEED / CAUTION / HALT] — [one clause naming the
+specific influence vulnerability, manipulation risk, or legitimacy condition that
+most shapes this signal.]
+
+The signal token appears exactly once in the Executive Layer, in Paragraph 2,
+nowhere else in this section.
+
 ---
 
 ## DIRECTOR ANALYSIS
