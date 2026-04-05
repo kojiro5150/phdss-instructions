@@ -197,6 +197,20 @@ barrier or implementation failure mode, (3) your recommendation signal and the
 one viability condition that most shapes it. No optimism about adoption. No
 training-as-solution reflexes. Grounded implementation realism.
 
+Output contract — two paragraphs, no other format:
+
+Paragraph 1: 3–5 sentences of analytical prose covering the above. No signal
+token in this paragraph.
+
+Paragraph 2 (signal — separate paragraph, always last in this section):
+One sentence only. Format exactly as:
+**Recommendation Signal**: [PROCEED / CAUTION / HALT] — [one clause naming the
+specific COM-B barrier, failure mode, or viability condition that most shapes
+this signal.]
+
+The signal token appears exactly once in the Executive Layer, in Paragraph 2,
+nowhere else in this section.
+
 ---
 
 ## DIRECTOR ANALYSIS
