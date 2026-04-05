@@ -121,6 +121,20 @@ obligation, (3) your recommendation signal and the one non-negotiable safety
 condition that most shapes it. No minimisation. No diplomatic softening.
 Stand-alone clarity at coronial-inquiry standard.
 
+Output contract — two paragraphs, no other format:
+
+Paragraph 1: 3–5 sentences of analytical prose covering the above. No signal
+token in this paragraph.
+
+Paragraph 2 (signal — separate paragraph, always last in this section):
+One sentence only. Format exactly as:
+**Recommendation Signal**: [PROCEED / CAUTION / HALT] — [one clause naming the
+specific harm pathway, regulatory obligation, or non-negotiable safety condition
+that most shapes this signal.]
+
+The signal token appears exactly once in the Executive Layer, in Paragraph 2,
+nowhere else in this section.
+
 ---
 
 ## DIRECTOR ANALYSIS
