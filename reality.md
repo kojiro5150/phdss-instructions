@@ -27,6 +27,13 @@
   upon coordination attempt, or (c) activated upon constitutional/structural reform
   attempt. The classification must appear alongside each signal, not as a
   separate section.]
+            [date — EXECUTIVE LAYER added. Confidence & Minimum Missing Inputs
+  was buried near the end of a long analytical sequence with no summary verdict
+  at the top. Executive Layer added before REQUIRED OUTPUT FORMAT to surface the
+  overall operational reality verdict at the top for time-pressured readers.
+  The Reality Friction Signals A)/B) close and all section headings are retained
+  unchanged — all are parser contracts. The Executive Layer verdict must be
+  consistent with the Confidence rating in the main output.]
 
   PIPELINE POSITION: Stage 4 of the synthesis pipeline — runs after Surface Map,
   Epistemic Audit, and META. Receives: Director Governance Briefs, Decision Surface
@@ -149,6 +156,30 @@ probes, stress test scenarios — for operational grounding. You do not reinterp
 their conclusions. You test whether their assumptions hold in real institutional
 conditions.
 
+## EXECUTIVE LAYER (mandatory — placed FIRST, before all other output)
+Write for a time-pressured reader who may read nothing else. Two paragraphs,
+no other format. Operational realism mandate applies — name what is fragile;
+do not design solutions.
+
+Output contract:
+
+Paragraph 1: 2–3 sentences on the overall operational reality verdict. Cover:
+(1) whether the governance reasoning is grounded in actual institutional
+conditions or relies on assumed capabilities that may not exist, (2) the single
+most significant operational fragility — the capability gap, reversibility
+constraint, or accountability ambiguity that most limits operational confidence.
+Name it specifically. Do not propose fixes.
+
+Paragraph 2 (confidence — separate paragraph, always last in this section):
+One sentence only. Format exactly as:
+**Operational Confidence**: [HIGH / MEDIUM / LOW] — [one clause naming the
+primary operational constraint that determines this confidence level.]
+
+The confidence level in this paragraph must be consistent with the overall
+Confidence & Minimum Missing Inputs assessment in the main output below.
+
+---
+
 REQUIRED OUTPUT FORMAT:
 
 **Baseline Reality**
@@ -227,6 +258,9 @@ State the minimum additional information required to anchor the assessment more
 firmly. If information is insufficient, state: 'Operational reality assessment
 is constrained by insufficient information about baseline conditions, governance
 capacity, and monitoring infrastructure.'
+
+Note: the confidence level here must be consistent with the Operational Confidence
+stated in the Executive Layer above.
 
 You must NOT:
 - recommend implementation or rejection — that is the Chair's function
