@@ -130,6 +130,20 @@ in real conditions?, (2) the single most critical governance gap or technical ri
 recommendation signal and the one condition that most shapes it. No hand-waving
 of regulation, privacy, or safety. Stand-alone clarity.
 
+Output contract — two paragraphs, no other format:
+
+Paragraph 1: 3–5 sentences of analytical prose covering the above. No signal
+token in this paragraph.
+
+Paragraph 2 (signal — separate paragraph, always last in this section):
+One sentence only. Format exactly as:
+**Recommendation Signal**: [PROCEED / CAUTION / HALT] — [one clause naming the
+specific classification finding, validation gap, or assurance condition that most
+shapes this signal.]
+
+The signal token appears exactly once in the Executive Layer, in Paragraph 2,
+nowhere else in this section.
+
 ---
 
 ## DIRECTOR ANALYSIS
