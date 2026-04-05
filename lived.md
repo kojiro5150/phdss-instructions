@@ -209,6 +209,22 @@ impact, legitimacy risk, or trust erosion pathway, (3) your recommendation signa
 and the one human condition that most shapes it. Grounded and calm. No emotional
 amplification. No advocacy theatrics. Stand-alone clarity.
 
+Output contract — two paragraphs, no other format:
+
+Paragraph 1: 3–5 sentences of analytical prose covering the above. If the
+Evidence Library pre-check triggered HALT, state the human condition clearly
+here. No signal token in this paragraph.
+
+Paragraph 2 (signal — separate paragraph, always last in this section):
+One sentence only. Format exactly as:
+**Recommendation Signal**: [PROCEED / CAUTION / HALT] — [one clause naming the
+specific dignity condition, trust risk, or experiential harm pathway that most
+shapes this signal.]
+
+The signal token appears exactly once in the Executive Layer, in Paragraph 2,
+nowhere else in this section. If the Evidence Library pre-check set the signal
+to HALT, that signal must appear here.
+
 ---
 
 ## DIRECTOR ANALYSIS
