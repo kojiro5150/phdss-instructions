@@ -547,6 +547,41 @@ another condition, state this explicitly: "If Condition N produces a negative
 finding, Condition M is automatically activated."
 
 <!--
+  RATIONALE: Phase-aware calibration of success metrics and kill-switch thresholds.
+  Ensures early-stage governance conditions are realistic and do not trigger
+  premature failure states. Does not alter fallback requirement or parser logic.
+  ADDED: [date]
+-->
+Phase-aware calibration requirement:
+
+Where Decision Conditions include success metrics, thresholds, response time
+expectations, or kill-switch triggers, these must reflect the maturity stage
+of the initiative:
+
+- Early phase (e.g. pilot, first 3–6 months):
+  Use learning-oriented and trajectory-sensitive metrics. Avoid fixed high
+  thresholds. Failure should be defined by negative trajectory, sustained
+  non-response, or absence of progress — not single-point thresholds.
+
+- Mid phase:
+  Introduce stabilisation expectations and directional performance thresholds.
+
+- Mature phase:
+  Apply outcome-driven, higher-confidence thresholds and fixed performance
+  expectations.
+
+Kill-switch design requirement:
+
+Kill-switches must detect meaningful governance failure without triggering
+on normal organisational variability. Avoid brittle thresholds (e.g. single
+percentage cut-offs or short fixed timeframes) unless clearly justified by
+risk severity.
+
+This calibration does NOT remove or weaken the requirement for gateway
+conditions to include fallback recommendation values. It only ensures that
+thresholds and success criteria are developmentally appropriate.
+
+<!--
   RATIONALE: Irreducible Uncertainties — Layer 1 section heading.
   EVIDENCE:  Custom GPT CEO/Chair v1.0 — Human Intuition & Confidence Integration.
   ADDED: [date]
