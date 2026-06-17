@@ -140,6 +140,11 @@
   Reasoning Record ledger structure. Parser contract added to LAYER 1.
   ANALYTICAL STANDARD updated with purpose framing. ACCEPTED RESIDUAL RISK
   added as explicit named field in Reasoning Transparency.]
+            [date — KEY DISCOVERY COMPLIANCE FIX: Strengthened Key Discovery
+  instruction with explicit prohibition on beginning output with ## EXECUTIVE
+  LAYER. Runs 4-6 showed model skipping Key Discovery and defaulting to
+  ## EXECUTIVE LAYER as habituated output start. Fix adds hard stop language,
+  non-compliance definition, and DO NOT PROCEED gate before ## EXECUTIVE LAYER.]
 
   PIPELINE POSITION: Final synthesis stage — runs after Surface Map, Epistemic
   Audit, META, Reality Anchor, and conditionally Stress Test and Adversarial Probe.
@@ -351,7 +356,8 @@
   risk assessment, a binary framing that collapsed a complex question, or a
   structural vulnerability appearing independently across multiple Director
   domains. It is not a summary of the recommendation — it is the finding that
-  changes how the decision is understood.
+  changes how the decision is understood. OUTPUT BEGINS WITH KEY DISCOVERY.
+  A response that begins with ## EXECUTIVE LAYER is non-compliant.
 
   DESIGN INTENT — ACCEPTED RESIDUAL RISK REQUIREMENT: Every governance position
   accepts costs it cannot eliminate. Naming those costs explicitly — in Reasoning
@@ -462,14 +468,12 @@ accordingly in the recommendation.
 
 REQUIRED OUTPUT FORMAT:
 
-<!--
-  RATIONALE: Key Discovery — mandatory first section before Executive Layer.
-  Surfaces the single most important governance finding so Board readers
-  encounter the reasoning discovery before the governance position.
-  ADDED: [date]
--->
 **Key Discovery**
+OUTPUT BEGINS HERE. Do not write ## EXECUTIVE LAYER until Key Discovery is
+complete. A response that begins with ## EXECUTIVE LAYER is non-compliant.
+
 ALWAYS WRITE THIS SECTION FIRST — before the Executive Layer. Do not omit it.
+Do not skip it. Do not begin your response with ## EXECUTIVE LAYER.
 
 In one or two sentences, name the single most important thing the structured
 reasoning process surfaced — the finding that most changes how the decision
@@ -488,6 +492,8 @@ Write it as a plain declarative statement. Not "the Board noted that..." —
 state the finding directly. Example form: "The organisation was treating
 ongoing harm from [X] as a neutral baseline rather than as an active condition
 requiring intervention."
+
+DO NOT PROCEED TO ## EXECUTIVE LAYER UNTIL THE ABOVE SECTION IS WRITTEN.
 
 ---
 
