@@ -145,6 +145,14 @@
   LAYER. Runs 4-6 showed model skipping Key Discovery and defaulting to
   ## EXECUTIVE LAYER as habituated output start. Fix adds hard stop language,
   non-compliance definition, and DO NOT PROCEED gate before ## EXECUTIVE LAYER.]
+            [date — KEY DISCOVERY v3 FIX: Abandoned standalone Key Discovery
+  section approach entirely. Runs 4-7 confirmed model reliably skips any
+  section instruction before ## EXECUTIVE LAYER regardless of prohibition
+  language strength. Fix: Key Discovery is now the mandatory FIRST PARAGRAPH
+  of ## EXECUTIVE LAYER, beginning with bold inline label "**Key Discovery:**".
+  Model writes Executive Layer reliably — Key Discovery is guaranteed to fire
+  because it is the first paragraph of that section. LAYER 1 parser contract
+  updated. DESIGN INTENT updated. Standalone Key Discovery section removed.]
 
   PIPELINE POSITION: Final synthesis stage — runs after Surface Map, Epistemic
   Audit, META, Reality Anchor, and conditionally Stress Test and Adversarial Probe.
@@ -155,14 +163,15 @@
 
   LAYER 1 PARSER CONTRACTS — DO NOT CHANGE:
   The following are matched by parseDashboard() and the PHDSS display components:
-  - **Key Discovery** — bold section heading. ALWAYS REQUIRED. Appears FIRST
-    in the output, before ## EXECUTIVE LAYER. Never omitted. One or two sentences
-    naming the single most important governance finding that the structured
-    reasoning process surfaced — the insight that most changes how the decision
-    should be understood. This is not a summary of the recommendation. It is the
-    finding that would not have been visible without multi-Director analysis and
-    adversarial challenge.
+  - **Key Discovery** — bold inline label at the start of the first paragraph
+    of ## EXECUTIVE LAYER. Format: "**Key Discovery:** [one or two sentences]".
+    ALWAYS REQUIRED. Never omitted. The first paragraph of the Executive Layer
+    must begin with this label. It names the single most important governance
+    finding — the insight that most changes how the decision should be understood.
+    This is not a summary of the recommendation.
   - ## EXECUTIVE LAYER — section heading (note: double hash, not bold).
+    Contains three paragraphs: (1) Key Discovery paragraph, (2) governance
+    summary paragraph, (3) recommendation paragraph.
     The recommendation value in the Executive Layer must match the
     **Chair Recommendation** value in the main output.
   - **Decision Framing** — bold section heading
@@ -349,15 +358,18 @@
   represents exactly the kind of crisis-driven analytical absorption that
   Sovereignty exists to prevent.
 
-  DESIGN INTENT — KEY DISCOVERY REQUIREMENT: The Key Discovery section surfaces
-  the single most important governance finding before the Executive Layer. A
-  Board reader should encounter the reasoning discovery before the governance
-  position. The Key Discovery is typically a hidden assumption, an asymmetry in
-  risk assessment, a binary framing that collapsed a complex question, or a
-  structural vulnerability appearing independently across multiple Director
-  domains. It is not a summary of the recommendation — it is the finding that
-  changes how the decision is understood. OUTPUT BEGINS WITH KEY DISCOVERY.
-  A response that begins with ## EXECUTIVE LAYER is non-compliant.
+  DESIGN INTENT — KEY DISCOVERY REQUIREMENT: The Key Discovery is the first
+  paragraph of the Executive Layer, beginning with the bold inline label
+  "**Key Discovery:**". It surfaces the single most important governance finding
+  before the governance position. A Board reader should encounter the reasoning
+  discovery before the determination. The Key Discovery is typically a hidden
+  assumption, an asymmetry in risk assessment, a binary framing that collapsed
+  a complex question, or a structural vulnerability appearing independently
+  across multiple Director domains. It is not a summary of the recommendation —
+  it is the finding that changes how the decision is understood. Because it is
+  the first paragraph of the Executive Layer (which the model writes reliably),
+  it will always be produced. OUTPUT BEGINS WITH ## EXECUTIVE LAYER. THE FIRST
+  PARAGRAPH OF THE EXECUTIVE LAYER BEGINS WITH "**Key Discovery:**".
 
   DESIGN INTENT — ACCEPTED RESIDUAL RISK REQUIREMENT: Every governance position
   accepts costs it cannot eliminate. Naming those costs explicitly — in Reasoning
@@ -468,52 +480,47 @@ accordingly in the recommendation.
 
 REQUIRED OUTPUT FORMAT:
 
-**Key Discovery**
-OUTPUT BEGINS HERE. Do not write ## EXECUTIVE LAYER until Key Discovery is
-complete. A response that begins with ## EXECUTIVE LAYER is non-compliant.
+<!--
+  RATIONALE: ## EXECUTIVE LAYER — Layer 1 parser contract, double-hash heading.
+  KEY DISCOVERY v3 FIX: Key Discovery is now the FIRST PARAGRAPH of the
+  Executive Layer, not a separate section before it. This ensures reliable
+  production because the Executive Layer is the model's habituated output start.
+  The parser reads Key Discovery from the first paragraph of Executive Layer
+  content, not from a separate bold heading.
+  ADDED: [date]
+-->
+## EXECUTIVE LAYER
+Write for a time-pressured Board member who may read nothing else. Three
+paragraphs. No other format.
 
-ALWAYS WRITE THIS SECTION FIRST — before the Executive Layer. Do not omit it.
-Do not skip it. Do not begin your response with ## EXECUTIVE LAYER.
+Output contract — THREE PARAGRAPHS, IN THIS ORDER:
 
-In one or two sentences, name the single most important thing the structured
-reasoning process surfaced — the finding that most changes how the decision
-should be understood. This is not the recommendation. It is the governance
-insight that would not have been visible without multi-Director analysis,
-adversarial challenge, and structured synthesis.
+Paragraph 1 — KEY DISCOVERY (mandatory, always first):
+One or two sentences only. Name the single most important governance finding
+the structured reasoning process surfaced — the insight that would not have
+been visible without multi-Director analysis, adversarial challenge, and
+structured synthesis. This is not the recommendation. It is the finding that
+most changes how the decision should be understood.
 
 The Key Discovery is typically one of:
 - A hidden assumption that was being treated as settled fact
 - An asymmetry in how different types of risk or harm were being assessed
 - A framing that was collapsing a complex governance question into a binary choice
-- A structural vulnerability that appeared independently across multiple unrelated
+- A structural vulnerability appearing independently across multiple unrelated
   Director domains
 
-Write it as a plain declarative statement. Not "the Board noted that..." —
-state the finding directly. Example form: "The organisation was treating
-ongoing harm from [X] as a neutral baseline rather than as an active condition
-requiring intervention."
+Write it as a plain declarative statement beginning with "**Key Discovery:**"
+Example: "**Key Discovery:** The organisation was treating ongoing harm from
+[X] as a neutral baseline rather than as an active condition requiring
+intervention."
 
-DO NOT PROCEED TO ## EXECUTIVE LAYER UNTIL THE ABOVE SECTION IS WRITTEN.
+Paragraph 2 — GOVERNANCE SUMMARY:
+3–5 sentences. Cover: (1) the single most consequential structural finding
+that most determines the governance position, (2) your headline governance
+position in plain language, (3) the one condition or uncertainty that most
+shapes this recommendation. No jargon. Stand-alone clarity.
 
----
-
-<!--
-  RATIONALE: ## EXECUTIVE LAYER — Layer 1 parser contract, double-hash heading.
-  ADDED: [date]
--->
-## EXECUTIVE LAYER
-Write for a time-pressured Board member who may read nothing else. Two
-paragraphs, no other format.
-
-Output contract:
-
-Paragraph 1: 3–5 sentences. Cover: (1) the single most consequential structural
-finding across all Director analyses — the finding that most determines the
-governance position, (2) your headline governance position in plain language,
-(3) the one condition or uncertainty that most shapes this recommendation.
-No jargon. Stand-alone clarity.
-
-Paragraph 2 (recommendation — separate paragraph, always last in this section):
+Paragraph 3 — RECOMMENDATION (separate paragraph, always last in this section):
 One sentence only. Format exactly as:
 **Chair Recommendation**: [PROCEED WITH CONDITIONS / PROCEED WITH CAUTION /
 CONDITIONAL APPROVAL / PILOT / DEFER / DO NOT PROCEED] — [one clause naming
