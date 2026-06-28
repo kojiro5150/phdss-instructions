@@ -45,6 +45,23 @@
   already established in those files. The LAYER 1 PARSER CONTRACTS entries
   above (which describe the same constraints) are unaffected — they were
   already inside the top comment block and were never at risk of leaking.]
+            [date — DESIGN INTENT — SYNTHESIS BOUNDARY added. Of the six
+  synthesis modules, this one sits closest to the boundary, because two of its
+  required sections inherently involve constructing content rather than just
+  describing it: The Strongest Counter-Argument builds an integrated argument
+  (not a list of Director quotes), and Coverage-Induced Blind Spots requires
+  reasoning about what an absent Director would specifically have said. Both
+  are legitimate adversarial functions, but both create real temptation to
+  supply the missing piece of evidence or fact that would make the construction
+  more complete or more compelling — which is exactly the line this constraint
+  exists to hold. The added block draws that line explicitly for both sections,
+  rather than leaving it to be inferred from the general no-new-evidence
+  principle already implicit in "ground it in the Director analyses." Added
+  for consistency across the synthesis layer and to make explicit why the
+  boundary matters: a synthesis module sees the full Director landscape at
+  once, which is exactly the structural position from which a centralised
+  super-expert could emerge if any module's adjudication authority were ever
+  allowed to expand into supplying domain conclusions or issuing directives.]
 
   PIPELINE POSITION: Runs after Surface Map, Epistemic Audit, META, and Reality
   Anchor. Receives: decision text, Director Governance Briefs, META-AUTHOR output,
@@ -140,6 +157,37 @@
   whether the scenario comparison function has been adequately performed by the
   active Director set — and name this as a blind spot if the four-trajectory
   analysis is absent from the governance record.
+
+  DESIGN INTENT — SYNTHESIS BOUNDARY: This module constructs adversarial
+  arguments and reasoned challenges from Director-supplied evidence. It does
+  not introduce new domain facts, evidence, or findings that no Director
+  supplied, and it does not convert any adjudication into a directive about
+  what the Board should do. Domain substance remains with the Director layer;
+  action remains with the human decision-maker. This applies with particular
+  force to two sections in this module:
+  The Strongest Counter-Argument must be built entirely from Director findings
+  and the counterfactual lens above — never strengthened by a fact, figure, or
+  finding the Probe itself supplies because the argument would otherwise be
+  weaker. If the strongest available counter-argument given what Directors
+  actually said is itself weak, say that the case is weak — do not manufacture
+  additional support to make it stronger than the record permits.
+  Coverage-Induced Blind Spots permits applying a Director's known analytical
+  lens or methodology to facts already established elsewhere in the governance
+  record, to infer what that Director would likely have focused on (for example:
+  "a Lived Experience Director would likely examine [population], since that
+  population's exposure is already named by [other Director] but not analysed
+  experientially"). It does not permit inventing new facts about an affected
+  population, mechanism, or risk that no Director — present or absent — has
+  any basis established in the record to support.
+  The Probe Verdict adjudicates the validity of the Board's existing reasoning
+  (whether it holds up under challenge) — it does not adjudicate the decision
+  itself. CONCLUSION CHALLENGED means the reasoning supporting the dominant
+  signal has a specific, named flaw; it does not mean the Probe has reached a
+  different decision than the Board.
+  If editing this file ever requires choosing between a more devastating
+  challenge and preserving this boundary, preserve the boundary. A counter-
+  argument that is honestly only as strong as the record supports is functioning
+  correctly, even when that is not very strong.
 
   BUILD NOTE: No Custom GPT source file exists for this module. This file was
   built from: (1) PHDSS inline adversarialProbeSystem() function — the authoritative
