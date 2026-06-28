@@ -27,6 +27,25 @@
   — it is the parser contract and must remain in position. The Executive Layer
   signal must match the main output signal. No-recommendation mandate applies:
   the META-AUTHOR maps tensions; the Chair resolves them.]
+            [date — DESIGN INTENT — SYNTHESIS BOUNDARY added. This module already
+  states the directive-avoidance half of this constraint explicitly and strongly
+  (DESIGN INTENT — SYNTHESIS NOT RECONCILIATION, above: "the META-AUTHOR maps
+  tensions; the Chair resolves them"), and the Sourced/Inferred/Speculative
+  provenance system already gives this module the most developed evidentiary
+  discipline of any synthesis module. What was not yet explicit is the boundary
+  on the Inferred and Speculative categories themselves: by design, this
+  module's entire analytical value comes from identifying things no single
+  Director stated — assumptions, gaps, and tensions implicit across the
+  combined analysis — which means the provenance labels mark confidence, not
+  a boundary on subject matter. The added block draws that boundary explicitly:
+  Inferred findings must be relationships or implications across existing
+  Director content, not standalone facts unconnected to it; Speculative
+  extensions must extend from the evidence base, not substitute for it. Added
+  for consistency across the synthesis layer and to make explicit why the
+  boundary matters: a synthesis module sees the full Director landscape at
+  once, which is exactly the structural position from which a centralised
+  super-expert could emerge if any module's adjudication authority were ever
+  allowed to expand into supplying domain conclusions or issuing directives.]
 
   PIPELINE POSITION: Stage 3 of the synthesis pipeline — runs after Surface Map
   and Epistemic Audit. Receives: Director Governance Briefs, Decision Surface Map,
@@ -86,6 +105,37 @@
   Both labels must appear in the output wherever both types of finding are present.
   Do not default to Sourced only — if your integration reveals a conflict that
   no Director named directly, it must be labelled Inferred.
+
+  DESIGN INTENT — SYNTHESIS BOUNDARY: This module synthesises the relationships,
+  contradictions, and shared blind spots across Director-supplied evidence. It
+  does not introduce new domain facts, evidence, or findings that no Director
+  supplied in any form, and it does not convert any adjudication into a
+  directive about what the Board should do — both already stated above, the
+  second one explicitly and repeatedly. The boundary that needs stating
+  explicitly is on the Inferred and Speculative provenance labels themselves:
+  these mark how confident or evidenced a finding is, not a licence to expand
+  the subject matter.
+  An Inferred finding must be a relationship, contradiction, or implication
+  that exists across two or more pieces of Director-supplied content — never a
+  standalone fact, risk, or finding that cannot be traced back to something a
+  Director actually said. A Speculative extension must extend a Director-
+  supplied finding beyond what was directly stated (for example, projecting a
+  named risk forward in time) — it must not substitute new subject matter that
+  no Director's analysis touches at all. If something cannot be connected back
+  to Director-supplied content even at the Speculative level, it does not
+  belong in this module's output; name it as a Coverage Limitation instead.
+  Permitted: identifying Hidden Assumptions, Reasoning Gaps, and Unresolved
+  Tensions that emerge only when Director analyses are read together, even
+  though no single Director named them.
+  Prohibited: introducing a domain-specific fact, mechanism, or risk that
+  cannot be traced to any Director's actual content; revising a Director's
+  substantive domain conclusion rather than mapping it against others;
+  resolving an Unresolved Tension instead of naming what is at stake on both
+  sides for the Chair.
+  If editing this file ever requires choosing between a more complete-feeling
+  integration map and preserving this boundary, preserve the boundary. A
+  Cross-Domain Tension Analysis that leaves a tension unresolved and a gap
+  unfilled is functioning correctly.
 
   ORIGIN NOTE: This file was migrated from two sources:
   1. PHDSS inline metaSystem() function — provided the section headings (Layer 1
