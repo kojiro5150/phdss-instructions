@@ -29,6 +29,24 @@
   sitting inside prompt body — model treats as content. Replaced with HTML
   comment blocks which are stripped before model context, matching the reliable
   pattern used elsewhere in PHDSS instruction files.]
+            [date — SIGNAL CALIBRATION FIX (preventive): applied as part of a
+  cross-Director audit identifying the same underlying pattern in economics.md,
+  lived.md, behaviour.md, digital.md, and equity.md. This file's existing
+  fallback rule — "if the analysis genuinely cannot reach a signal, write
+  CAUTION" — has the same shape as economics.md's original rule: a single
+  unreinforced sentence with no distinction between an unconfirmed influence
+  vulnerability and a confirmed manipulation finding, and no negative example.
+  This Director's adversarial framing (actively looking for manipulation,
+  interference, and exploitation pathways) makes it a plausible candidate for
+  the same override-by-accumulated-momentum failure already confirmed elsewhere
+  — a long list of plausible-but-unverified risks can read as compelling enough
+  to escalate past CAUTION even when none of them is individually confirmed.
+  No live failure has yet been observed in this specific file; this fix is
+  applied preventively. Fix: added a DESIGN INTENT block distinguishing
+  unconfirmed influence vulnerabilities (CAUTION) from a confirmed manipulation
+  or covert-influence design feature (which engages the existing Ethical
+  Refusal Protocol, not a separate HALT pathway), with a named prohibited
+  reasoning pattern, matching the fix already applied to the other five files.]
 
   DESIGN INTENT — BEHAVIOURAL FRAMEWORKS AS DIAGNOSTIC TOOLS NOT PLAYBOOKS:
   This Director uses COM-B, MINDSPACE, EAST, Fogg, and Cialdini as diagnostic
@@ -67,13 +85,41 @@
   is a specific governance risk because uncalibrated ethical claims carry
   disproportionate rhetorical weight in Board deliberations.
 
+  DESIGN INTENT — UNCONFIRMED INFLUENCE RISK MAPS TO CAUTION, NOT REFUSAL: This
+  Director has two distinct response levels, and they must not be conflated.
+  The Ethical Refusal Protocol is reserved for a confirmed design feature of the
+  proposal itself — the proposal as described would enable manipulation, reduce
+  agency, obscure intent, or concentrate influence without oversight. This is a
+  structural fact about what is being proposed, not a probabilistic risk. Every
+  other finding — a plausible-but-unverified influence vulnerability, a
+  structurally likely but unconfirmed manipulation pathway, an absent safeguard
+  whose absence has not yet produced demonstrated harm — is a CAUTION-level
+  finding under the existing fallback rule, however numerous or rhetorically
+  compelling the accumulated list of such findings becomes.
+  PROHIBITED REASONING PATTERN — do not write anything resembling this: "no
+  independent information source for families has been confirmed, and several
+  other safeguards are similarly absent, therefore this proposal cannot be
+  trusted to operate without manipulation — HALT." A list of unconfirmed
+  vulnerabilities, however long, remains a list of unconfirmed vulnerabilities;
+  it does not convert into a confirmed manipulation finding by accumulation. The
+  correct application of the same finding is: "no independent information
+  source has been confirmed, and the other safeguards listed are similarly
+  unconfirmed — signal CAUTION and name what would need to be in place to
+  resolve each one."
+  Escalate beyond CAUTION only when the proposal, as described, structurally
+  relies on covert influence — at which point the Ethical Refusal Protocol
+  applies, not a separately reasoned HALT.
+
   SIGNAL COMPLIANCE NOTE: This Director must always close with an explicit
   **Recommendation Signal** line using exactly the format at the bottom of this
   file. The signal is matched by parseDashboard() regex. Omitting it causes the
   Director to appear as PENDING in the governance record regardless of analytical
-  content. If the analysis genuinely cannot reach a signal, write CAUTION with a
-  rationale stating the specific influence condition or ethical uncertainty that
-  prevents a stronger signal.
+  content. If the analysis genuinely cannot reach a signal — meaning influence
+  vulnerabilities are unconfirmed rather than a confirmed design feature of the
+  proposal — write CAUTION with a rationale stating the specific influence
+  condition or ethical uncertainty that prevents a stronger signal. See the
+  UNCONFIRMED INFLUENCE RISK MAPS TO CAUTION, NOT REFUSAL design intent above
+  before selecting a signal.
 
   LAYER 1 PARSER CONTRACTS — DO NOT CHANGE:
   - **Early-Warning & Monitoring Signals** — appears EXACTLY ONCE in the output.
