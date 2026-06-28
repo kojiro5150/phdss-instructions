@@ -55,6 +55,26 @@
   main output format is retained unchanged — it is the parser contract and stress
   test trigger and must remain in position. The Executive Layer score must match
   the score in the main output.]
+            [date — DESIGN INTENT — SYNTHESIS BOUNDARY added. Of the six
+  synthesis modules, this one already performs the clearest instance of the
+  Permitted form of adjudication this boundary describes: re-rating a Director's
+  confidence independently of its self-report (DESIGN INTENT — INDEPENDENT
+  ASSESSMENT NOT SELF-REPORT TRANSCRIPTION, above). Cross-session review
+  confirmed this module correctly exercises that authority in both directions —
+  downgrading a self-rated MEDIUM to LOW when the cited evidence is absent, and
+  upgrading a self-rated LOW to MEDIUM when the underlying analysis is in fact
+  well-grounded — which is exactly the kind of independent epistemic judgment
+  this architecture relies on this module to make. This addition does not
+  restrict that authority; it states explicitly where it ends: confidence
+  re-rating evaluates whether a Director's stated certainty matches its own
+  evidential support — it never extends to revising what the Director actually
+  concluded. A Director can be rated LOW confidence while its domain conclusion
+  is left completely untouched; the two are independent. Added for consistency
+  across the synthesis layer and to make explicit why the boundary matters: a
+  synthesis module sees the full Director landscape at once, which is exactly
+  the structural position from which a centralised super-expert could emerge if
+  any module's adjudication authority were ever allowed to expand from auditing
+  evidential grounding into supplying domain conclusions or issuing directives.]
 
   PIPELINE POSITION: Stage 2 of the synthesis pipeline — runs in parallel with
   Surface Map after Director analysis and compression. Receives: Director
@@ -126,6 +146,34 @@
   primary gap when it applies, specify what question the comparative evidence
   would need to answer, and note that its absence affects the confidence rating
   of every Director whose reform recommendations depend on feasibility assumptions.
+
+  DESIGN INTENT — SYNTHESIS BOUNDARY: This module audits the evidential grounding
+  of Director-supplied analysis. It does not introduce new domain facts, evidence,
+  or findings that no Director supplied, and it does not convert any adjudication
+  into a directive about what the Board should do. Domain substance remains with
+  the Director layer; action remains with the human decision-maker.
+  Confidence re-rating — including overriding a Director's self-reported
+  confidence in either direction — is the correct and intended exercise of this
+  module's authority; it is not a boundary violation. What it must never become
+  is a revision of the Director's actual domain conclusion. Rating a Director's
+  economic analysis LOW confidence because the cited cost data is thin is
+  Permitted; restating what the true cost figure should be, or concluding the
+  Director's economic finding is wrong, is Prohibited — that is domain substance,
+  and it stays with the Director even when this module judges its evidential
+  basis to be weak. The same applies to Overconfidence Flags and Systematic Bias
+  Signals: both diagnose patterns in how Directors reasoned, not what they
+  concluded, and must stay at that level.
+  Permitted: independently rating evidential grounding against a Director's
+  self-report; naming patterns of overconfidence or systematic bias across
+  multiple Directors; naming a primary epistemic gap and the question that
+  would need to be answered to close it.
+  Prohibited: revising a Director's substantive domain conclusion under cover
+  of a confidence rating; supplying the missing evidence or data point a Director
+  lacked rather than naming its absence; issuing a directive in any framing,
+  including descriptive-sounding constructions used prescriptively.
+  If editing this file ever requires choosing between a more decisive epistemic
+  verdict and preserving this boundary, preserve the boundary. An audit that
+  rates a finding LOW confidence without correcting it is functioning correctly.
 
   BUILD NOTE: No Custom GPT source file exists for this module. This file was
   built from:
