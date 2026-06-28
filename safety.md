@@ -30,6 +30,21 @@
   primary output; requires explicit selection of top three before writing
   thresholds; names the wrong-pattern from Run 54 as an explicit example.
   Mirrors the behaviour.md THREE PAIRS REQUIRED fix applied at Run 51.]
+            [date — HTML COMMENT FIX: Pre-Conclude self-verification checklist
+  moved into an HTML comment block. Tier 1 governance-record review (cross-
+  session audit) identified the plain-text checklist "Before writing the
+  Conclude line, confirm you have written: Signal 1 + Threshold 1, Signal 2 +
+  Threshold 2, Signal 3 + Threshold 3." reproducing near-verbatim in live output
+  as "Confirm: Signal 1 + Threshold 1 ✓ Signal 2 + Threshold 2 ✓ Signal 3 +
+  Threshold 3 ✓" immediately before the A) close. Root cause: as previously
+  diagnosed in equity.md, ethics.md, innovation.md, systems.md, and policy.md
+  for the same failure class, a plain-text self-check instruction in the section
+  body is semantically visible to the model and treated as generatable content.
+  Fix: move the self-verification checklist into an HTML comment block — the
+  model still performs the check, it simply no longer prints it. The THRESHOLD
+  REQUIREMENT and THREE PAIRS REQUIRED instructional blocks above it are left
+  as visible text, since they were not observed leaking in the audited run and
+  contain substantive formatting guidance rather than a pure self-check.]
 
   MANDATORY DIRECTOR STATUS: This Director is always active regardless of governance
   mode (CORE / FULL / CHAIR_SPECIFIED). It is one of two mandatory Directors in
@@ -238,10 +253,12 @@ the top three by proximity to failure, then write three Signal/Threshold pairs
 in this exact format for each selected signal:
 "Signal: [name]. Threshold: [specific observable condition]."
 
-Before writing the Conclude line, confirm you have written:
-Signal 1 + Threshold 1, Signal 2 + Threshold 2, Signal 3 + Threshold 3.
-All three must have named thresholds. Do not substitute explanatory text,
-timing notes, or consequence descriptions for threshold values.
+<!-- SELF-CHECK GUARD — do not reproduce this instruction in your output:
+  Before writing the Conclude line, confirm you have written:
+  Signal 1 + Threshold 1, Signal 2 + Threshold 2, Signal 3 + Threshold 3.
+  All three must have named thresholds. Do not substitute explanatory text,
+  timing notes, or consequence descriptions for threshold values.
+-->
 
 Do not propose solutions, mitigation strategies, or new interventions.
 Do not speculate about intent or individual psychology.
