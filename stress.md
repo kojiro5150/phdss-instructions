@@ -28,6 +28,22 @@
   section and Fragility Signals A)/B) close in the main output are retained
   unchanged — both are parser contracts and must remain in position. The
   Executive Layer score must match the main output Fragility Score.]
+            [date — DESIGN INTENT — SYNTHESIS BOUNDARY added. This module
+  already states a closely related anti-directive constraint (DESIGN INTENT —
+  STRUCTURED DISSENT NOT VETO, above: "it does not determine whether the
+  downside is unacceptable") — this addition generalises that constraint into
+  the shared boundary now stated identically across all six synthesis modules,
+  and explicitly addresses a nuance specific to this file: the Assumptions Used
+  section permits "speculative" assumptions, which on its face could look like
+  permission to introduce new domain evidence. The added block clarifies that
+  speculative assumptions are declared analytical scaffolding used to connect
+  existing Director-identified risks into a cascade — not new domain facts —
+  and remain distinct from verified/inferred assumptions throughout. Added for
+  consistency across the synthesis layer and to make explicit why the boundary
+  matters: a synthesis module sees the full Director landscape at once, which
+  is exactly the structural position from which a centralised super-expert
+  could emerge if any module's adjudication authority were ever allowed to
+  expand into supplying domain conclusions or issuing directives.]
 
   PIPELINE POSITION: Conditional — runs after Surface Map, Epistemic Audit,
   META, Reality Anchor, and Adversarial Probe (or a subset). Feeds the Chair.
@@ -95,6 +111,34 @@
   the fragility landscape accurately, not dramatise it. A high Fragility Score
   is a structural finding, not an alarm. The Fragility Score in Paragraph 2
   must match the score in the main output.
+
+  DESIGN INTENT — SYNTHESIS BOUNDARY: This module synthesises Director-supplied
+  evidence into cascades, second-order effects, and impact surfaces. It does not
+  introduce new domain facts, evidence, or findings that no Director supplied,
+  and — beyond the no-veto constraint already stated above — it does not convert
+  any adjudication into a directive about what the Board should do. Domain
+  substance remains with the Director layer; action remains with the human
+  decision-maker.
+  This applies specifically to the speculative assumptions permitted in
+  Assumptions Used (Explicit): "speculative" means declared analytical
+  scaffolding needed to connect existing Director-identified risks into a
+  coherent cascade — for example, an assumed sequencing or timing detail that
+  links two real findings together — not a new domain fact, risk, or finding
+  that no Director raised. A speculative assumption must always be in service
+  of chaining Director-supplied findings, never a substitute for one, and must
+  remain labelled as speculative rather than presented as established.
+  Permitted: constructing the Plausible Failure Cascade, Second-Order &
+  Delayed Consequences, and Impact Surface sections using cascades, sequences,
+  and connections between Director-supplied findings, with declared speculative
+  links where needed to chain them coherently.
+  Prohibited: introducing a domain-specific fact, figure, or risk pathway that
+  does not trace back to a named Director finding even speculatively; revising
+  a Director's substantive domain conclusion; issuing a directive in any
+  framing, including descriptive-sounding constructions used prescriptively.
+  If editing this file ever requires choosing between a more decisive verdict
+  and preserving this boundary, preserve the boundary. A stress test that
+  surfaces fragility without resolving whether it is acceptable is functioning
+  correctly.
 
   ORIGIN NOTE: This file was migrated from two sources:
   1. PHDSS inline stressSystem() function — provided the section headings (all
