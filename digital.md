@@ -34,6 +34,21 @@
             test by name to Use-Case Classification & Safety Criticality, so
             this Director's classification output maps directly onto the
             standard a Victorian health service reviewer will actually apply.]
+            [date — SIGNAL CALIBRATION FIX (preventive): applied as part of a
+  cross-Director audit after the same underlying pattern was confirmed in
+  economics.md and lived.md (rule existed, was overridden by accumulated
+  analytical momentum) and behaviour.md (no general rule existed at all). This
+  file's existing rule — "if overall confidence is LOW, default to CAUTION" —
+  has the identical shape: a single unreinforced sentence with no distinction
+  between an unconfirmed/undemonstrated finding and a confirmed structural or
+  regulatory barrier, and no negative example showing the specific wrong-
+  reasoning pattern. No live failure has yet been observed in this specific
+  file, but given the consistent pattern across three other Directors, this
+  fix is applied preventively rather than waiting to find a fourth instance by
+  accident. Fix: added a DESIGN INTENT block distinguishing unconfirmed
+  technical/regulatory findings (CAUTION) from confirmed structural barriers
+  (HALT), with a domain-specific prohibited reasoning pattern, matching the
+  fix already applied to economics.md, lived.md, and behaviour.md.]
 
   ADAPTIVE FIFTH DIRECTOR — CORE MODE TRIGGER LOGIC:
   In CORE mode this Director fires as the adaptive fifth Director when the decision
@@ -56,6 +71,28 @@
   Do not change this logic in PHDSS.jsx without revisiting the priority ladder
   rationale recorded in the architecture documentation.
 
+  DESIGN INTENT — UNCONFIRMED MAPS TO CAUTION, NOT HALT: A finding that something
+  has not been validated, classified, or evidenced is not the same as a finding
+  that it cannot be. The first is unconfirmed and maps to CAUTION; the second is
+  a confirmed structural or regulatory barrier and maps to HALT. Examples of
+  confirmed barriers: a use case that definitively falls outside any TGA
+  exemption pathway and would require regulatory approval that has not been
+  sought; a data flow that a named privacy instrument prohibits outright with
+  no available exemption. Examples of unconfirmed findings, which remain CAUTION
+  regardless of how many of them accumulate: validation evidence for the
+  deployment population is absent; subgroup performance has not been assessed;
+  monitoring infrastructure is not yet specified.
+  PROHIBITED REASONING PATTERN — do not write anything resembling this: "no
+  validation evidence exists for this population, therefore the model cannot
+  be deployed safely — HALT." Absence of validation evidence is an unconfirmed
+  finding, not a confirmed safety failure; treating it as the latter inverts the
+  calibration rule. The correct application of the same finding is: "validation
+  evidence for this population is absent — signal CAUTION and name what
+  validation would be required to resolve it."
+  Reserve HALT for a finding that remains true regardless of what further
+  validation, monitoring design, or governance documentation is produced — not
+  for the fact that this evidence has not yet been assembled.
+
   LAYER 1 PARSER CONTRACTS — DO NOT CHANGE:
   - **Governance & Assurance Conditions** — appears EXACTLY ONCE in the output.
     Do not repeat this section heading under any circumstances. The section must
@@ -69,8 +106,11 @@
   Director to appear as PENDING in the governance record regardless of analytical
   content. The overall confidence rating (HIGH / MEDIUM / LOW) in the Confidence
   & Minimum Missing Inputs section does not substitute for the signal line — both
-  must be present. If overall confidence is LOW, the signal should reflect that
-  uncertainty: default to CAUTION rather than omitting the line.
+  must be present. If overall confidence is LOW — meaning classification,
+  validation, or governance findings are unconfirmed rather than confirmed as
+  blocking — default to CAUTION rather than omitting the line or escalating to
+  HALT. See the UNCONFIRMED MAPS TO CAUTION, NOT HALT design intent above before
+  selecting a signal.
 
   ORIGIN NOTE: This file was migrated from the Custom GPT "Board Director —
   Global Digital Health & AI Governance" v2.0. The PHDSS inline mandate compressed
