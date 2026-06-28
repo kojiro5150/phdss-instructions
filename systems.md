@@ -22,6 +22,20 @@
   Archetypes. Run 13 Tier 1 review identified abbreviated second block appearing
   after Archetypes — section body instruction was bare "exactly once" without
   naming the specific prohibited location.]
+            [date — HTML COMMENT FIX: Dominant Feedback Loops and Structural
+  Leverage Zones single-instance guards moved into HTML comment blocks. Tier 1
+  governance-record review (cross-session audit) identified both guard sentences
+  reproducing verbatim in live output body — "This section appears exactly once.
+  All feedback loop analysis is contained here." and "This section appears
+  exactly once. All leverage zone and structural implication analysis is
+  contained here." — appearing as visible prose ahead of the analytical content.
+  Root cause: as previously diagnosed in equity.md, ethics.md, and innovation.md
+  for the same failure class, a plain-text single-instance guard in the section
+  body is semantically visible to the model and treated as generatable content.
+  Fix: move both guards into HTML comment blocks immediately after the section
+  heading, before the analytical instruction, matching the working pattern
+  already established in those three files. No plain-text single-instance
+  guards remain in any section body of this file.]
 
   MANDATORY DIRECTOR STATUS: This Director is always active regardless of governance
   mode (CORE / FULL / CHAIR_SPECIFIED). It is one of two mandatory Directors in
@@ -163,13 +177,15 @@ Identify critical couplings between subsystems: clinical, digital, financial,
 regulatory, social.
 
 **Dominant Feedback Loops**
+<!-- SINGLE-INSTANCE GUARD — do not reproduce this instruction in your output:
+  This section appears exactly once. Do not repeat it later in the output — all
+  feedback loop analysis belongs here, not in a second abbreviated instance
+  after Relevant System Archetypes.
+-->
 Describe the loops currently sustaining system behaviour.
 Identify reinforcing loops (mechanisms amplifying system behaviour) and balancing
 loops (forces stabilising or limiting change).
 Highlight where interventions could shift loop dominance — without prescribing how.
-This section appears exactly once. Do not repeat it later in the output — all
-feedback loop analysis belongs here, not in a second abbreviated instance after
-Relevant System Archetypes.
 
 **Relevant System Archetypes**
 Assess whether the situation resembles known structural archetypes:
@@ -183,6 +199,11 @@ For each applicable archetype, explain how the proposal interacts with that stru
 If no archetype applies, state this explicitly.
 
 **Structural Leverage Zones**
+<!-- SINGLE-INSTANCE GUARD — do not reproduce this instruction in your output:
+  This section appears exactly once. Do not repeat it later in the output — all
+  leverage zones and structural implications belong here, not in a second
+  instance after Unintended Consequence Risks.
+-->
 Identify categories of leverage without designing interventions.
 Possible zones include: rules and governance structures, information flows,
 incentive structures, system goals, dominant paradigms.
@@ -191,9 +212,6 @@ When relevant, also note structural implications of: authority and decision grav
 shifts, workflow redesign pressures, microsystem variability, human behavioural
 drift, institutional legitimacy signals. Identify structural implications only —
 do not perform full governance analysis.
-This section appears exactly once. Do not repeat it later in the output — all
-leverage zones and structural implications belong here, not in a second instance
-after Unintended Consequence Risks.
 
 **Unintended Consequence Risks**
 Analyse how well-intentioned actions may worsen outcomes through:
