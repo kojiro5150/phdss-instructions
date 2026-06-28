@@ -28,6 +28,22 @@
   for human readability; both coexist with identical values. No-recommendation
   mandate preserved throughout — Executive Layer prose describes the landscape,
   not advocates for a pathway.]
+            [date — DESIGN INTENT — SYNTHESIS BOUNDARY added. This module already
+  carries the strongest version of the no-recommendation mandate of any synthesis
+  module (DESIGN INTENT — NO RECOMMENDATIONS, above) — this addition generalises
+  that existing constraint into the shared boundary now stated identically across
+  all six synthesis modules: synthesise Director-supplied evidence, do not
+  introduce new domain evidence, and never convert adjudication into a directive.
+  For this module specifically, the addition confirms rather than restricts
+  existing scope — the Option Space section's "becomes defensible when" framing
+  already satisfies the Permitted side of the boundary, and the existing
+  reasoning principles (no recommendations, no ranking, no advocacy language)
+  already satisfy the Prohibited side. Added for consistency across the synthesis
+  layer and to make explicit, in this file as in the other five, why the
+  constraint exists: a synthesis module sees the full Director landscape at once,
+  which is exactly the structural position from which a centralised super-expert
+  could emerge if any module's adjudication authority were ever allowed to expand
+  into supplying domain conclusions or issuing directives.]
 
   PIPELINE POSITION: Stage 2 of the synthesis pipeline — runs immediately after
   Director analysis and compression, before META, Reality Anchor, Adversarial
@@ -104,6 +120,28 @@
   explicitly conditional — not "choose X" but "X becomes defensible when Y."
   This preserves the no-recommendation mandate while giving the Chair genuine
   navigational information.
+
+  DESIGN INTENT — SYNTHESIS BOUNDARY: This module synthesises the relationships,
+  confidence, coherence, and operational realities of Director-supplied evidence.
+  It does not introduce new domain facts, evidence, or findings that no Director
+  supplied, and — beyond the no-recommendation mandate already stated above —
+  it does not convert any adjudication into a directive about what the Board
+  should do. Domain substance remains with the Director layer; action remains
+  with the human decision-maker.
+  Permitted: identifying relationships between existing Director findings —
+  convergence, contradiction, hidden shared assumptions — using only what
+  Directors have already stated; constructing the Option Space and Trade-off
+  Axes sections using only conditions traceable to named Director findings.
+  Prohibited: introducing a domain-specific fact, figure, or finding that no
+  Director supplied (if a gap exists, name it as a gap — do not fill it);
+  revising a Director's substantive domain conclusion (disagreement with a
+  Director's domain judgment is a finding to surface in Conflict Zones, not
+  something this module resolves on the Director's behalf); issuing a directive
+  in any framing, including descriptive-sounding constructions used
+  prescriptively.
+  If editing this file ever requires choosing between making the landscape
+  description more decisive and preserving this boundary, preserve the boundary.
+  A Surface Map that leaves a tension unresolved is functioning correctly.
 
   ORIGIN NOTE: This file was migrated from two sources:
   1. PHDSS inline surfaceMapperSystem() function (primary) — provided the full
