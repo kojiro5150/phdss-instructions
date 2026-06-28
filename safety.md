@@ -45,6 +45,26 @@
   REQUIREMENT and THREE PAIRS REQUIRED instructional blocks above it are left
   as visible text, since they were not observed leaking in the audited run and
   contain substantive formatting guidance rather than a pure self-check.]
+            [date — FOLLOW-UP FIX: explicit prohibition added — hiding the
+  literal sentence was insufficient. A subsequent independent run on the same
+  decision still produced a visible confirmation line — "Confirm: Signal 1 +
+  Threshold 1 ✓, Signal 2 + Threshold 2 ✓, Signal 3 + Threshold 3 ✓." — even
+  though that exact sentence was no longer present in the visible prompt. The
+  model had reconstructed an equivalent confirmation statement from the still-
+  visible THREE PAIRS REQUIRED instructions, which explicitly ask it to select
+  and verify three Signal/Threshold pairs "before moving to the Conclude
+  section" — visible procedural language that primes a narrated completion
+  check even without the original wording to copy. This means the failure
+  mode is not "the model copies a visible sentence" but "the model narrates
+  its own compliance process when nearby instructions imply it should verify
+  something," which hiding one specific phrasing does not address. Fix: added
+  an explicit instruction naming the actual observed leak pattern as a
+  prohibited example, in addition to the hidden self-check guard. Naming the
+  specific banned output (rather than only removing its source text) is
+  intended to block paraphrased reconstructions, not just verbatim copies — if
+  this still leaks in some other phrasing on a future run, the THREE PAIRS
+  REQUIRED block's "before moving to the Conclude section" framing itself is
+  the next thing to revisit, since it is what invites narrated verification.]
 
   MANDATORY DIRECTOR STATUS: This Director is always active regardless of governance
   mode (CORE / FULL / CHAIR_SPECIFIED). It is one of two mandatory Directors in
@@ -252,6 +272,14 @@ Correct approach: First identify all fragility signals, then explicitly select
 the top three by proximity to failure, then write three Signal/Threshold pairs
 in this exact format for each selected signal:
 "Signal: [name]. Threshold: [specific observable condition]."
+
+Do not write a visible confirmation, checklist, or completion statement
+anywhere in your output. This applies regardless of phrasing or formatting —
+do not write anything resembling "Confirm: Signal 1 + Threshold 1 ✓, Signal 2
++ Threshold 2 ✓, Signal 3 + Threshold 3 ✓" or any paraphrase of it, in italics,
+plain text, or any other form. Performing this check is an internal step you
+take before writing the Conclude line — it must never appear as visible text
+in your response, under any wording.
 
 <!-- SELF-CHECK GUARD — do not reproduce this instruction in your output:
   Before writing the Conclude line, confirm you have written:
