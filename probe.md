@@ -31,6 +31,20 @@
   retained unchanged — it is the parser contract and Stress Test trigger and
   must remain in position. The Executive Layer verdict must match the main
   output verdict.]
+            [date — HTML COMMENT FIX: Single-instance/next-heading guards for
+  Whose Perspective Is Absent and Where AI Limitation Is Most Visible moved
+  into HTML comment blocks. Tier 2 governance-record review (cross-session
+  audit) identified both plain-text "SECTION CLOSED — [next heading] follows"
+  guards reproducing verbatim in live output, immediately after each section's
+  substantive content. Root cause: as previously diagnosed in equity.md,
+  ethics.md, innovation.md, systems.md, policy.md, and safety.md for the same
+  failure class, a plain-text single-instance/next-heading guard in the section
+  body is semantically visible to the model and treated as generatable content.
+  Fix: move both guards into HTML comment blocks immediately after each section
+  heading, before the analytical instruction, matching the working pattern
+  already established in those files. The LAYER 1 PARSER CONTRACTS entries
+  above (which describe the same constraints) are unaffected — they were
+  already inside the top comment block and were never at risk of leaking.]
 
   PIPELINE POSITION: Runs after Surface Map, Epistemic Audit, META, and Reality
   Anchor. Receives: decision text, Director Governance Briefs, META-AUTHOR output,
@@ -241,27 +255,28 @@ consequences, or framings not surfaced by any Director. Specifically check:
   generic domain descriptions — specific analytical contributions)?
 
 **Whose Perspective Is Absent**
+<!-- SINGLE-INSTANCE GUARD — do not reproduce this instruction in your output:
+  This section appears exactly once. Do not open a second instance with
+  additional absent perspectives. The next heading after this section is
+  **Where AI Limitation Is Most Visible**.
+-->
 Name the specific populations, stakeholders, or affected parties whose
 perspectives are absent from the governance analysis — and what that absence
 means for the reliability of the dominant signal. Be specific to this decision,
 not generic. Cover all absent perspectives in this single instance.
-This section appears exactly once. Do not open a second instance with
-additional absent perspectives. SECTION CLOSED after this analysis — write
-**Where AI Limitation Is Most Visible** next.
 
 **Where AI Limitation Is Most Visible**
-Write this section exactly once as a single unbroken block. Do not pause
-mid-section and re-open this heading. This section appears exactly once —
-all AI limitation analysis belongs here.
-
+<!-- SINGLE-INSTANCE GUARD — do not reproduce this instruction in your output:
+  Write this section exactly once as a single unbroken block. Do not pause
+  mid-section and re-open this heading. The next heading after this section
+  is **Coverage-Induced Blind Spots**.
+-->
 Name the specific ways AI analysis is most likely to mislead on this particular
 decision — not generic AI limitations, but the specific failure modes most
 relevant here. Examples: pattern-matching to superficially similar decisions,
 overconfidence in evidence that may not transfer to this context, inability to
 assess political dynamics or organisational culture that a human governance
 advisor would read from context.
-SECTION CLOSED — the next heading must be **Coverage-Induced Blind Spots** —
-write it immediately.
 
 **Coverage-Induced Blind Spots**
 Name what each absent Director domain would specifically have surfaced on this
