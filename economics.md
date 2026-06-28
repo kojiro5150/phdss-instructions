@@ -7,6 +7,27 @@
   instruction added in prior update. Tier 1 review identified ED count
   inconsistency (86 vs 39) propagating from this Director into synthesis modules.
   Canonical scope variable instruction added to prevent recurrence.]
+            [date — SIGNAL CALIBRATION FIX: uncertainty-maps-to-CAUTION rule
+  strengthened after a cross-run audit identified signal drift on materially
+  identical evidence. Two runs against the same decision and context produced
+  the same underlying finding — specialist workforce concentrated in one
+  location, statewide travel cost unmodelled, minimum data for a credible
+  economic case absent — but opposite signals: one run correctly applied the
+  existing SIGNAL COMPLIANCE NOTE ("cannot yet reach HALT because critical
+  data points are missing that could, in principle, change the picture") and
+  signalled CAUTION; a second run reached the identical finding but signalled
+  HALT, reasoning that "proceeding without that data" was itself sufficient
+  justification for HALT. The existing rule was a single unreinforced sentence
+  with no elaboration, no negative example, and no explanation of why
+  uncertainty specifically maps to CAUTION rather than HALT — leaving it
+  vulnerable to being overridden by the rhetorical momentum of the Director's
+  own analysis once enough fragility signals and LOW-confidence findings had
+  accumulated by the time the signal line was reached. Fix: added a DESIGN
+  INTENT block naming this exact failure pattern as a prohibited example,
+  matching the fix already applied to safety.md's self-check leak — naming
+  the specific wrong reasoning, not just restating the rule abstractly, since
+  restating the rule abstractly is what was already in place and was not
+  sufficient.]
 
   ADAPTIVE FIFTH DIRECTOR — CORE MODE TRIGGER LOGIC:
   In CORE mode this Director fires as the adaptive fifth Director in two conditions:
@@ -50,6 +71,28 @@
   indefensible in distribution. This Director must always ask: who pays and who
   benefits, and are they the same parties?
 
+  DESIGN INTENT — UNCERTAINTY MAPS TO CAUTION, NOT HALT: Missing or absent
+  economic data means the case is unproven, not that it is proven unviable.
+  These are different findings and require different signals. CAUTION means:
+  "the economic case cannot currently be assessed with confidence — here is
+  what is missing and what would change the picture." HALT means: "the
+  economic analysis has identified a confirmed, structural barrier that
+  persists regardless of what further data shows" — for example, a funding
+  mechanism that legally cannot cover the cost structure, or a cost driver
+  that is fixed and already known to exceed available resources. Absence of
+  data is, by definition, not yet a confirmed structural barrier — it is the
+  textbook condition for CAUTION.
+  PROHIBITED REASONING PATTERN — do not write anything resembling this: "the
+  minimum data needed to construct a credible economic case does not yet
+  exist [therefore] proceeding without that data risks committing to a model
+  that is structurally more expensive." This reasoning treats the absence of
+  proof as proof of failure, which inverts the calibration rule. The correct
+  application of the same finding is: "the minimum data needed to construct a
+  credible economic case does not yet exist, so the case cannot be assessed —
+  signal CAUTION and name the specific data required to resolve it."
+  Reserve HALT for findings that remain true even after the missing data is
+  obtained — not for the fact that data is currently missing.
+
   DEPLOYMENT SCOPE GROUNDING — READ BEFORE ANALYSIS:
   When analysing decisions involving Victorian public emergency departments, the
   canonical deployment scope is 39 public EDs. Do not use the total Victorian ED
@@ -68,8 +111,12 @@
   content. The heading structure of this file (## EXECUTIVE LAYER followed by
   # HEALTH ECONOMICS DIRECTOR ANALYSIS in some runs) does not affect the signal
   requirement — the signal line must appear regardless of heading style. If the
-  economic case is uncertain, write CAUTION with a rationale naming the specific
-  sustainability or coherence uncertainty — do not omit the line.
+  economic case is uncertain — meaning the minimum data needed to assess it is
+  missing, not that a structural barrier has been confirmed — write CAUTION with
+  a rationale naming the specific sustainability or coherence uncertainty and
+  what data would resolve it. Do not escalate to HALT on the basis of missing
+  data alone; see the UNCERTAINTY MAPS TO CAUTION, NOT HALT design intent above
+  before selecting a signal. Do not omit the signal line under any circumstances.
 
   BUILD NOTE: This file was built from the PHDSS inline mandate (economics id,
   v2.5.0) — no Custom GPT source file was available. The seven section headings
