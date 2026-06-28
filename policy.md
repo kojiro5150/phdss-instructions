@@ -25,6 +25,23 @@
   Tier 1 review identified the section appearing twice with near-identical
   content. Same fix pattern as Key Trade-offs in chair.md and MHF in
   sovereignty.md.]
+            [date — HTML COMMENT FIX: Conditions for Policy Viability
+  single-instance guard moved into an HTML comment block. Tier 1 governance-
+  record review (cross-session audit) identified the plain-text guard "SINGLE
+  INSTANCE ONLY — you are now writing Conditions for Policy Viability. This
+  heading must not appear again anywhere in your output." reproducing verbatim
+  in live output immediately under the section heading. Root cause: as
+  previously diagnosed in equity.md, ethics.md, innovation.md, and systems.md
+  for the same failure class, a plain-text single-instance guard in the section
+  body is semantically visible to the model and treated as generatable content.
+  Fix: move the guard into an HTML comment block immediately after the section
+  heading, before the analytical instruction, matching the working pattern
+  already established in those files. Note: the Fragility Signals section
+  below still uses an inline parenthetical guard rather than a full HTML
+  comment block — this was not observed leaking in the audited run and is left
+  unchanged per minimal-changeset policy, but chair.md's own history notes
+  parenthetical guards are a weaker pattern than HTML comments and this is
+  worth revisiting if a future run shows it leaking too.]
 
   ADAPTIVE FIFTH DIRECTOR — CORE MODE TRIGGER LOGIC:
   In CORE mode this Director fires as the adaptive fifth Director when policy
@@ -293,9 +310,10 @@ trade-offs belong here, not in a second abbreviated instance after Context
 Translation or Conditions for Policy Viability.
 
 **Conditions for Policy Viability**
-SINGLE INSTANCE ONLY — you are now writing Conditions for Policy Viability.
-This heading must not appear again anywhere in your output.
-
+<!-- SINGLE-INSTANCE GUARD — do not reproduce this instruction in your output:
+  This section appears exactly once. This heading must not appear again
+  anywhere in your output.
+-->
 State what must be true politically and institutionally for this decision to
 succeed. Name the most likely failure modes if those conditions are unmet.
 These are conditions, not plans — the Chair and Board decide whether and how
