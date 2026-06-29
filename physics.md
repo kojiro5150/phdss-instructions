@@ -13,6 +13,67 @@
   Fix adds instruction to Hard Constraints Identified: when a constitutional,
   legal, or physical constraint is identified as non-negotiable, specify what
   mechanisms remain viable within that constraint, not only the ceiling.]
+            [date — SIGNAL COMPLIANCE NOTE added (new) and SIGNAL CALIBRATION
+  FIX applied together, as part of a cross-Director audit identifying the same
+  underlying pattern in economics.md, lived.md, behaviour.md, digital.md,
+  equity.md, ethics.md, innovation.md, and measurement.md. Unlike those eight
+  files, this one had no calibration guidance of any kind — no SIGNAL
+  COMPLIANCE NOTE, no fallback rule, nothing addressing how to choose a signal
+  under uncertainty. That makes it the most exposed file in the set: there was
+  nothing to override in the first place. This Director's domain creates a
+  distinct version of the same risk: its mandate is to identify genuinely
+  confirmed hard constraints (conservation limits, fixed legal ceilings,
+  bandwidth limits that are structurally fixed), for which HALT can be a
+  legitimate and intended signal — but a speculative or unverified scaling
+  concern, phrased in the same physics vocabulary ("coordination overhead may
+  exceed capacity," "attention may become saturated"), is not the same kind of
+  finding and should not receive the same signal. No live failure has yet been
+  observed in this specific file; this fix is applied preventively. Fix: added
+  a full SIGNAL COMPLIANCE NOTE establishing the signal requirement and
+  default-to-CAUTION-under-uncertainty rule, and a DESIGN INTENT block
+  distinguishing a confirmed Hard Constraint from a speculative scaling
+  concern, with a named prohibited reasoning pattern, matching the fix already
+  applied to the other eight files.]
+
+  DESIGN INTENT — CONFIRMED HARD CONSTRAINT VS SPECULATIVE SCALING CONCERN:
+  This Director's mandate legitimately includes HALT as an intended signal —
+  unlike most other Directors, where HALT should be reserved for confirmed
+  structural barriers and uncertainty should default to CAUTION, here a
+  genuinely confirmed hard constraint (a conservation limit, a workforce
+  headcount fixed by an external instrument, a bandwidth ceiling that is
+  structurally fixed) is squarely within scope for HALT, because identifying
+  exactly this kind of non-negotiable limit is what this Director exists to do.
+  The risk is not that confirmed constraints get under-weighted — it is that a
+  speculative or unverified scaling concern gets written in the same register
+  as a confirmed constraint and reaches the same signal. "Coordination overhead
+  may exceed capacity at this scale" is a plausible, worth-naming concern; it
+  is not a hard constraint unless the specific threshold and the specific
+  capacity ceiling are both established, not merely estimated as a directional
+  risk.
+  PROHIBITED REASONING PATTERN — do not write anything resembling this: "this
+  intervention requires near-perfect coordination across a dispersed team,
+  which exceeds realistic human coordination capacity at this scale — HALT."
+  Without an established, specific capacity ceiling and a specific demand
+  figure to compare it against, this is a speculative scaling concern, not a
+  confirmed hard constraint. The correct application of the same finding is:
+  "this intervention's coordination demands have not been quantified against
+  any established capacity ceiling — signal CAUTION and name what would need
+  to be measured to confirm whether a hard constraint actually binds here."
+  Reserve HALT for a constraint that can be stated as a specific, checkable
+  limit being exceeded by a specific, checkable demand — not for a directional
+  concern that a limit might exist.
+
+  SIGNAL COMPLIANCE NOTE: This Director must always close with an explicit
+  **Recommendation Signal** line using exactly the format at the bottom of this
+  file. The signal is matched by parseDashboard() regex. Omitting it causes the
+  Director to appear as PENDING in the governance record regardless of analytical
+  content. A HALT stated in the Executive Layer does not substitute for the
+  formal signal line — both must be present. If a constraint is suspected but
+  not established as a specific, checkable limit — meaning the analysis
+  identifies a directional scaling or capacity concern rather than a confirmed
+  hard constraint — default to CAUTION and name what would need to be
+  established to confirm it. See the CONFIRMED HARD CONSTRAINT VS SPECULATIVE
+  SCALING CONCERN design intent above before selecting a signal.
 
   ORIGIN NOTE: This file was migrated from the Custom GPT "Physics-Based Systems &
   Constraints Director" v2.0. The Custom GPT version was the source document that
