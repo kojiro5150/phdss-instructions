@@ -5,7 +5,8 @@ const source = fs.readFileSync("App_FINAL.jsx", "utf8");
 const compressionSource = fs.readFileSync("src/runtime/governance-compression.js", "utf8");
 const promptSource = fs.readFileSync("src/prompt-builders.js", "utf8");
 const coverageSource = fs.readFileSync("src/coverage.js", "utf8");
-const requiredSource = source + "\n" + compressionSource + "\n" + promptSource + "\n" + coverageSource;
+const pipelineSource = fs.readFileSync("src/pipeline.js", "utf8");
+const requiredSource = source + "\n" + compressionSource + "\n" + promptSource + "\n" + coverageSource + "\n" + pipelineSource;
 
 parse(source, {
   sourceType: "module",
@@ -24,6 +25,11 @@ parse(promptSource, {
 });
 
 parse(coverageSource, {
+  sourceType: "module",
+  errorRecovery: false,
+});
+
+parse(pipelineSource, {
   sourceType: "module",
   errorRecovery: false,
 });
@@ -64,6 +70,9 @@ const required = [
   "./src/runtime/governance-compression.js",
   "./src/prompt-builders.js",
   "./src/coverage.js",
+  "./src/pipeline.js",
+  "runGovernancePipeline",
+  "buildLedgerRecord",
   "loadAllInstructions",
   "callClaude_synthesis",
 ];
