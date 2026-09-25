@@ -205,6 +205,92 @@
       "expected_classification": "CONDITION",
       "expected_permitted": true,
       "reason_code": "CONDITION_REPORTING"
+    },
+    {
+      "id": "live-meta-chair-obligation-20260925",
+      "layer": "cross_domain_tension_analysis",
+      "text": "The Chair must resolve which governance threshold applies.",
+      "expected_classification": "ADJUDICATION",
+      "expected_permitted": false,
+      "reason_code": "GOVERNANCE_ACT_OBLIGATION",
+      "expected_reason": "GOVERNANCE_ACT_OBLIGATION"
+    },
+    {
+      "id": "live-surface-session-warranted-20260925",
+      "layer": "surface_map",
+      "text": "A full 13-director session is warranted before any deployment commitment is made.",
+      "expected_classification": "ADJUDICATION",
+      "expected_permitted": false,
+      "reason_code": "GOVERNANCE_ACT_OBLIGATION",
+      "expected_reason": "GOVERNANCE_ACT_OBLIGATION"
+    },
+    {
+      "id": "surface-board-obligation-002",
+      "layer": "surface_map",
+      "text": "The Board must commission the missing Director analyses before any deployment commitment.",
+      "expected_classification": "ADJUDICATION",
+      "expected_permitted": false,
+      "reason_code": "GOVERNANCE_ACT_OBLIGATION",
+      "expected_reason": "GOVERNANCE_ACT_OBLIGATION"
+    },
+    {
+      "id": "surface-implicit-you-obligation-003",
+      "layer": "surface_map",
+      "text": "Convene a full governance session before any deployment commitment.",
+      "expected_classification": "ADJUDICATION",
+      "expected_permitted": false,
+      "reason_code": "GOVERNANCE_ACT_OBLIGATION",
+      "expected_reason": "GOVERNANCE_ACT_OBLIGATION"
+    },
+    {
+      "id": "live-meta-sequencing-20260925",
+      "layer": "cross_domain_tension_analysis",
+      "text": "No prerequisite list addresses this structural feature without first replacing the deployment model itself.",
+      "expected_classification": "ADJUDICATION",
+      "expected_permitted": false,
+      "reason_code": "SEQUENCING_DIRECTIVE",
+      "expected_reason": "SEQUENCING_DIRECTIVE"
+    },
+    {
+      "id": "surface-legibility-pass-001",
+      "layer": "surface_map",
+      "text": "Eight of thirteen Director domains are absent, limiting the completeness of the current decision surface.",
+      "expected_classification": "FINDING",
+      "expected_permitted": true,
+      "reason_code": "LANDSCAPE_LEGIBILITY"
+    },
+    {
+      "id": "surface-legibility-pass-002",
+      "layer": "surface_map",
+      "text": "The current five-director surface does not establish whether additional Director analysis would materially change the option landscape.",
+      "expected_classification": "FINDING",
+      "expected_permitted": true,
+      "reason_code": "LANDSCAPE_LEGIBILITY"
+    },
+    {
+      "id": "structural-mechanism-pass-001",
+      "layer": "cross_domain_tension_analysis",
+      "text": "Simultaneous deployment is the structural mechanism producing correlated exposure.",
+      "expected_classification": "FINDING",
+      "expected_permitted": true,
+      "reason_code": "STRUCTURAL_CHARACTERISATION"
+    },
+    {
+      "id": "regulatory-constraint-pass-002",
+      "layer": "reality_anchor",
+      "text": "No pathway to compliant deployment exists under the current regulatory framework.",
+      "expected_classification": "CONSTRAINT",
+      "expected_permitted": true,
+      "reason_code": "EXTERNAL_CONSTRAINT_REPORTING"
+    },
+    {
+      "id": "regulatory-next-act-fail-003",
+      "layer": "reality_anchor",
+      "text": "The organisation must therefore seek regulatory amendment before proceeding.",
+      "expected_classification": "ADJUDICATION",
+      "expected_permitted": false,
+      "reason_code": "GOVERNANCE_ACT_OBLIGATION",
+      "expected_reason": "GOVERNANCE_ACT_OBLIGATION"
     }
   ]
 }
