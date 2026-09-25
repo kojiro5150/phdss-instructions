@@ -23,12 +23,12 @@ const LAYER_PROHIBITIONS = Object.freeze({
 export function authorityBoundaryPrompt(layer) {
   const terminus=LAYER_TERMINI[layer]||"analytical characterisation";
   const prohibition=LAYER_PROHIBITIONS[layer]||"Do not adjudicate the institutional decision.";
-  return "\n\nPHDSS AUTHORITY CONTRACT: Analytical authority terminates at adjudication. You may describe, characterise, map, challenge, compare, condition, and report evidenced constraints. You must preserve material tension for human judgment. "+prohibition+" Your authority terminates at "+terminus+".";
+  return "\n\nPHDSS AUTHORITY CONTRACT: Analytical authority terminates at adjudication. You may describe, characterise, map, challenge, compare, condition, and report evidenced constraints. You must preserve material tension for human judgment. Do not assign the Chair, Board, organisation, institution, committee, decision-maker, or implied reader an obligation to take the next governance act, and do not prescribe a sequence of human actions for resolving the decision space. "+prohibition+" Your authority terminates at "+terminus+".";
 }
 
 function externalConstraintClause(clause) {
-  return /\b(?:law|legal(?:ly)?|regulat(?:ion|ory|or)|statut(?:e|ory)|court order|licen[cs]e|authorisation|authorization|physical(?:ly)? impossible|technical dependency|pre[- ]specified safety (?:rule|threshold)|mandatory safety (?:rule|threshold))\b/i.test(clause)
-    && /\b(?:require[sd]?|prohibit(?:s|ed)?|unavailable|not legally available|cannot legally|must not legally|foreclose[sd]? by)\b/i.test(clause);
+  return /\b(?:law|lawful(?:ly)?|legal(?:ly)?|regulat(?:ion|ory|or)|statut(?:e|ory)|court order|licen[cs]e|authorisation|authorization|physical(?:ly)? impossible|technical dependency|pre[- ]specified safety (?:rule|threshold)|mandatory safety (?:rule|threshold))\b/i.test(clause)
+    && /\b(?:require[sd]?|prohibit(?:s|ed)?|unavailable|not legally available|cannot legally|cannot lawfully|must not legally|must not lawfully|foreclose[sd]? by)\b/i.test(clause);
 }
 
 function splitClauses(text) {
@@ -73,6 +73,25 @@ function reasonForClause(clause) {
   if(/\b(?:pathway|option|course|proposal)\s+[A-Z0-9-]*\b[^.]{0,100}\b(?:should|must)\s+(?:be\s+)?(?:selected|chosen|adopted|implemented|preferred|rejected|approved)\b/i.test(clause)
     || /\btherefore\b[^.]{0,120}\b(?:pathway|option|course)\b[^.]{0,100}\bmust\s+be\s+(?:implemented|adopted|selected|chosen)\b/i.test(clause)) {
     return "PATHWAY_SELECTION";
+  }
+
+  if(/\b(?:institution|organisation|organization|board|chair|committee|governance body|health authority|decision[- ]maker|we|you)\b[^.]{0,160}\b(?:should|must|ought to|needs? to|has to|is required to|is expected to|is warranted to)\b/i.test(clause)) {
+    if(externalConstraintClause(clause)) return null;
+    return "GOVERNANCE_ACT_OBLIGATION";
+  }
+
+  if(/\b(?:a|the)\s+(?:full\s+)?(?:\d+[- ]director\s+)?(?:governance\s+|board\s+|committee\s+)?session\b[^.]{0,100}\b(?:is|remains)\s+(?:warranted|required|necessary)\b[^.]{0,100}\bbefore\b/i.test(clause)) {
+    return "GOVERNANCE_ACT_OBLIGATION";
+  }
+
+  if(/^(?:resolve|select|choose|adopt|approve|reject|defer|commission|convene|seek|establish|replace|implement|authori[sz]e|proceed)\b/i.test(clause)) {
+    if(externalConstraintClause(clause)) return null;
+    return "GOVERNANCE_ACT_OBLIGATION";
+  }
+
+  if(/\bwithout\s+first\s+(?:replac(?:e|ing)|adopt(?:ing)?|select(?:ing)?|choos(?:e|ing)|implement(?:ing)?|approv(?:e|ing)|authori[sz](?:e|ing)|defer(?:ring)?|commission(?:ing)?|conven(?:e|ing)|seek(?:ing)?|establish(?:ing)?)\b[^.]{0,140}\b(?:deployment|rollout|pathway|proposal|model|session|review|approval|commitment|framework|policy|governance|regulatory)\b/i.test(clause)) {
+    if(externalConstraintClause(clause)) return null;
+    return "SEQUENCING_DIRECTIVE";
   }
 
   if(/\b(?:signals?|signal distribution|majority|unanim(?:ous|ity)|convergence)\b[^.]{0,140}\b(?:means?|therefore|confirms?|establishes?)\b[^.]{0,120}\b(?:proposal|pathway|option|decision)\b[^.]{0,80}\b(?:rejected|approved|selected|adopted|deferred|must not proceed|should not proceed)\b/i.test(clause)
