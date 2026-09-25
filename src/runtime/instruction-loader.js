@@ -1,4 +1,4 @@
-export const INSTRUCTION_COMMIT = "95395c63083eb45cd824cbf8cb6198387724f71c";
+export const INSTRUCTION_COMMIT = "062acd1de4665439f82dcb351770f4c4fba93421";
 export const GITHUB_BASE = "https://cdn.jsdelivr.net/gh/kojiro5150/phdss-instructions@"+INSTRUCTION_COMMIT+"/";
 
 export const INSTRUCTION_FILES = Object.freeze({
