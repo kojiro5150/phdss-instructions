@@ -297,6 +297,8 @@ function makeLedgerInput(config,state,stressResult) {
     realityAnchorOut:state.realityAnchorOut,
     dirBriefs:state.dirBriefs,
     synthesisBriefs:state.synthesisBriefs,
+    synthesisStageStatus:state.synthesisStageStatus,
+    stageErrors:state.stageErrors,
   };
 }
 
@@ -321,11 +323,26 @@ export async function runGovernancePipeline(config,runtime,emit) {
   var state={
     activeDir:activeDir,omittedDir:omittedDir,results:[],dirBriefs:{},synthesisBriefs:{},
     metaOut:"",surfaceMapOut:"",realityAnchorOut:"",stressOut:"",chairOut:"",
-    epistemicOut:"",probeOut:"",comparatorData:null,stageErrors:[],stressDecision:null
+    epistemicOut:"",probeOut:"",comparatorData:null,stageErrors:[],stressDecision:null,
+    synthesisStageStatus:{}
   };
 
   emit("active-directors",{activeDir:activeDir,omittedDir:omittedDir});
   activeDir.forEach(function(d){emit("director-loading",{id:d.id,loading:true});});
+
+  function setSynthesisStageStatus(stage,status,error) {
+    var record=stageStatusRecord(status,error);
+    state.synthesisStageStatus[stage]=record;
+    emit("stage-status",{stage:stage,status:status,error:record.error||null});
+    return record;
+  }
+
+  function recordStageFailure(stage,label,error) {
+    var message=label+" failed: "+errorText(error);
+    state.stageErrors.push(message);
+    setSynthesisStageStatus(stage,"failed",error);
+    return message;
+  }
 
   async function storeSynthesisBrief(key,moduleLabel,output) {
     var brief;
