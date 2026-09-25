@@ -40,7 +40,7 @@
       "id": "invalid-convergence-to-confirmation",
       "expected_permitted": false,
       "expected_reason": "CONVERGENCE_TO_CONFIRMATION",
-      "source": "Director A: regional capacity is unverified.\\nDirector B: regional capacity is unverified.\\nDirector C: regional capacity is unverified.\\nDirector D: regional capacity is unverified.\\nDirector E: regional capacity is unverified.\\nDirector F: regional capacity is unverified.\\nDirector G: regional capacity is unverified.\\nDirector H: regional capacity is unverified.",
+      "source": "Director A: regional capacity is unverified.\nDirector B: regional capacity is unverified.\nDirector C: regional capacity is unverified.\nDirector D: regional capacity is unverified.\nDirector E: regional capacity is unverified.\nDirector F: regional capacity is unverified.\nDirector G: regional capacity is unverified.\nDirector H: regional capacity is unverified.",
       "compressed": "Regional capacity is confirmed across all Director domains."
     }
   ]
