@@ -67,7 +67,7 @@ const required = [
   "./src/governance-record-contract.js",
   "./src/runtime/instruction-loader.js",
   "./src/runtime/anthropic-client.js",
-  "./src/runtime/governance-compression.js",
+  "./runtime/governance-compression.js",
   "./src/prompt-builders.js",
   "./src/coverage.js",
   "./src/pipeline.js",
