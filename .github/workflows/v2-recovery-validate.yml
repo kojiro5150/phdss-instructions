@@ -3,6 +3,7 @@ name: PHDSS v2 Recovery Validation
 on:
   push:
     branches:
+      - main
       - v2.0
   pull_request:
     branches:
