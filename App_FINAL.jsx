@@ -349,37 +349,12 @@ function exportFullDashboard(d, decision, decisionId, decisionSignal, orgContext
     "  Conflicts Detected:     "+d.conflictCount,
     "  Assumptions Exposed:    "+d.assumptionCount+(d.assumptions.length>0?"\n"+d.assumptions.map(function(a,i){return "    "+(i+1)+". "+a.replace(/^\d+\.\s*/,"");}).join("\n"):""),
     "  Integration Signal:     "+d.integrationSignal+(d.integrationRationale?" — "+d.integrationRationale:""),
-    "  Current Governance Position: "+d.chairRec,
-    // m2 FIX: Consensus Departure field — flags when Chair recommendation
-    // diverges significantly from the Director signal distribution so that
-    // any reviewer reading only the Dashboard can see the departure.
-    "  Consensus Departure:    "+(
-      (function(){
-        var rec = d.chairRec||"";
-        var isProceed = rec.indexOf("PROCEED")!==-1 || rec.indexOf("PROCEED WITH")!==-1;
-        var isHalt = rec==="DO NOT PROCEED" || rec==="HALT";
-        // No Director ever signals CONDITIONAL APPROVAL, DEFER, or PILOT — any
-        // Chair issuing these against a HALT/CAUTION distribution is a departure
-        // by definition, because the recommendation value is not in the Director
-        // signal space. Detect this independently of dominance arithmetic.
-        var isNonStandard = rec==="CONDITIONAL APPROVAL" || rec==="DEFER" || rec==="PILOT";
-        var haltDominant = d.haltCount > (d.cautionCount + d.proceedCount);
-        var cautionDominant = d.cautionCount > (d.haltCount + d.proceedCount);
-        var proceedDominant = d.proceedCount > (d.haltCount + d.cautionCount);
-        var anyHaltOrCaution = (d.haltCount + d.cautionCount) > 0;
-        if (isNonStandard && anyHaltOrCaution)
-          return "YES — Chair issued "+rec+" against "+d.haltCount+" HALT / "+d.cautionCount+" CAUTION Director distribution. See Departure from Director Consensus section.";
-        if (isProceed && (haltDominant || cautionDominant))
-          return "YES — Chair issued "+rec+" against "+d.haltCount+" HALT / "+d.cautionCount+" CAUTION Director distribution. See Reasoning Transparency.";
-        if (isHalt && proceedDominant)
-          return "YES — Chair issued DO NOT PROCEED against "+d.proceedCount+" PROCEED Director distribution. See Reasoning Transparency.";
-        return "None — recommendation consistent with dominant Director signal.";
-      })()
-    ),
+    "  Decision Brief Status:  "+d.decisionBriefStatus+(d.decisionBriefClause?" — "+d.decisionBriefClause:""),
+    "  Director Signal Distribution: "+d.haltCount+" HALT / "+d.cautionCount+" CAUTION / "+d.proceedCount+" PROCEED"+(d.probeVerdict?" — Probe verdict: "+d.probeVerdict:""),
   ];
   if (d.aiIntegrityScore!==null && d.aiIntegrityScore!==undefined) rows.push("  AI Integrity Score:     "+d.aiIntegrityScore+"% (composite: Epistemic health 60% + Adversarial Probe 40%)");
   var aiModeNote = (d.analysisMode!=="FULL")
-    ? " Score is structurally depressed on partial runs ("+d.activeDirectorCount+"/13 directors) — compare against FULL mode baseline, not an absolute threshold."
+    ? " Score is structurally depressed on partial runs ("+d.activeDirectorCount+"/"+DIRECTORS.length+" directors)" — compare against FULL mode baseline, not an absolute threshold."
     : "";
   // m1 FIX: Added period after each general note phrase so the partial run
   // caveat in aiModeNote reads as a separate sentence, not a run-on.
@@ -394,7 +369,7 @@ function exportFullDashboard(d, decision, decisionId, decisionSignal, orgContext
   (d.conflicts.length ? d.conflicts : ["None detected"]).forEach(function(c,i) { rows.push("  "+(i+1)+". "+c); });
   rows.push("","HIDDEN ASSUMPTIONS","------------------");
   (d.assumptions.length ? d.assumptions : ["None detected"]).forEach(function(a,i) { rows.push("  "+(i+1)+". "+a); });
-  rows.push("","CHAIR CONDITIONS","----------------");
+  rows.push("","DECISION CONDITIONS","-------------------");
   (d.conditions.length ? d.conditions : ["None specified"]).forEach(function(c,i) { rows.push("  "+(i+1)+". "+c); });
   rows.push("","===================================================================","  PHDSS Transparency Dashboard - "+decisionId,"  AI-generated governance analysis. Currency: AUD.","  Generated: "+d.timestamp);
   exportAsText("PHDSS_"+decisionId+"_Transparency_Dashboard.md", hdr+rows.join("\n"));
@@ -1341,18 +1316,11 @@ function parseDashboard(decision, dirOutputs, meta, stress, chair, dialogueHisto
   var fragScore=safeMatch(stressText,/Fragility Score[^0-9]*(\d+(?:\.\d+)?)(?:\s*\/\s*10)?/,1)||null;
 
 
-  // FIX 3: Extended Chair recommendation regex to match CONDITIONAL APPROVAL
-  var chairRec=safeMatch(chairText,/\*\*Chair Recommendation[^*]*\*\*:?\s*\*?\*?\s*(HALT[^.\n]*|CONDITIONAL APPROVAL[^.\n]*|PROCEED WITH CONDITIONS|PROCEED WITH CAUTION|PILOT[^.\n]*|DEFER[^.\n]*|DO NOT PROCEED)/i,1)
-    ||safeMatch(chairText,/Chair Recommendation[:\s]+\*{0,2}(CONDITIONAL APPROVAL[^.\n*]*|DO NOT PROCEED|PROCEED WITH CONDITIONS|PROCEED WITH CAUTION|PILOT|DEFER|HALT)\*{0,2}/i,1)
-    ||safeMatch(chairText,/\*\*Chair Recommendation\*\*[^a-zA-Z\n]*\n\s*(CONDITIONAL APPROVAL|DO NOT PROCEED|PROCEED WITH CONDITIONS|PROCEED WITH CAUTION|PILOT|DEFER|HALT)/i,1)
-    ||"-";
-  if(chairRec!=="-"){
-    if(/HALT/i.test(chairRec)&&!/CONDITIONAL/i.test(chairRec)) chairRec="DO NOT PROCEED";
-    else if(/CONDITIONAL APPROVAL/i.test(chairRec)) chairRec="CONDITIONAL APPROVAL";
-    else if(/PILOT/i.test(chairRec)) chairRec="PILOT";
-    else if(/DEFER/i.test(chairRec)) chairRec="DEFER";
-  }
-
+    var briefMatch=chairText.match(/\*\*Decision Brief Status\*\*:?\s*\*?\*?\s*(Complete(?:\s*[—–-]\s*Partial Evidence Base)?)\s*[—–-]\s*([^\n]+)/i)
+    ||chairText.match(/Decision Brief Status[:\s]+\*{0,2}(Complete(?:\s*[—–-]\s*Partial Evidence Base)?)\*{0,2}\s*[—–-]\s*([^\n]+)/i);
+  var decisionBriefStatus=briefMatch?briefMatch[1].trim():"-";
+  var decisionBriefClause=briefMatch?briefMatch[2].replace(/\*\*/g,"").trim():"";
+  var isPartialEvidenceBrief=/Partial Evidence Base/i.test(decisionBriefStatus);
 
   function extractConditionLines(text) {
     if (!text) return [];
@@ -1709,7 +1677,7 @@ function parseDashboard(decision, dirOutputs, meta, stress, chair, dialogueHisto
     fragScoreRan: fragScore !== null,
     // Three-state fragility: 'scored' | 'ran-no-score' | 'not-run'
     // resolved downstream using stressTestResult.run — see TransparencyDashboard and exportFullDashboard
-    chairRec, conditions, tradeoffs, keyDiscovery, acceptedRisk,
+    decisionBriefStatus, decisionBriefClause, isPartialEvidenceBrief, conditions, tradeoffs, keyDiscovery, acceptedRisk,
     conflictCount, assumptionCount, traceabilityScore, governanceLevel,
     totalLoadedDocs, webSearch,
     epistemicScore, overconfidenceFlags, biasSignals, epistemicGaps, dirConfidence,
@@ -2119,7 +2087,7 @@ function TransparencyDashboard({decision,dirOutputs,meta,stress,chair,epistemic,
           <ExpandRow label="Adversarial gap finding" count={d.probeVerdict||"-"} color={d.probeVerdict==="BOARD REASONING SOUND"?"#059669":d.probeVerdict==="SIGNIFICANT GAPS"?"#D97706":d.probeVerdict==="CONCLUSION CHALLENGED"?"#DC2626":"#94A3B8"} items={d.boardMissed} bg="#F5F3FF" border="#DDD6FE" textColor="#5B21B6"/>
           <ExpandRow label="Current governance position" count={d.chairRec||"-"} color={d.chairRec==="CONDITIONAL APPROVAL"?"#0891B2":d.chairRec&&d.chairRec.indexOf("CONDITIONS")!==-1?"#059669":d.chairRec&&d.chairRec.indexOf("CAUTION")!==-1?"#D97706":d.chairRec==="DEFER"?"#7C3AED":d.chairRec==="DO NOT PROCEED"?"#DC2626":"#94A3B8"} items={d.conditions} bg="#EFF6FF" border="#BFDBFE" textColor="#1E3A5F"/>
           <ExpandRow label="Fragility score" count={d.fragScore!=="-"?d.fragScore+"/10":(stressTestResult&&stressTestResult.run?"Not extracted":"N/A — not run")} color={d.fragScore!=="-"?fragColor:"#94A3B8"} items={d.allFragility.map(function(f){return "["+f.source+"] "+f.text;})} bg="#FFF5F5" border="#FECACA" textColor="#7F1D1D"/>
-          <ExpandRow label="AI Integrity score ⓘ" count={d.aiIntegrityScore!==null&&d.aiIntegrityScore!==undefined?d.aiIntegrityScore+"%":"-"} color={d.aiIntegrityScore>=70?"#059669":d.aiIntegrityScore>=40?"#D97706":"#DC2626"} items={d.epistemicGaps.concat(d.aiIntegrityScore!==null?["Composite: Epistemic health (60%) + Adversarial Probe (40%). Low scores indicate analytical uncertainty, not a system error."+(d.analysisMode!=="FULL"?" Expected range for "+d.analysisMode+" mode ("+d.activeDirectorCount+"/13 directors) is lower than FULL mode — score is structurally depressed by partial coverage.":"")]:[])} bg="#FFF5F5" border="#FECACA" textColor="#7F1D1D"/>
+          <ExpandRow label="AI Integrity score ⓘ" count={d.aiIntegrityScore!==null&&d.aiIntegrityScore!==undefined?d.aiIntegrityScore+"%":"-"} color={d.aiIntegrityScore>=70?"#059669":d.aiIntegrityScore>=40?"#D97706":"#DC2626"} items={d.epistemicGaps.concat(d.aiIntegrityScore!==null?["Composite: Epistemic health (60%) + Adversarial Probe (40%). Low scores indicate analytical uncertainty, not a system error."+(d.analysisMode!=="FULL"?" Expected range for "+d.analysisMode+" mode ("+d.activeDirectorCount+"/"+DIRECTORS.length+" directors)" is lower than FULL mode — score is structurally depressed by partial coverage.":"")]:[])} bg="#FFF5F5" border="#FECACA" textColor="#7F1D1D"/>
         </div>
       </div>
 
