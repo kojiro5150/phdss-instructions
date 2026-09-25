@@ -10,6 +10,7 @@ on:
       - main
     paths:
       - "App_FINAL.jsx"
+      - "*.md"
       - "package.json"
       - "index.html"
       - "src/**"
