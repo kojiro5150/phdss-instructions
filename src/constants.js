@@ -44,3 +44,6 @@ export const STRESS_KEYWORDS = [
   "reputational","political","parliament","scrutiny","community","automation","ai system",
   "algorithm","emergency","critical care","surgical","medication","prescrib"
 ];
+
+export const RUNTIME_CONTRACT = "2.0-recovery";
+export const LEDGER_SCHEMA = "3.0.0-alpha.1";
