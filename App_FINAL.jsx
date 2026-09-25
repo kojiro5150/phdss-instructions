@@ -998,21 +998,48 @@ function stressSystem(entries, useWeb, publicWeb, sessionEntries, analysisMode, 
 
 
 function chairSystem(entries, useWeb, publicWeb, sessionEntries, analysisMode, activeDirectors, failedDirectorLabels, instructions) {
-  var cov = buildCoveragePreamble(analysisMode, activeDirectors, DIRECTORS);
-  var partialWarning = (failedDirectorLabels&&failedDirectorLabels.length>0)
-    ? "\n\n⚠ PARTIAL EVIDENCE BASE WARNING: The following directors failed to complete and their analyses are absent from your synthesis: "+failedDirectorLabels.join(", ")+". You must explicitly flag in your Coverage Limitations that your recommendation rests on a partial evidence base."
+  var cov=buildCoveragePreamble(analysisMode,activeDirectors,DIRECTORS);
+  var partialWarning=(failedDirectorLabels&&failedDirectorLabels.length>0)
+    ? "\n\n⚠ PARTIAL EVIDENCE BASE WARNING: The following Directors failed to complete and are absent: "+failedDirectorLabels.join(", ")+". Your Decision Brief Status must be 'Complete — Partial Evidence Base — [central unresolved tension]' and Coverage Limitations must name the missing domains."
     : "";
-  var base = (instructions && instructions.chair)
-    ? instructions.chair + "\n\n"
-    : "You are the Chair of the Public Health Decision Stewardship Board (Australian context). Integrate all findings into a governance-grade decision frame. All financial references should use AUD.\n\nRespond only in this structure:\n\n## EXECUTIVE LAYER\nWrite 3–5 sentences for a time-pressured Board member who may read nothing else.\n\n---\n\n**Decision Framing**\n\n**Key Trade-offs**\n\n**Decision Conditions**\n\n**Irreducible Uncertainties**\n\n**Coverage Limitations** (2–3 sentences maximum)\n\n**Chair Recommendation**: [PROCEED WITH CONDITIONS / PROCEED WITH CAUTION / CONDITIONAL APPROVAL / PILOT / DEFER / DO NOT PROCEED]\n\nUse CONDITIONAL APPROVAL when the pilot or proposal is sound in principle but requires a bounded verification phase before expenditure is authorised.\n\n**Verification Phase (if CONDITIONAL APPROVAL selected)**\n\n**Pilot Pathway (if PILOT selected)**\n\n**Reasoning Transparency**\nOne paragraph.\n\n";
-  return base + buildEmbeddedDocs(entries) + buildSessionEvidence(sessionEntries) + buildWebNote(useWeb, publicWeb) + cov + partialWarning;
+  var fallback =
+    "You are the Chair of the Public Health Decision Stewardship Board (Australian context). Integrate all findings into a governance-grade reasoning record. You do not issue a recommendation, a proceed/defer/halt instruction, or any preferred course of action — that authority belongs entirely to the human decision-maker this Board exists to inform. All financial references should use AUD.\n\n"+
+    "Respond only in this structure:\n\n"+
+    "## EXECUTIVE LAYER\nWrite 3–5 sentences for a time-pressured Board member who may read nothing else, ending with: **Decision Brief Status**: Complete — [clause naming the central unresolved tension].\n\n---\n\n"+
+    "**Decision Framing**\n\n**Key Trade-offs**\n\n**Decision Conditions**\n\n**Irreducible Uncertainties**\n\n**Coverage Limitations** (2–3 sentences maximum)\n\n"+
+    "**Director Signal Distribution** — factual report only: exact HALT/CAUTION/PROCEED counts. Do not characterise this as agreement or departure — no Chair position exists to compare it against.\n\n"+
+    "**Decision Brief Status**: Complete — [clause naming the central unresolved tension the decision-maker must weigh]. Use 'Complete — Partial Evidence Base — [clause]' if any Directors failed. Never use PROCEED WITH CONDITIONS / PROCEED WITH CAUTION / CONDITIONAL APPROVAL / PILOT / DEFER / DO NOT PROCEED — that vocabulary is retired.\n\n"+
+    "**Verification Phase (if relevant)** — include only if a bounded verification window would meaningfully change the picture; present as one available pathway, not a chosen one.\n\n"+
+    "**Pilot Pathway (if relevant)** — include only if a bounded pilot would meaningfully change the picture; present as one available pathway, not a chosen one.\n\n"+
+    "**Reasoning Transparency**\nOne paragraph.\n\n";
+  var base=(instructions&&instructions.chair)?instructions.chair+"\n\n":fallback;
+  var boundary="\n\nRUNTIME AUTHORITY BOUNDARY: Describe tensions, conditions, uncertainty and available pathways. Never state or imply that the proposal should proceed, should not proceed, must be approved, must be rejected, should be deferred, or that any pathway is the preferred course. Do not turn a Director signal distribution into a Chair decision.";
+  return base+buildEmbeddedDocs(entries)+buildSessionEvidence(sessionEntries)+buildWebNote(useWeb,publicWeb)+cov+partialWarning+boundary;
 }
-
 
 function chairDialogueSystem(entries, decision, directorSummary, metaOut, stressOut, chairOut) {
-  return "You are the Chair of the Public Health Decision Stewardship Board, now in a governance dialogue with the decision-maker following your initial recommendation.\n\nDECISION UNDER REVIEW:\n"+decision+"\n\nDIRECTOR ANALYSES:\n"+directorSummary+"\n\nMETA-AUTHOR SYNTHESIS:\n"+metaOut+"\n\nSTRESS TEST OUTPUT:\n"+stressOut+"\n\nYOUR INITIAL CHAIR RECOMMENDATION:\n"+chairOut+buildEmbeddedDocs(entries)+"\n\nRespond as the Chair - with authority, nuance, and governance rigour.";
+  return "You are the Chair of the Public Health Decision Stewardship Board, now in a governance dialogue with the human decision-maker after producing a Decision Brief.\n\n"+
+    "Your role is to clarify tensions, test assumptions, surface consequences, and explain what evidence would change the decision space. You do not recommend, approve, reject, defer, select a pilot, or tell the decision-maker what they should decide.\n\n"+
+    "DECISION UNDER REVIEW:\n"+decision+"\n\nDIRECTOR ANALYSES:\n"+directorSummary+"\n\nMETA-AUTHOR SYNTHESIS:\n"+metaOut+"\n\nSTRESS TEST OUTPUT:\n"+stressOut+"\n\nINITIAL DECISION BRIEF:\n"+chairOut+
+    buildEmbeddedDocs(entries)+"\n\nRespond with authority, nuance and governance rigour while preserving human decision authority.";
 }
 
+function chairDecisionBoundaryLeak(text) {
+  if(!text) return false;
+  var retired=/\b(PROCEED WITH CONDITIONS|PROCEED WITH CAUTION|CONDITIONAL APPROVAL|DO NOT PROCEED|CHAIR RECOMMENDATION)\b/i;
+  var directive=/\b(?:the board|the chair|this analysis|these findings|the signals?|the governance record|we)\b[^.\n]{0,180}\b(?:should|must|ought to|cannot|can not)\s+(?:not\s+)?(?:proceed|approve|reject|deploy|implement|adopt|defer|pilot)\b/i;
+  var confirm=/\bconfirm(?:s|ed|ing)?\b[^.\n]{0,180}\b(?:should|must)\s+(?:not\s+)?(?:proceed|approve|reject|deploy|implement)\b/i;
+  return retired.test(text)||directive.test(text)||confirm.test(text);
+}
+
+async function repairChairDecisionBoundary(text, systemPrompt, userPrompt) {
+  if(!chairDecisionBoundaryLeak(text)) return text;
+  var repairSystem=systemPrompt+"\n\nBOUNDARY REPAIR: The prior draft crossed the authority boundary. Rewrite it without any preferred course of action. Preserve source-grounded facts, Director signal counts, conditions, tensions and uncertainties. A Director signal may be reported factually but never converted into a Chair instruction.";
+  var raw=await apiCall(repairSystem,userPrompt+"\n\nPRIOR DRAFT TO REPAIR:\n"+text,false);
+  var repaired=stripCalibrationBleed(raw.text||"");
+  if(chairDecisionBoundaryLeak(repaired)) throw new Error("Chair authority boundary violation persisted after repair");
+  return repaired;
+}
 
 function epistemicAuditorSystem(analysisMode, activeDirectors, instructions) {
   var cov = buildCoveragePreamble(analysisMode, activeDirectors, DIRECTORS);
