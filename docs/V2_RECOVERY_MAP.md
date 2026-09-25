@@ -100,7 +100,7 @@ Recovered v2 authority contract:
 - Reality Anchor may report evidenced external constraints and operational infeasibility, but may not determine the institutional response.
 - Implementation, rejection, deferral, approval, and pathway selection remain with the human decision-maker; they are not Chair functions.
 
-Recovery status: source instruction repaired in PR #13. Runtime activation remains commit-pinned and therefore requires advancing the immutable instruction pin to the merged PR #13 commit before live calibration.
+Recovery status: source instruction repaired in PR #13 and activated by the dedicated PR #14 pin advance to `e79f79378a9eba6f36c8d053a896ca00b3827c7b`.
 
 
 ## 7. Comparator authority and schema boundary
