@@ -97,6 +97,7 @@ function deduplicateSections(text) {
 
 
 import { useState, useRef, useEffect } from "react";
+import { authorityBoundaryPrompt, assessAuthorityBoundary } from "./src/authority-contract.js";
 
 // =============================================================================
 // API KEY GATE
@@ -177,7 +178,10 @@ function ApiKeyGate({ onUnlock }) {
 
 
 // --- GITHUB INSTRUCTION FILE FETCH LAYER -------------------------------------
-const GITHUB_BASE = "https://cdn.jsdelivr.net/gh/kojiro5150/phdss-instructions@eec6db99f941ceffc2b5fe055ce2313fb6ae05d6/";
+const INSTRUCTION_COMMIT = "56ad2305ca62ed7409c3e89723f9bd1ca914d935";
+const RUNTIME_CONTRACT = "2.0-recovery";
+const LEDGER_SCHEMA = "3.0.0-alpha.1";
+const GITHUB_BASE = "https://cdn.jsdelivr.net/gh/kojiro5150/phdss-instructions@"+INSTRUCTION_COMMIT+"/";
 
 
 const INSTRUCTION_FILES = {
@@ -301,29 +305,31 @@ function govHeader(decisionId, title, decision, decisionSignal, orgContext) {
 }
 
 
-function exportDirector(dir, output, decisionId, decision, decisionSignal, orgContext) {
-  var hdr = govHeader(decisionId,"DIRECTOR ANALYSIS - "+dir.label.toUpperCase(),decision,decisionSignal,orgContext);
-  var body = "DIRECTOR:  "+dir.label+"\nDOMAIN:    "+dir.desc+"\n\n"+deduplicateSections(stripCalibrationBleed(output||"(no output yet)"));
-  var ftr = "\n\n-------------------------------------------------------------------\nPHDSS - "+dir.label+" Director - "+decisionId+"\nAI-generated. Requires human expert review before governance use.\n";
-  exportAsText("PHDSS_"+decisionId+"_"+dir.id+".md", hdr+body+ftr);
+function exportDirector(dir, output, decisionId, decision, decisionSignal, orgContext, view, govRecord) {
+  var isGov=view==="governance";
+  var hdr=govHeader(decisionId,"DIRECTOR ANALYSIS - "+dir.label.toUpperCase()+(isGov?" - GOVERNANCE RECORD":""),decision,decisionSignal,orgContext);
+  var body=isGov
+    ? "DIRECTOR:  "+dir.label+"\nDOMAIN:    "+dir.desc+"\n\n"+governanceRecordToMarkdown(govRecord)
+    : "DIRECTOR:  "+dir.label+"\nDOMAIN:    "+dir.desc+"\n\n"+deduplicateSections(stripCalibrationBleed(output||"(no output yet)"));
+  var ftr="\n\n-------------------------------------------------------------------\nPHDSS - "+dir.label+" Director - "+decisionId+"\nAI-generated. Requires human expert review before governance use.\n";
+  exportAsText("PHDSS_"+decisionId+"_"+dir.id+(isGov?"_governance_record":"")+".md",hdr+body+ftr);
 }
 
 
-function exportPanel(role, content, decisionId, decision, decisionSignal, orgContext) {
-  var hdr = govHeader(decisionId, role.toUpperCase(), decision, decisionSignal, orgContext);
-  var ftr = "\n\n-------------------------------------------------------------------\nPHDSS - "+role+" - "+decisionId+"\nAI-generated. Currency: AUD. Requires human expert review.\n";
-  // Fix P1-2: Strip META-AUTHOR heading that leaks architecture layer into governance exports.
-  // Matches "# META-AUTHOR Integration Analysis\n\n" at start of content.
-  var cleaned = (content||"(no output)").replace(/^#\s+META-AUTHOR[^\n]*\n+/i, "");
-  // JSX Fix 2: Strip instruction artifact bleed (e.g. SINGLE INSTANCE ONLY, SECTION CLOSED)
-  // from Chair and other synthesis outputs before export. Primary fix is in chair.md;
-  // this is a pipeline safety net.
-  var debled = role.toUpperCase().indexOf("CHAIR") !== -1
+function exportPanel(role, content, decisionId, decision, decisionSignal, orgContext, view, govRecord) {
+  var isGov=view==="governance";
+  var hdr=govHeader(decisionId,role.toUpperCase()+(isGov?" - GOVERNANCE RECORD":""),decision,decisionSignal,orgContext);
+  var ftr="\n\n-------------------------------------------------------------------\nPHDSS - "+role+" - "+decisionId+"\nAI-generated. Currency: AUD. Requires human expert review.\n";
+  if(isGov){
+    exportAsText("PHDSS_"+decisionId+"_"+role.replace(/[\s/]+/g,"_")+"_governance_record.md",hdr+governanceRecordToMarkdown(govRecord)+ftr);
+    return;
+  }
+  var cleaned=(content||"(no output)").replace(/^#\s+META-AUTHOR[^\n]*\n+/i,"");
+  var debled=role.toUpperCase().indexOf("CHAIR")!==-1
     ? stripInstructionArtifacts(stripCalibrationBleed(cleaned))
     : stripCalibrationBleed(cleaned);
-  exportAsText("PHDSS_"+decisionId+"_"+role.replace(/[\s/]+/g,"_")+".md", hdr+debled+ftr);
+  exportAsText("PHDSS_"+decisionId+"_"+role.replace(/[\s/]+/g,"_")+".md",hdr+debled+ftr);
 }
-
 
 
 function exportFullDashboard(d, decision, decisionId, decisionSignal, orgContext, comparator, stressTestResult) {
@@ -345,37 +351,12 @@ function exportFullDashboard(d, decision, decisionId, decisionSignal, orgContext
     "  Conflicts Detected:     "+d.conflictCount,
     "  Assumptions Exposed:    "+d.assumptionCount+(d.assumptions.length>0?"\n"+d.assumptions.map(function(a,i){return "    "+(i+1)+". "+a.replace(/^\d+\.\s*/,"");}).join("\n"):""),
     "  Integration Signal:     "+d.integrationSignal+(d.integrationRationale?" — "+d.integrationRationale:""),
-    "  Current Governance Position: "+d.chairRec,
-    // m2 FIX: Consensus Departure field — flags when Chair recommendation
-    // diverges significantly from the Director signal distribution so that
-    // any reviewer reading only the Dashboard can see the departure.
-    "  Consensus Departure:    "+(
-      (function(){
-        var rec = d.chairRec||"";
-        var isProceed = rec.indexOf("PROCEED")!==-1 || rec.indexOf("PROCEED WITH")!==-1;
-        var isHalt = rec==="DO NOT PROCEED" || rec==="HALT";
-        // No Director ever signals CONDITIONAL APPROVAL, DEFER, or PILOT — any
-        // Chair issuing these against a HALT/CAUTION distribution is a departure
-        // by definition, because the recommendation value is not in the Director
-        // signal space. Detect this independently of dominance arithmetic.
-        var isNonStandard = rec==="CONDITIONAL APPROVAL" || rec==="DEFER" || rec==="PILOT";
-        var haltDominant = d.haltCount > (d.cautionCount + d.proceedCount);
-        var cautionDominant = d.cautionCount > (d.haltCount + d.proceedCount);
-        var proceedDominant = d.proceedCount > (d.haltCount + d.cautionCount);
-        var anyHaltOrCaution = (d.haltCount + d.cautionCount) > 0;
-        if (isNonStandard && anyHaltOrCaution)
-          return "YES — Chair issued "+rec+" against "+d.haltCount+" HALT / "+d.cautionCount+" CAUTION Director distribution. See Departure from Director Consensus section.";
-        if (isProceed && (haltDominant || cautionDominant))
-          return "YES — Chair issued "+rec+" against "+d.haltCount+" HALT / "+d.cautionCount+" CAUTION Director distribution. See Reasoning Transparency.";
-        if (isHalt && proceedDominant)
-          return "YES — Chair issued DO NOT PROCEED against "+d.proceedCount+" PROCEED Director distribution. See Reasoning Transparency.";
-        return "None — recommendation consistent with dominant Director signal.";
-      })()
-    ),
+    "  Decision Brief Status:  "+d.decisionBriefStatus+(d.decisionBriefClause?" — "+d.decisionBriefClause:""),
+    "  Director Signal Distribution: "+d.haltCount+" HALT / "+d.cautionCount+" CAUTION / "+d.proceedCount+" PROCEED"+(d.probeVerdict?" — Probe verdict: "+d.probeVerdict:""),
   ];
   if (d.aiIntegrityScore!==null && d.aiIntegrityScore!==undefined) rows.push("  AI Integrity Score:     "+d.aiIntegrityScore+"% (composite: Epistemic health 60% + Adversarial Probe 40%)");
   var aiModeNote = (d.analysisMode!=="FULL")
-    ? " Score is structurally depressed on partial runs ("+d.activeDirectorCount+"/13 directors) — compare against FULL mode baseline, not an absolute threshold."
+    ? " Score is structurally depressed on partial runs ("+d.activeDirectorCount+"/"+DIRECTORS.length+" directors) — compare against FULL mode baseline, not an absolute threshold."
     : "";
   // m1 FIX: Added period after each general note phrase so the partial run
   // caveat in aiModeNote reads as a separate sentence, not a run-on.
@@ -390,7 +371,7 @@ function exportFullDashboard(d, decision, decisionId, decisionSignal, orgContext
   (d.conflicts.length ? d.conflicts : ["None detected"]).forEach(function(c,i) { rows.push("  "+(i+1)+". "+c); });
   rows.push("","HIDDEN ASSUMPTIONS","------------------");
   (d.assumptions.length ? d.assumptions : ["None detected"]).forEach(function(a,i) { rows.push("  "+(i+1)+". "+a); });
-  rows.push("","CHAIR CONDITIONS","----------------");
+  rows.push("","DECISION CONDITIONS","-------------------");
   (d.conditions.length ? d.conditions : ["None specified"]).forEach(function(c,i) { rows.push("  "+(i+1)+". "+c); });
   rows.push("","===================================================================","  PHDSS Transparency Dashboard - "+decisionId,"  AI-generated governance analysis. Currency: AUD.","  Generated: "+d.timestamp);
   exportAsText("PHDSS_"+decisionId+"_Transparency_Dashboard.md", hdr+rows.join("\n"));
@@ -573,7 +554,7 @@ var SYNTHESIS_ROLES = [
   { id:"reality",     label:"Reality Anchor",            icon:"A", color:"#0369A1" },
   { id:"probe",       label:"Adversarial Bias Probe",    icon:"P", color:"#7C3AED" },
   { id:"stress",      label:"Decision Stress Test",      icon:"S", color:"#F87171" },
-  { id:"chair",       label:"Governance Reasoning Record",      icon:"C", color:"#0369A1" },
+  { id:"chair",       label:"Decision Brief",                   icon:"C", color:"#0369A1" },
   { id:"comparator",  label:"Governance Comparator",     icon:"G", color:"#64748B" },
 ];
 
@@ -594,12 +575,12 @@ var STAGE_META = [
 
 
 var SUGGESTED_PUSHBACKS = [
-  "The cost of disparate systems, clinical risk, and workforce dissatisfaction make me want to still proceed - what conditions would make that defensible?",
-  "The equity concerns are serious but we have mitigation plans - does that change your recommendation?",
-  "What if we phased the rollout over 3 years instead of the proposed timeline?",
-  "The Equity Director said HALT but Economics said PROCEED - help me resolve that tension.",
-  "What additional evidence would shift your recommendation to PROCEED?",
-  "Who bears the most risk if we proceed, and what safeguards are non-negotiable?",
+  "Which unresolved tension is most decision-consequential, and why?",
+  "What evidence would materially change the decision space?",
+  "If we phased the rollout over 3 years, which risks reduce and which remain?",
+  "The Equity Director said HALT but Economics said PROCEED — help me understand the tension without resolving it for me.",
+  "Which assumptions are doing the most work in the current analysis?",
+  "Who bears the most risk under each available pathway, and what safeguards are non-negotiable?",
 ];
 
 
@@ -835,38 +816,102 @@ function directorSystem(director, entries, useWeb, ctx, publicWeb, sessionEntrie
 
 
 function compressionSystem() {
-  return "You are the Governance Brief Extractor for a Public Health Decision Stewardship Board.\n\nYou receive the full output of a single Director and compress it into a structured Governance Brief JSON object.\n\nRULES:\n1. Extract, do not paraphrase, any named legal/regulatory/statutory blockers verbatim in regulatory_blockers.\n2. signal must exactly match the Director's Recommendation Signal (PROCEED / CAUTION / HALT). If the output contains a failure error, use FAILED.\n3. confidence must match the Director's stated or implied confidence level (HIGH / MEDIUM / LOW).\n4. core_judgment must stand alone.\n5. overflow_flags must capture any finding too nuanced to compress.\n6. prerequisites are non-negotiable conditions that must be met before the decision is defensible.\n7. Do not invent content. If a field has no content, use empty array [] or empty string \"\".\n\nReturn ONLY valid JSON. No preamble, no commentary, no markdown fences.";
+  return "You are the Governance Brief Extractor for a Public Health Decision Stewardship Board.\n\nYou receive the full output of a single Director and compress it into a structured Governance Brief JSON object. This JSON serves two consumers: the synthesis pipeline (which reads the technical fields) and a board-readable Governance Record display (which reads the governance_record fields). Populate both fully from the same source output — do not treat either as optional.\n\nRULES — TECHNICAL FIELDS:\n1. Extract, do not paraphrase, any named legal/regulatory/statutory blockers verbatim in regulatory_blockers.\n2. signal must exactly match the Director's Recommendation Signal (PROCEED / CAUTION / HALT). If the output contains a failure error, use FAILED.\n3. confidence must match the Director's stated or implied confidence level (HIGH / MEDIUM / LOW).\n4. core_judgment must stand alone.\n5. overflow_flags must capture any finding too nuanced to compress.\n6. prerequisites are non-negotiable conditions that must be met before the decision is defensible.\n\nRULES — GOVERNANCE RECORD FIELDS:\n8. key_discovery: the single most important finding from this Director, in plain language. 1-2 sentences.\n9. primary_tension: the core trade-off or conflict this domain surfaces, framed as 'X versus Y'. One sentence.\n10. signal_rationale: why this Director landed on its signal, in plain language. 1-2 sentences.\n11. room_should_discuss: 3-5 questions the board should actually discuss.\n12. most_likely_to_benefit: 1-4 short phrases naming who benefits if this domain's concerns are heeded.\n13. most_exposed_to_failure: 1-4 short phrases naming who bears the cost if this domain's concerns are ignored.\n14. non_negotiable_conditions: source-grounded conditions in plain language.\n15. governance_implication: the single takeaway sentence for the decision as a whole.\n16. Do not invent content. Empty source fields must stay empty.\n\nReturn ONLY valid JSON in this exact shape:\n{\"director\":\"\",\"signal\":\"\",\"confidence\":\"\",\"core_judgment\":\"\",\"critical_risks\":[],\"assumptions\":[],\"prerequisites\":[],\"view_change_triggers\":[],\"coverage_limit\":\"\",\"regulatory_blockers\":[],\"overflow_flags\":[],\"governance_record\":{\"key_discovery\":\"\",\"primary_tension\":\"\",\"signal_rationale\":\"\",\"room_should_discuss\":[],\"most_likely_to_benefit\":[],\"most_exposed_to_failure\":[],\"non_negotiable_conditions\":[],\"governance_implication\":\"\"}}\n\nNo preamble, no commentary, no markdown fences.";
 }
 
+function executiveDiscovery(text) {
+  if (!text) return "";
+  var kd=safeMatch(text,/\*\*Key Discovery:?\*\*\s*([\s\S]*?)(?=\n\s*\n|\n\*\*[A-Za-z]|$)/i,1);
+  if (kd) return kd.trim();
+  var exec=safeMatch(text,/##\s+EXECUTIVE LAYER\s*\n+([\s\S]*?)(?=\n---|\n##\s+|\n\*\*[A-Za-z]|$)/i,1);
+  if (exec) return exec.replace(/\*\*[^*]+\*\*:?\s*/g,"").trim().split(/\n{2,}/)[0].trim();
+  return (text||"").replace(/^#+[^\n]*\n+/,"").trim().split(/\n{2,}/)[0].substring(0,700).trim();
+}
+
+function stripJsonFenceText(text) {
+  return (text||"").replace(/^\x60{3}json\s*/i,"").replace(/^\x60{3}\s*/,"").replace(/\x60{3}\s*$/,"").trim();
+}
+
+function deterministicDirectorBrief(directorLabel, fullOutput, reason) {
+  var sigMatch=(fullOutput||"").match(/\*\*Recommendation Signal\*\*:?[^A-Z]*(PROCEED|CAUTION|HALT)/i);
+  var sig=sigMatch?sigMatch[1].toUpperCase():"CAUTION";
+  var confidence=safeMatch(fullOutput,/(?:Confidence|Overall Confidence)\s*:?\s*\*{0,2}(HIGH|MEDIUM|LOW)\*{0,2}/i,1)||"LOW";
+  var conditions=dedupItems(extractBulletLines(fullOutput,"Non-Negotiable Conditions").concat(extractBulletLines(fullOutput,"Prerequisites")).concat(extractBulletLines(fullOutput,"Non-Negotiable Safety Conditions"))).slice(0,8);
+  var risks=dedupItems(extractBulletLines(fullOutput,"Credible Harm Scenarios").concat(extractBulletLines(fullOutput,"Likely Failure Modes")).concat(extractBulletLines(fullOutput,"Unintended Consequence Risks"))).slice(0,8);
+  var assumptions=dedupItems(extractBulletLines(fullOutput,"Assumptions Used (Explicit)").concat(extractBulletLines(fullOutput,"Key Assumptions"))).slice(0,8);
+  var key=executiveDiscovery(fullOutput);
+  var tension=extractSection(fullOutput,"Primary Tension")||"";
+  var rationale=safeMatch(fullOutput,/\*\*Recommendation Signal\*\*:?[^A-Z]*(?:PROCEED|CAUTION|HALT)[^\n]*[—-]\s*([^\n]+)/i,1)||"";
+  return JSON.stringify({
+    director:directorLabel,signal:sig,confidence:String(confidence).toUpperCase(),core_judgment:key||"See full Director analysis.",
+    critical_risks:risks,assumptions:assumptions,prerequisites:conditions,view_change_triggers:extractBulletLines(fullOutput,"View Change Triggers").slice(0,6),
+    coverage_limit:extractSection(fullOutput,"Coverage Limitations")||extractSection(fullOutput,"Coverage Limit")||"",
+    regulatory_blockers:extractBulletLines(fullOutput,"Regulatory Blockers").slice(0,8),
+    overflow_flags:["DETERMINISTIC_FALLBACK"+(reason?": "+reason:"")],
+    governance_record:{key_discovery:key||"See full Director analysis.",primary_tension:tension,signal_rationale:rationale,room_should_discuss:extractBulletLines(fullOutput,"What the Room Should Discuss").slice(0,5),most_likely_to_benefit:extractBulletLines(fullOutput,"Most Likely to Benefit").slice(0,4),most_exposed_to_failure:extractBulletLines(fullOutput,"Most Exposed to Failure").slice(0,4),non_negotiable_conditions:conditions.slice(0,8),governance_implication:extractSection(fullOutput,"Governance Implication")||""}
+  });
+}
+
+function validDirectorBrief(text) {
+  try { var b=JSON.parse(text); return !!(b&&b.director&&b.signal&&b.governance_record&&typeof b.governance_record.key_discovery==="string"); }
+  catch(e) { return false; }
+}
 
 async function compressDirectorOutput(directorLabel, fullOutput) {
-  if (/^\[Director failed:/i.test((fullOutput||"").trim())) {
-    return JSON.stringify({
-      director: directorLabel, signal: "FAILED", confidence: "LOW",
-      core_judgment: "Director failed to complete. Full error: "+fullOutput,
-      critical_risks: [], assumptions: [], prerequisites: [],
-      view_change_triggers: [], coverage_limit: "Director did not complete.",
-      regulatory_blockers: [], overflow_flags: []
-    });
+  if (/^\[Director failed:/i.test((fullOutput||"").trim())) return JSON.stringify({director:directorLabel,signal:"FAILED",confidence:"LOW",core_judgment:"Director failed to complete. Full error: "+fullOutput,critical_risks:[],assumptions:[],prerequisites:[],view_change_triggers:[],coverage_limit:"Director did not complete.",regulatory_blockers:[],overflow_flags:["DIRECTOR_FAILED"],governance_record:{key_discovery:"Director did not complete.",primary_tension:"",signal_rationale:"",room_should_discuss:[],most_likely_to_benefit:[],most_exposed_to_failure:[],non_negotiable_conditions:[],governance_implication:""}});
+  var lastError="";
+  for (var attempt=0;attempt<2;attempt++) {
+    try {
+      var suffix=attempt===0?"":"\n\nYour previous extraction attempt was unusable. Return the complete JSON object with every governance_record field present. Do not truncate it.";
+      var raw=await apiCall(compressionSystem(),"Director: "+directorLabel+"\n\nFull Director Output:\n"+fullOutput+suffix,false);
+      var txt=stripJsonFenceText(raw.text);
+      if(!validDirectorBrief(txt)) throw new Error("invalid Director Governance Brief schema");
+      return txt;
+    } catch(e) { lastError=e.message||String(e); }
   }
-  try {
-    var raw = await apiCall(compressionSystem(), "Director: "+directorLabel+"\n\nFull Director Output:\n"+fullOutput, false);
-    var txt = raw.text.replace(/^```json\s*/i,"").replace(/^```\s*/,"").replace(/```\s*$/,"").trim();
-    JSON.parse(txt);
-    return txt;
-  } catch(e) {
-    var sigMatch = (fullOutput||"").match(/\*\*Recommendation Signal\*\*:?[^A-Z]*(PROCEED|CAUTION|HALT)/i);
-    var sig = sigMatch ? sigMatch[1].toUpperCase() : "CAUTION";
-    return JSON.stringify({
-      director: directorLabel, signal: sig, confidence: "LOW",
-      core_judgment: "Compression failed. Full output preserved. First 300 chars: "+(fullOutput||"").substring(0,300),
-      critical_risks: [], assumptions: [], prerequisites: [],
-      view_change_triggers: [], coverage_limit: "Compression unavailable — see full Director record.",
-      regulatory_blockers: [], overflow_flags: ["COMPRESSION_FAILED"]
-    });
-  }
+  return deterministicDirectorBrief(directorLabel,fullOutput,lastError);
 }
 
+var SYNTHESIS_VERDICT_FIELDS={"Decision Surface Map":"Dominant Signal","Epistemic Confidence Audit":"Epistemic Health Score","Cross-Domain Tension Analysis":"Integration Signal","Reality Anchor":"Operational Confidence","Adversarial Probe":"Probe Verdict","Decision Stress Test":"Fragility Score","Chair Decision":"Decision Brief Status"};
+
+function synthesisBriefSystem(moduleLabel) {
+  var verdictLabel=SYNTHESIS_VERDICT_FIELDS[moduleLabel]||"Verdict";
+  return "You are the Governance Brief Extractor for a Public Health Decision Stewardship Board.\n\nYou receive the full output of the "+moduleLabel+" synthesis module and compress it into a structured Governance Brief JSON object for board-readable display. This is a board-readable extraction only — it does not feed the synthesis pipeline.\n\nRULES:\n1. verdict_label must be exactly '"+verdictLabel+"'.\n2. verdict must be the literal value of that field from the source output. Do not reinterpret it.\n3. key_discovery: the single most important finding, in plain language, 1-2 sentences.\n4. primary_tension: the core trade-off or conflict, framed as 'X versus Y'. Empty string if none.\n5. signal_rationale: why the module landed on its verdict, 1-2 sentences.\n6. room_should_discuss: 3-5 board questions grounded only in the source.\n7. most_likely_to_benefit: 1-4 short phrases; empty if not applicable.\n8. most_exposed_to_failure: 1-4 short phrases; empty if not applicable.\n9. non_negotiable_conditions: source-grounded conditions; empty if none.\n10. governance_implication: one source-grounded takeaway sentence.\n11. Do not invent content.\n\nReturn ONLY valid JSON in this exact shape:\n{\"module\":\""+moduleLabel+"\",\"verdict_label\":\""+verdictLabel+"\",\"verdict\":\"\",\"key_discovery\":\"\",\"primary_tension\":\"\",\"signal_rationale\":\"\",\"room_should_discuss\":[],\"most_likely_to_benefit\":[],\"most_exposed_to_failure\":[],\"non_negotiable_conditions\":[],\"governance_implication\":\"\"}\n\nNo preamble, commentary, or markdown fences."+authorityBoundaryPrompt(synthesisLayerForModule(moduleLabel));
+}
+
+function deterministicSynthesisBrief(moduleLabel,fullOutput,reason) {
+  var verdictLabel=SYNTHESIS_VERDICT_FIELDS[moduleLabel]||"Verdict",verdict="";
+  if(verdictLabel==="Dominant Signal") verdict=safeMatch(fullOutput,/\*\*Dominant Signal\*\*[^A-Z\n]*\n?\s*\[?(?:PRELIMINARY[^—\n]*—\s*)?(PROCEED|CAUTION|HALT|MIXED)/i,1)||"";
+  else if(verdictLabel==="Epistemic Health Score") verdict=safeMatch(fullOutput,/\*\*Epistemic Health Score\*\*:?\s*(STRONG|ADEQUATE|WEAK|COMPROMISED)/i,1)||"";
+  else if(verdictLabel==="Integration Signal") verdict=safeMatch(fullOutput,/\*\*Integration Signal\*\*:?\s*\*{0,2}(HIGH|MEDIUM|LOW)\*{0,2}/i,1)||"";
+  else if(verdictLabel==="Operational Confidence") verdict=safeMatch(fullOutput,/\*\*Operational Confidence\*\*:?\s*\*{0,2}(HIGH|MEDIUM|LOW)\*{0,2}/i,1)||"";
+  else if(verdictLabel==="Probe Verdict") verdict=safeMatch(fullOutput,/\*\*Probe Verdict\*\*:?\s*(BOARD REASONING SOUND|SIGNIFICANT GAPS|CONCLUSION CHALLENGED)/i,1)||"";
+  else if(verdictLabel==="Fragility Score") verdict=safeMatch(fullOutput,/\*\*Fragility Score\*\*:?\s*([0-9]+(?:\.[0-9]+)?\s*\/\s*10)/i,1)||"";
+  else if(verdictLabel==="Decision Brief Status") verdict=safeMatch(fullOutput,/\*\*Decision Brief Status\*\*:?\s*\*{0,2}([^\n]+)/i,1)||"";
+  return JSON.stringify({module:moduleLabel,verdict_label:verdictLabel,verdict:String(verdict).replace(/\*\*/g,"").trim(),key_discovery:executiveDiscovery(fullOutput)||"See Technical Analysis.",primary_tension:extractSection(fullOutput,"Primary Tension")||"",signal_rationale:"",room_should_discuss:extractBulletLines(fullOutput,"What the Room Should Discuss").slice(0,5),most_likely_to_benefit:extractBulletLines(fullOutput,"Most Likely to Benefit").slice(0,4),most_exposed_to_failure:extractBulletLines(fullOutput,"Most Exposed to Failure").slice(0,4),non_negotiable_conditions:extractBulletLines(fullOutput,"Non-Negotiable Conditions").slice(0,8),governance_implication:extractSection(fullOutput,"Governance Implication")||"",_fallback_reason:reason||""});
+}
+
+function validSynthesisBrief(text,moduleLabel) {
+  try { var b=JSON.parse(text); return !!(b&&b.module===moduleLabel&&typeof b.key_discovery==="string"&&b.verdict_label); }
+  catch(e) { return false; }
+}
+
+async function compressSynthesisOutput(moduleLabel,fullOutput) {
+  if(!fullOutput||fullOutput.length<10) return deterministicSynthesisBrief(moduleLabel,fullOutput,"module did not produce output");
+  var lastError="";
+  for(var attempt=0;attempt<2;attempt++) {
+    try {
+      var suffix=attempt===0?"":"\n\nYour previous extraction attempt was unusable. Return the complete JSON object exactly as requested.";
+      var raw=await apiCall(synthesisBriefSystem(moduleLabel),"Module: "+moduleLabel+"\n\nFull Module Output:\n"+fullOutput+suffix,false);
+      var txt=stripJsonFenceText(raw.text);
+      if(!validSynthesisBrief(txt,moduleLabel)) throw new Error("invalid synthesis Governance Brief schema");
+      var authorityAssessment=assessAuthorityBoundary(synthesisLayerForModule(moduleLabel),txt);
+      if(authorityAssessment.violates) throw new Error("synthesis Governance Brief authority violation: "+authorityAssessment.reason);
+      return txt;
+    } catch(e) { lastError=e.message||String(e); }
+  }
+  return deterministicSynthesisBrief(moduleLabel,fullOutput,lastError);
+}
 
 function formatBriefForSynthesis(briefJson, fallbackFullOutput) {
   try {
@@ -934,21 +979,73 @@ function stressSystem(entries, useWeb, publicWeb, sessionEntries, analysisMode, 
 
 
 function chairSystem(entries, useWeb, publicWeb, sessionEntries, analysisMode, activeDirectors, failedDirectorLabels, instructions) {
-  var cov = buildCoveragePreamble(analysisMode, activeDirectors, DIRECTORS);
-  var partialWarning = (failedDirectorLabels&&failedDirectorLabels.length>0)
-    ? "\n\n⚠ PARTIAL EVIDENCE BASE WARNING: The following directors failed to complete and their analyses are absent from your synthesis: "+failedDirectorLabels.join(", ")+". You must explicitly flag in your Coverage Limitations that your recommendation rests on a partial evidence base."
+  var cov=buildCoveragePreamble(analysisMode,activeDirectors,DIRECTORS);
+  var partialWarning=(failedDirectorLabels&&failedDirectorLabels.length>0)
+    ? "\n\n⚠ PARTIAL EVIDENCE BASE WARNING: The following Directors failed to complete and are absent: "+failedDirectorLabels.join(", ")+". Your Decision Brief Status must be 'Complete — Partial Evidence Base — [central unresolved tension]' and Coverage Limitations must name the missing domains."
     : "";
-  var base = (instructions && instructions.chair)
-    ? instructions.chair + "\n\n"
-    : "You are the Chair of the Public Health Decision Stewardship Board (Australian context). Integrate all findings into a governance-grade decision frame. All financial references should use AUD.\n\nRespond only in this structure:\n\n## EXECUTIVE LAYER\nWrite 3–5 sentences for a time-pressured Board member who may read nothing else.\n\n---\n\n**Decision Framing**\n\n**Key Trade-offs**\n\n**Decision Conditions**\n\n**Irreducible Uncertainties**\n\n**Coverage Limitations** (2–3 sentences maximum)\n\n**Chair Recommendation**: [PROCEED WITH CONDITIONS / PROCEED WITH CAUTION / CONDITIONAL APPROVAL / PILOT / DEFER / DO NOT PROCEED]\n\nUse CONDITIONAL APPROVAL when the pilot or proposal is sound in principle but requires a bounded verification phase before expenditure is authorised.\n\n**Verification Phase (if CONDITIONAL APPROVAL selected)**\n\n**Pilot Pathway (if PILOT selected)**\n\n**Reasoning Transparency**\nOne paragraph.\n\n";
-  return base + buildEmbeddedDocs(entries) + buildSessionEvidence(sessionEntries) + buildWebNote(useWeb, publicWeb) + cov + partialWarning;
+  var fallback =
+    "You are the Chair of the Public Health Decision Stewardship Board (Australian context). Integrate all findings into a governance-grade reasoning record. You do not issue a recommendation, a proceed/defer/halt instruction, or any preferred course of action — that authority belongs entirely to the human decision-maker this Board exists to inform. All financial references should use AUD.\n\n"+
+    "Respond only in this structure:\n\n"+
+    "## EXECUTIVE LAYER\nWrite 3–5 sentences for a time-pressured Board member who may read nothing else, ending with: **Decision Brief Status**: Complete — [clause naming the central unresolved tension].\n\n---\n\n"+
+    "**Decision Framing**\n\n**Key Trade-offs**\n\n**Decision Conditions**\n\n**Irreducible Uncertainties**\n\n**Coverage Limitations** (2–3 sentences maximum)\n\n"+
+    "**Director Signal Distribution** — factual report only: exact HALT/CAUTION/PROCEED counts. Do not characterise this as agreement or departure — no Chair position exists to compare it against.\n\n"+
+    "**Decision Brief Status**: Complete — [clause naming the central unresolved tension the decision-maker must weigh]. Use 'Complete — Partial Evidence Base — [clause]' if any Directors failed. Never use PROCEED WITH CONDITIONS / PROCEED WITH CAUTION / CONDITIONAL APPROVAL / PILOT / DEFER / DO NOT PROCEED — that vocabulary is retired.\n\n"+
+    "**Verification Phase (if relevant)** — include only if a bounded verification window would meaningfully change the picture; present as one available pathway, not a chosen one.\n\n"+
+    "**Pilot Pathway (if relevant)** — include only if a bounded pilot would meaningfully change the picture; present as one available pathway, not a chosen one.\n\n"+
+    "**Reasoning Transparency**\nOne paragraph.\n\n";
+  var base=(instructions&&instructions.chair)?instructions.chair+"\n\n":fallback;
+  var boundary="\n\nRUNTIME AUTHORITY BOUNDARY: Describe tensions, conditions, uncertainty and available pathways. Never state or imply that the proposal should proceed, should not proceed, must be approved, must be rejected, should be deferred, or that any pathway is the preferred course. Do not turn a Director signal distribution into a Chair decision.";
+  return base+buildEmbeddedDocs(entries)+buildSessionEvidence(sessionEntries)+buildWebNote(useWeb,publicWeb)+cov+partialWarning+boundary;
 }
-
 
 function chairDialogueSystem(entries, decision, directorSummary, metaOut, stressOut, chairOut) {
-  return "You are the Chair of the Public Health Decision Stewardship Board, now in a governance dialogue with the decision-maker following your initial recommendation.\n\nDECISION UNDER REVIEW:\n"+decision+"\n\nDIRECTOR ANALYSES:\n"+directorSummary+"\n\nMETA-AUTHOR SYNTHESIS:\n"+metaOut+"\n\nSTRESS TEST OUTPUT:\n"+stressOut+"\n\nYOUR INITIAL CHAIR RECOMMENDATION:\n"+chairOut+buildEmbeddedDocs(entries)+"\n\nRespond as the Chair - with authority, nuance, and governance rigour.";
+  return "You are the Chair of the Public Health Decision Stewardship Board, now in a governance dialogue with the human decision-maker after producing a Decision Brief.\n\n"+
+    "Your role is to clarify tensions, test assumptions, surface consequences, and explain what evidence would change the decision space. You do not recommend, approve, reject, defer, select a pilot, or tell the decision-maker what they should decide.\n\n"+
+    "DECISION UNDER REVIEW:\n"+decision+"\n\nDIRECTOR ANALYSES:\n"+directorSummary+"\n\nMETA-AUTHOR SYNTHESIS:\n"+metaOut+"\n\nSTRESS TEST OUTPUT:\n"+stressOut+"\n\nINITIAL DECISION BRIEF:\n"+chairOut+
+    buildEmbeddedDocs(entries)+"\n\nRespond with authority, nuance and governance rigour while preserving human decision authority.";
 }
 
+function synthesisLayerForModule(moduleLabel) {
+  var map={
+    "Decision Surface Map":"surface_map",
+    "Epistemic Confidence Audit":"epistemic_audit",
+    "Cross-Domain Tension Analysis":"cross_domain_tension_analysis",
+    "Reality Anchor":"reality_anchor",
+    "Adversarial Probe":"adversarial_probe",
+    "Decision Stress Test":"stress_test",
+    "Chair Decision":"chair",
+    "Governance Comparator":"comparator"
+  };
+  return map[moduleLabel]||"chair";
+}
+
+async function enforceSynthesisAuthority(layer,text,systemPrompt,userPrompt) {
+  if(!text) return text;
+  var assessment=assessAuthorityBoundary(layer,text);
+  if(!assessment.violates) return text;
+  var repairSystem=systemPrompt+authorityBoundaryPrompt(layer)+
+    "\n\nBOUNDARY REPAIR: The prior draft crossed the PHDSS authority boundary ("+assessment.reason+"). Rewrite only as needed to remove adjudication. Preserve source-grounded findings, signals, constraints, conditions, tensions, uncertainty, pathway descriptions, section structure, and numeric values. Do not select, rank, resolve, approve, reject, defer, or choose an institutional pathway. Legitimate external constraint reporting may remain. Preserve the original output format exactly; if the input is JSON, return valid JSON only.";
+  var raw=await apiCall(repairSystem,userPrompt+"\n\nPRIOR OUTPUT TO REPAIR:\n"+text,false);
+  var repaired=stripCalibrationBleed(raw.text||"");
+  var after=assessAuthorityBoundary(layer,repaired);
+  if(after.violates) throw new Error(layer+" authority boundary violation persisted after repair: "+after.reason);
+  return repaired;
+}
+
+async function callGovernedSynthesis(layer,systemPrompt,userPrompt,autoContinue,useWeb) {
+  var governedSystem=systemPrompt+authorityBoundaryPrompt(layer);
+  var output=await callClaude_synthesis(governedSystem,userPrompt,autoContinue,useWeb);
+  return enforceSynthesisAuthority(layer,output,governedSystem,userPrompt);
+}
+
+// Compatibility wrapper retained during recovery. Chair is now one layer of the shared authority contract.
+function chairDecisionBoundaryLeak(text) {
+  return assessAuthorityBoundary("chair",text).violates;
+}
+
+async function repairChairDecisionBoundary(text, systemPrompt, userPrompt) {
+  return enforceSynthesisAuthority("chair",text,systemPrompt,userPrompt);
+}
 
 function epistemicAuditorSystem(analysisMode, activeDirectors, instructions) {
   var cov = buildCoveragePreamble(analysisMode, activeDirectors, DIRECTORS);
@@ -985,19 +1082,21 @@ function lensComparatorSystem(directorA, directorB, entries, useWeb, publicWeb, 
 
 
 function comparatorJsonSystem(decisionId, decisionSignal, directorOutputs, analysisMode, activeDirectors, chairOutput, instructions, proceedCount, cautionCount, haltCount) {
-  var bundle = directorOutputs.map(function(d){ return "---\nDIRECTOR: "+d.label+"\n"+d.output+"\n"; }).join("\n");
-  var signalBlock = (decisionSignal&&decisionSignal.trim()) ? "\n## Decision Signal\n"+decisionSignal.trim()+"\n" : "";
-  var tallyLine = (typeof cautionCount==="number")
+  var bundle=directorOutputs.map(function(d){return "---\nDIRECTOR: "+d.label+"\n"+d.output+"\n";}).join("\n");
+  var signalBlock=(decisionSignal&&decisionSignal.trim())?"\n## Decision Signal\n"+decisionSignal.trim()+"\n":"";
+  var tallyLine=(typeof cautionCount==="number")
     ? "\nSignal Tally (authoritative — use these exact figures in decision_signal_interpretation): "+proceedCount+" PROCEED / "+cautionCount+" CAUTION / "+haltCount+" HALT\n"
     : "";
-  var covBlock = "\n## Coverage\nAnalysis Mode: "+analysisMode+tallyLine+"Active Directors: "+activeDirectors.map(function(d){return d.label;}).join(", ")+"\n";
-  var chairBlock = chairOutput ? "\n## Chair Governance Position\n"+chairOutput+"\n" : "";
-  var base = (instructions && instructions.comparator)
-    ? instructions.comparator + "\n\n"
+  var covBlock="\n## Coverage\nAnalysis Mode: "+analysisMode+tallyLine+"Active Directors: "+activeDirectors.map(function(d){return d.label;}).join(", ")+"\n";
+  var chairBlock=chairOutput?"\n## Chair Decision Brief\n"+chairOutput+"\n":"";
+  var base=(instructions&&instructions.comparator)
+    ? instructions.comparator+"\n\n"
     : "### PHDSS COMPARATOR JSON\n### DECISION_ID: "+decisionId+"\n\nYou are the Governance Comparator. Produce a structured governance record.\n";
-  return base + signalBlock + covBlock + chairBlock + "\n## Director Outputs\n" + bundle + "\n\n## Output Format (STRICT)\nReturn ONLY valid JSON. No markdown fences.\n\n{\"decision_id\":\""+decisionId+"\",\"schema_version\":\"2.5.0\",\"analysis_mode\":\""+analysisMode+"\",\"coverage_ratio\":\""+activeDirectors.length+"/"+DIRECTORS.length+"\",\"summary\":{\"one_paragraph\":\"string\",\"dominant_frame\":\"string\",\"decision_signal_interpretation\":\"string\"},\"consensus\":[{\"point\":\"string\",\"why_it_matters\":\"string\",\"supporting_directors\":[\"string\"]}],\"dissensus\":[{\"tension\":\"string\",\"what_would_resolve\":\"string\",\"directors\":[\"string\"]}],\"tradeoffs\":[{\"option_a\":\"string\",\"option_b\":\"string\",\"tradeoff\":\"string\",\"who_pays\":\"string\"}],\"key_risks\":[{\"risk\":\"string\",\"pathway\":\"string\",\"mitigations\":[\"string\"],\"residual_risk\":\"low|medium|high\"}],\"chair_resolution\":{\"recommendation\":\"string\",\"conditions\":[\"string\"],\"irreducible_uncertainties\":[\"string\"],\"kill_switches\":[\"string\"],\"success_metrics\":[\"string\"]},\"next_actions_30_60_90\":{\"days_0_30\":[\"string\"],\"days_31_60\":[\"string\"],\"days_61_90\":[\"string\"]},\"coverage_limitations\":\"string\"}\n\nThe chair_resolution object must reflect the Chair output above. CRITICAL for kill_switches: The kill_switches array must ONLY contain measurable operational triggers from Director early warning indicators and fragility signals. NEVER use Verification Phase forced-choice text or governance pathway descriptions as kill switches. NEVER invent indicators that do not appear in the Director outputs — every kill switch must be traceable to a specific Director fragility signal or early warning indicator. Do NOT include kill switches referencing technology systems, AI, triage systems, digital platforms, or software availability unless the decision explicitly involves those technologies. Each kill_switch must follow this format: [indicator] exceeds/falls below [threshold] within [timeframe]. Example correct kill switch: Coordinator clinical duty time exceeds 60 percent within 6 months triggers program suspension. Example wrong (do not use): At the end of the verification window forced-choice options are PROCEED WITH CONDITIONS.";
+  return base+signalBlock+covBlock+chairBlock+"\n## Director Outputs\n"+bundle+
+    "\n\n## Output Format (STRICT)\nReturn ONLY valid JSON. No markdown fences.\n\n"+
+    "{\"decision_id\":\""+decisionId+"\",\"schema_version\":\""+LEDGER_SCHEMA+"\",\"analysis_mode\":\""+analysisMode+"\",\"coverage_ratio\":\""+activeDirectors.length+"/"+DIRECTORS.length+"\",\"summary\":{\"one_paragraph\":\"string\",\"dominant_frame\":\"string\",\"decision_signal_interpretation\":\"string\"},\"consensus\":[{\"point\":\"string\",\"why_it_matters\":\"string\",\"supporting_directors\":[\"string\"]}],\"dissensus\":[{\"tension\":\"string\",\"what_would_resolve\":\"string\",\"directors\":[\"string\"]}],\"tradeoffs\":[{\"option_a\":\"string\",\"option_b\":\"string\",\"tradeoff\":\"string\",\"who_pays\":\"string\"}],\"key_risks\":[{\"risk\":\"string\",\"pathway\":\"string\",\"mitigations\":[\"string\"],\"residual_risk\":\"low|medium|high\"}],\"chair_resolution\":{\"decision_brief_status\":\"string\",\"conditions\":[\"string\"],\"irreducible_uncertainties\":[\"string\"],\"kill_switches\":[\"string\"],\"success_metrics\":[\"string\"]},\"next_actions_30_60_90\":{\"days_0_30\":[\"string\"],\"days_31_60\":[\"string\"],\"days_61_90\":[\"string\"]},\"coverage_limitations\":\"string\"}\n\n"+
+    "The chair_resolution object must reflect the Chair Decision Brief above. decision_brief_status carries the Decision Brief Status value and unresolved-tension clause; it must never contain a proceed/defer/halt instruction or preferred course of action. CRITICAL for kill_switches: the kill_switches array may contain only measurable operational triggers grounded in Director early-warning indicators or fragility signals. Do not invent indicators.";
 }
-
 
 // --- PARSING ------------------------------------------------------------------
 function escRe(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"); }
@@ -1248,18 +1347,11 @@ function parseDashboard(decision, dirOutputs, meta, stress, chair, dialogueHisto
   var fragScore=safeMatch(stressText,/Fragility Score[^0-9]*(\d+(?:\.\d+)?)(?:\s*\/\s*10)?/,1)||null;
 
 
-  // FIX 3: Extended Chair recommendation regex to match CONDITIONAL APPROVAL
-  var chairRec=safeMatch(chairText,/\*\*Chair Recommendation[^*]*\*\*:?\s*\*?\*?\s*(HALT[^.\n]*|CONDITIONAL APPROVAL[^.\n]*|PROCEED WITH CONDITIONS|PROCEED WITH CAUTION|PILOT[^.\n]*|DEFER[^.\n]*|DO NOT PROCEED)/i,1)
-    ||safeMatch(chairText,/Chair Recommendation[:\s]+\*{0,2}(CONDITIONAL APPROVAL[^.\n*]*|DO NOT PROCEED|PROCEED WITH CONDITIONS|PROCEED WITH CAUTION|PILOT|DEFER|HALT)\*{0,2}/i,1)
-    ||safeMatch(chairText,/\*\*Chair Recommendation\*\*[^a-zA-Z\n]*\n\s*(CONDITIONAL APPROVAL|DO NOT PROCEED|PROCEED WITH CONDITIONS|PROCEED WITH CAUTION|PILOT|DEFER|HALT)/i,1)
-    ||"-";
-  if(chairRec!=="-"){
-    if(/HALT/i.test(chairRec)&&!/CONDITIONAL/i.test(chairRec)) chairRec="DO NOT PROCEED";
-    else if(/CONDITIONAL APPROVAL/i.test(chairRec)) chairRec="CONDITIONAL APPROVAL";
-    else if(/PILOT/i.test(chairRec)) chairRec="PILOT";
-    else if(/DEFER/i.test(chairRec)) chairRec="DEFER";
-  }
-
+    var briefMatch=chairText.match(/\*\*Decision Brief Status\*\*:?\s*\*?\*?\s*(Complete(?:\s*[—–-]\s*Partial Evidence Base)?)\s*[—–-]\s*([^\n]+)/i)
+    ||chairText.match(/Decision Brief Status[:\s]+\*{0,2}(Complete(?:\s*[—–-]\s*Partial Evidence Base)?)\*{0,2}\s*[—–-]\s*([^\n]+)/i);
+  var decisionBriefStatus=briefMatch?briefMatch[1].trim():"-";
+  var decisionBriefClause=briefMatch?briefMatch[2].replace(/\*\*/g,"").trim():"";
+  var isPartialEvidenceBrief=/Partial Evidence Base/i.test(decisionBriefStatus);
 
   function extractConditionLines(text) {
     if (!text) return [];
@@ -1504,42 +1596,6 @@ function parseDashboard(decision, dirOutputs, meta, stress, chair, dialogueHisto
       while ((nbm = nbRe.exec(vpm[1])) !== null) { raw.push(nbm[1].trim()); }
     }
 
-    // --- Fallback 2: DO NOT PROCEED minimum conditions buried in Reasoning Transparency ---
-    // When Chair writes DO NOT PROCEED, minimum override conditions are often placed here.
-    if (raw.length === 0) {
-      var isDNP = /DO NOT PROCEED/i.test(text);
-      if (isDNP) {
-        var rtSection = extractSection(text, "Reasoning Transparency");
-        if (!rtSection) {
-          // Also try the ## variant
-          var rtM = text.match(/##\s+Reasoning Transparency[^\n]*\n([\s\S]*?)(?=\n##\s+[A-Za-z]|\n\*\*[A-Za-z]|$)/i);
-          rtSection = rtM ? rtM[1].trim() : "";
-        }
-        if (rtSection && rtSection.length > 30) {
-          // Look for "if the decision-maker proceeds" or "minimum conditions" sub-block
-          var minM = rtSection.match(/(?:if.*?proceed[^.]*|minimum (?:conditions|requirements)[^.]*)[.:]\s*([\s\S]{20,})/i);
-          if (minM) {
-            raw.push("Minimum override conditions: " + minM[1].replace(/\n/g," ").trim().substring(0,400));
-          } else if (/minimum|if.*proceed|override|notwithstanding/i.test(rtSection)) {
-            // Fallback: preserve the first substantive sentence from Reasoning Transparency
-            var firstSent = rtSection.match(/([A-Z][^.!?]{30,}[.!?])/);
-            if (firstSent) raw.push(firstSent[1].trim());
-          }
-        }
-      }
-    }
-
-    // --- Fallback 3: inline conditions after the recommendation line ---
-    // Some Chair outputs write: "**Chair Recommendation**: DO NOT PROCEED\n\nIf overridden, conditions include..."
-    if (raw.length === 0) {
-      var afterRec = text.match(/\*\*Chair Recommendation\*\*[^\n]*DO NOT PROCEED[^\n]*\n([\s\S]{20,200})/i);
-      if (afterRec) {
-        var inline = afterRec[1].replace(/\n/g," ").trim();
-        inline = inline.replace(/^\*\*[^*]+\*\*\s*/, "").trim();
-        if (inline.length > 20) raw.push(inline.substring(0,400));
-      }
-    }
-
     return dedupItems(raw).filter(function(s){ return s.length > 10; });
   }
   var conditions = extractConditionLines(chairText).slice(0,6);
@@ -1616,7 +1672,7 @@ function parseDashboard(decision, dirOutputs, meta, stress, chair, dialogueHisto
     fragScoreRan: fragScore !== null,
     // Three-state fragility: 'scored' | 'ran-no-score' | 'not-run'
     // resolved downstream using stressTestResult.run — see TransparencyDashboard and exportFullDashboard
-    chairRec, conditions, tradeoffs, keyDiscovery, acceptedRisk,
+    decisionBriefStatus, decisionBriefClause, isPartialEvidenceBrief, conditions, tradeoffs, keyDiscovery, acceptedRisk,
     conflictCount, assumptionCount, traceabilityScore, governanceLevel,
     totalLoadedDocs, webSearch,
     epistemicScore, overconfidenceFlags, biasSignals, epistemicGaps, dirConfidence,
@@ -1891,16 +1947,10 @@ function TransparencyDashboard({decision,dirOutputs,meta,stress,chair,epistemic,
   }
   var biasSummary=d.biasSignals?d.biasSignals.split(/[.!?]/)[0].trim():"";
   var absentSummary=d.absentPerspectives?d.absentPerspectives.split(/[.!?]/)[0].trim():"";
-  var proceedNow=d.chairRec==="PROCEED WITH CONDITIONS"||d.chairRec==="PROCEED WITH CAUTION";
-  var noGo=d.chairRec==="DO NOT PROCEED";
-  var proceedLater=d.chairRec==="DEFER"||d.chairRec==="PROCEED WITH CONDITIONS";
-  var isConditional=d.chairRec==="CONDITIONAL APPROVAL";
-
-
-  // Verdict strip derived values
-  var recColor=d.chairRec==="CONDITIONAL APPROVAL"?"#0891B2":d.chairRec&&d.chairRec.indexOf("CONDITIONS")!==-1?"#059669":d.chairRec&&d.chairRec.indexOf("CAUTION")!==-1?"#D97706":d.chairRec==="DEFER"?"#7C3AED":d.chairRec==="DO NOT PROCEED"?"#DC2626":"#64748B";
-  var recBg=d.chairRec==="CONDITIONAL APPROVAL"?"#ECFEFF":d.chairRec&&d.chairRec.indexOf("CONDITIONS")!==-1?"#F0FDF4":d.chairRec&&d.chairRec.indexOf("CAUTION")!==-1?"#FFFBEB":d.chairRec==="DEFER"?"#F5F3FF":d.chairRec==="DO NOT PROCEED"?"#FEF2F2":"#F8FAFC";
-  var recBorder=d.chairRec==="CONDITIONAL APPROVAL"?"#67E8F9":d.chairRec&&d.chairRec.indexOf("CONDITIONS")!==-1?"#BBF7D0":d.chairRec&&d.chairRec.indexOf("CAUTION")!==-1?"#FDE68A":d.chairRec==="DEFER"?"#DDD6FE":d.chairRec==="DO NOT PROCEED"?"#FECACA":"#E2E8F0";
+  var briefReady=d.decisionBriefStatus&&d.decisionBriefStatus!=="-";
+  var briefColor=d.isPartialEvidenceBrief?"#B45309":briefReady?"#0369A1":"#64748B";
+  var briefBg=d.isPartialEvidenceBrief?"#FFFBEB":briefReady?"#EFF6FF":"#F8FAFC";
+  var briefBorder=d.isPartialEvidenceBrief?"#FDE68A":briefReady?"#BFDBFE":"#E2E8F0";
 
   return (
     <div style={{animation:"fadeIn 0.4s ease"}}>
@@ -1951,13 +2001,13 @@ function TransparencyDashboard({decision,dirOutputs,meta,stress,chair,epistemic,
       }
 
       {/* ── 1. VERDICT STRIP ─────────────────────────────────────────────── */}
-      <div style={{background:"#FFFFFF",border:"2px solid "+recBorder,borderRadius:14,padding:"18px 20px",marginBottom:14,boxShadow:"0 2px 8px rgba(0,0,0,0.06)"}}>
+      <div style={{background:"#FFFFFF",border:"2px solid "+briefBorder,borderRadius:14,padding:"18px 20px",marginBottom:14,boxShadow:"0 2px 8px rgba(0,0,0,0.06)"}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12}}>
           {/* Chair verdict */}
           <div style={{display:"flex",alignItems:"center",gap:14,flex:"1 1 auto",minWidth:0}}>
-            <div style={{padding:"10px 18px",borderRadius:10,background:recBg,border:"1px solid "+recBorder,whiteSpace:"nowrap"}}>
-              <div style={{fontSize:10,color:"#64748B",fontWeight:600,letterSpacing:0.6,marginBottom:3,textTransform:"uppercase"}}>Chair Recommendation</div>
-              <div style={{fontSize:18,fontWeight:800,color:recColor,letterSpacing:-0.3}}>{d.chairRec||<span style={{color:"#94A3B8",fontWeight:400,fontSize:14}}>Awaiting Chair…</span>}</div>
+            <div style={{padding:"10px 18px",borderRadius:10,background:briefBg,border:"1px solid "+briefBorder,whiteSpace:"nowrap"}}>
+              <div style={{fontSize:10,color:"#64748B",fontWeight:600,letterSpacing:0.6,marginBottom:3,textTransform:"uppercase"}}>Decision Brief Status</div>
+              <div style={{fontSize:18,fontWeight:800,color:briefColor,letterSpacing:-0.3,lineHeight:1.3}}>{briefReady?<span>{d.decisionBriefStatus}{d.decisionBriefClause&&<span style={{fontSize:12,fontWeight:500,color:"#475569",marginLeft:6}}>— {d.decisionBriefClause}</span>}</span>:<span style={{color:"#94A3B8",fontWeight:400,fontSize:14}}>Awaiting Decision Brief…</span>}</div>
             </div>
             {/* Signal balance */}
             <div style={{padding:"10px 16px",borderRadius:10,background:"#F8FAFC",border:"1px solid #E2E8F0",whiteSpace:"nowrap"}}>
@@ -1990,26 +2040,29 @@ function TransparencyDashboard({decision,dirOutputs,meta,stress,chair,epistemic,
         </div>
       </div>
 
-      {/* ── 2. DECISION STATUS ───────────────────────────────────────────── */}
+      {/* ── 2. DECISION BRIEF ───────────────────────────────────────────── */}
       <div style={{background:"#FFFFFF",border:"1px solid #E2E8F0",borderRadius:14,padding:"18px 20px",marginBottom:14,boxShadow:"0 1px 4px rgba(0,0,0,0.04)"}}>
-        <SectionHead title="Decision Status" color="#0F172A" pending={!chair&&!done}/>
-        {!chair?<PendingNote stage="Chair" running={running} notStarted={!running&&!done}/>:
+        <SectionHead title="Decision Brief" color="#0F172A" pending={!chair&&!done}/>
+        {!chair?<PendingNote stage="Chair Decision Brief" running={running} notStarted={!running&&!done}/>:
           <div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:14}}>
-              <div style={{padding:"12px 14px",borderRadius:10,background:isConditional?"#ECFEFF":(proceedNow&&!noGo?"#F0FDF4":"#FEF2F2"),border:"1px solid "+(isConditional?"#67E8F9":(proceedNow&&!noGo?"#BBF7D0":"#FECACA")),textAlign:"center"}}>
-                <div style={{fontSize:11,color:"#64748B",marginBottom:4}}>Proceed now?</div>
-                <div style={{fontSize:20,fontWeight:700,color:isConditional?"#0891B2":(proceedNow&&!noGo?"#059669":"#DC2626")}}>{noGo?"No":isConditional?"Verify first":proceedNow?"Conditional":"No"}</div>
+              <div style={{padding:"12px 14px",borderRadius:10,background:briefBg,border:"1px solid "+briefBorder}}>
+                <div style={{fontSize:10,color:"#64748B",marginBottom:4,textTransform:"uppercase",fontWeight:700}}>Brief status</div>
+                <div style={{fontSize:14,fontWeight:800,color:briefColor,lineHeight:1.35}}>{d.decisionBriefStatus||"—"}</div>
               </div>
-              <div style={{padding:"12px 14px",borderRadius:10,background:proceedLater&&!noGo?"#EFF6FF":"#F8FAFC",border:"1px solid "+(proceedLater&&!noGo?"#BFDBFE":"#E2E8F0"),textAlign:"center"}}>
-                <div style={{fontSize:11,color:"#64748B",marginBottom:4}}>If conditions met?</div>
-                <div style={{fontSize:20,fontWeight:700,color:proceedLater&&!noGo?"#0369A1":(isConditional?"#0369A1":"#94A3B8")}}>{noGo?"Unlikely":(proceedLater||isConditional)?"Yes":"Unclear"}</div>
+              <div style={{padding:"12px 14px",borderRadius:10,background:"#F8FAFC",border:"1px solid #E2E8F0"}}>
+                <div style={{fontSize:10,color:"#64748B",marginBottom:4,textTransform:"uppercase",fontWeight:700}}>Director distribution</div>
+                <div style={{fontSize:14,fontWeight:800,color:"#334155"}}>{d.haltCount+" HALT / "+d.cautionCount+" CAUTION / "+d.proceedCount+" PROCEED"}</div>
               </div>
-              <div style={{padding:"12px 14px",borderRadius:10,background:"#FAFAFA",border:"1px solid #E2E8F0",textAlign:"center"}}>
-                <div style={{fontSize:11,color:"#64748B",marginBottom:4}}>Fragility exposure</div>
+              <div style={{padding:"12px 14px",borderRadius:10,background:"#FAFAFA",border:"1px solid #E2E8F0"}}>
+                <div style={{fontSize:10,color:"#64748B",marginBottom:4,textTransform:"uppercase",fontWeight:700}}>Fragility exposure</div>
                 <div style={{fontSize:20,fontWeight:700,color:d.fragScore!=="-"?fragColor:"#94A3B8"}}>{d.fragScore!=="-"?d.fragScore+"/10":(stressTestResult&&stressTestResult.run?"—":"N/A")}</div>
               </div>
             </div>
-            {d.conditions.length>0&&<div><div style={{fontSize:10,fontWeight:700,color:"#0369A1",marginBottom:6,textTransform:"uppercase",letterSpacing:0.6}}>Critical Preconditions</div><div style={{display:"flex",flexDirection:"column",gap:5}}>{d.conditions.map(function(c,i){return <div key={i} style={{fontSize:11,padding:"6px 10px",borderRadius:8,background:"#F8FAFC",border:"1px solid #E2E8F0",color:"#334155",lineHeight:1.55}}><span style={{fontWeight:700,color:"#0369A1",marginRight:6}}>{i+1}.</span>{c.replace(/^\d+\.\s*/,"")}</div>;})}</div></div>}
+            {d.decisionBriefClause&&<div style={{marginBottom:12,padding:"9px 12px",borderRadius:9,background:"#EFF6FF",border:"1px solid #BFDBFE",fontSize:11,color:"#1E3A5F",lineHeight:1.6}}>
+              <span style={{fontWeight:700}}>Central unresolved tension — </span>{d.decisionBriefClause}
+            </div>}
+            {d.conditions.length>0&&<div><div style={{fontSize:10,fontWeight:700,color:"#0369A1",marginBottom:6,textTransform:"uppercase",letterSpacing:0.6}}>Decision Conditions</div><div style={{display:"flex",flexDirection:"column",gap:5}}>{d.conditions.map(function(c,i){return <div key={i} style={{fontSize:11,padding:"6px 10px",borderRadius:8,background:"#F8FAFC",border:"1px solid #E2E8F0",color:"#334155",lineHeight:1.55}}><span style={{fontWeight:700,color:"#0369A1",marginRight:6}}>{i+1}.</span>{c.replace(/^\d+\.\s*/,"")}</div>;})}</div></div>}
             {d.tradeoffs.length>0&&<div style={{marginTop:12}}><div style={{fontSize:10,fontWeight:700,color:"#7C3AED",marginBottom:6,textTransform:"uppercase",letterSpacing:0.6}}>Key Trade-offs</div><div style={{display:"flex",flexDirection:"column",gap:5}}>{d.tradeoffs.map(function(t,i){return <div key={i} style={{fontSize:11,padding:"6px 10px",borderRadius:8,background:"#F5F3FF",border:"1px solid #DDD6FE",color:"#5B21B6",lineHeight:1.55}}><span style={{fontWeight:700,marginRight:6}}>{i+1}.</span>{t.replace(/^\d+\.\s*/,"")}</div>;})}</div></div>}
           </div>
         }
@@ -2024,9 +2077,9 @@ function TransparencyDashboard({decision,dirOutputs,meta,stress,chair,epistemic,
           <ExpandRow label="Integration coherence" count={d.integrationSignal||"-"} color={d.integrationSignal==="HIGH"?"#059669":d.integrationSignal==="MEDIUM"?"#D97706":d.integrationSignal==="LOW"?"#DC2626":"#94A3B8"} items={(d.integrationRationale?["Rationale: "+d.integrationRationale]:[]).concat(d.tensions)} bg="#FFF7ED" border="#FED7AA" textColor="#92400E"/>
           <ExpandRow label="Epistemic health" count={d.epistemicScore||"-"} color={d.epistemicScore==="STRONG"?"#059669":d.epistemicScore==="ADEQUATE"?"#D97706":(d.epistemicScore==="WEAK"||d.epistemicScore==="COMPROMISED")?"#DC2626":"#94A3B8"} items={d.overconfidenceFlags} bg="#FFF5F5" border="#FECACA" textColor="#7F1D1D"/>
           <ExpandRow label="Adversarial gap finding" count={d.probeVerdict||"-"} color={d.probeVerdict==="BOARD REASONING SOUND"?"#059669":d.probeVerdict==="SIGNIFICANT GAPS"?"#D97706":d.probeVerdict==="CONCLUSION CHALLENGED"?"#DC2626":"#94A3B8"} items={d.boardMissed} bg="#F5F3FF" border="#DDD6FE" textColor="#5B21B6"/>
-          <ExpandRow label="Current governance position" count={d.chairRec||"-"} color={d.chairRec==="CONDITIONAL APPROVAL"?"#0891B2":d.chairRec&&d.chairRec.indexOf("CONDITIONS")!==-1?"#059669":d.chairRec&&d.chairRec.indexOf("CAUTION")!==-1?"#D97706":d.chairRec==="DEFER"?"#7C3AED":d.chairRec==="DO NOT PROCEED"?"#DC2626":"#94A3B8"} items={d.conditions} bg="#EFF6FF" border="#BFDBFE" textColor="#1E3A5F"/>
+          <ExpandRow label="Decision brief status" count={d.decisionBriefStatus||"-"} color={d.isPartialEvidenceBrief?"#B45309":briefReady?"#0369A1":"#94A3B8"} items={(d.decisionBriefClause?[d.decisionBriefClause]:[]).concat(d.conditions)} bg="#EFF6FF" border="#BFDBFE" textColor="#1E3A5F"/>
           <ExpandRow label="Fragility score" count={d.fragScore!=="-"?d.fragScore+"/10":(stressTestResult&&stressTestResult.run?"Not extracted":"N/A — not run")} color={d.fragScore!=="-"?fragColor:"#94A3B8"} items={d.allFragility.map(function(f){return "["+f.source+"] "+f.text;})} bg="#FFF5F5" border="#FECACA" textColor="#7F1D1D"/>
-          <ExpandRow label="AI Integrity score ⓘ" count={d.aiIntegrityScore!==null&&d.aiIntegrityScore!==undefined?d.aiIntegrityScore+"%":"-"} color={d.aiIntegrityScore>=70?"#059669":d.aiIntegrityScore>=40?"#D97706":"#DC2626"} items={d.epistemicGaps.concat(d.aiIntegrityScore!==null?["Composite: Epistemic health (60%) + Adversarial Probe (40%). Low scores indicate analytical uncertainty, not a system error."+(d.analysisMode!=="FULL"?" Expected range for "+d.analysisMode+" mode ("+d.activeDirectorCount+"/13 directors) is lower than FULL mode — score is structurally depressed by partial coverage.":"")]:[])} bg="#FFF5F5" border="#FECACA" textColor="#7F1D1D"/>
+          <ExpandRow label="AI Integrity score ⓘ" count={d.aiIntegrityScore!==null&&d.aiIntegrityScore!==undefined?d.aiIntegrityScore+"%":"-"} color={d.aiIntegrityScore>=70?"#059669":d.aiIntegrityScore>=40?"#D97706":"#DC2626"} items={d.epistemicGaps.concat(d.aiIntegrityScore!==null?["Composite: Epistemic health (60%) + Adversarial Probe (40%). Low scores indicate analytical uncertainty, not a system error."+(d.analysisMode!=="FULL"?" Expected range for "+d.analysisMode+" mode ("+d.activeDirectorCount+"/"+DIRECTORS.length+" directors) is lower than FULL mode — score is structurally depressed by partial coverage.":"")]:[])} bg="#FFF5F5" border="#FECACA" textColor="#7F1D1D"/>
         </div>
       </div>
 
@@ -2203,7 +2256,7 @@ function GovToggle({view, setView, hasContent}) {
   if (!hasContent) return null;
   return (
     <div style={{display:"flex",gap:4,marginBottom:10,padding:"2px",background:"#F1F5F9",borderRadius:8,width:"fit-content"}}>
-      {["technical","governance"].map(function(v){
+      {["governance","technical"].map(function(v){
         var active=view===v;
         return <button key={v} onClick={function(e){e.stopPropagation();setView(v);}}
           style={{fontSize:10,fontWeight:700,padding:"4px 12px",borderRadius:6,border:"none",
@@ -2218,174 +2271,113 @@ function GovToggle({view, setView, hasContent}) {
   );
 }
 
-// ── Lived Experience Governance Record ───────────────────────────────────────
-function LivedGovernanceRecord({decision}) {
-  var sectionStyle={background:"#E8F5F5",border:"1px solid #0E6B6B",borderRadius:8,padding:"12px 14px",marginBottom:10};
-  var labelStyle={fontWeight:700,color:"#0E6B6B",textTransform:"uppercase",fontSize:10,letterSpacing:1,display:"block",marginBottom:4};
-  var rowStyle={display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:10};
-  var colGreen={background:"#EAF7EE",border:"1px solid #1A6B3A",borderRadius:8,padding:"10px 12px"};
-  var colRed={background:"#FDEDEC",border:"1px solid #922B21",borderRadius:8,padding:"10px 12px"};
-  var colAmber={background:"#FEF9EE",border:"1px solid #B7770D",borderRadius:8,padding:"10px 12px"};
-  var itemStyle={fontSize:11,lineHeight:1.7,color:"#0F1923"};
-  var hdr={fontWeight:700,fontSize:10,textTransform:"uppercase",letterSpacing:0.8,marginBottom:6,display:"block"};
-  return (
-    <div style={{fontSize:11,lineHeight:1.75,color:"#334155"}}>
-      <div style={sectionStyle}>
-        <span style={labelStyle}>Key Human Discovery</span>
-        <div style={{fontWeight:700,fontSize:13,color:"#0F1923",marginBottom:6}}>Many gender diverse consumers enter mental health services expecting discrimination. Implementation quality — not policy existence — determines whether this service becomes a place of genuine therapeutic safety or a further source of institutional harm.</div>
-        <div style={{fontSize:11,color:"#4A5568",lineHeight:1.7}}>Consumers will judge inclusion by the first phone call, the intake form, and the pronoun usage of the first staff member they meet — not by what the policy document says.</div>
-      </div>
-      <div style={rowStyle}>
-        <div style={colAmber}>
-          <span style={{...hdr,color:"#B7770D"}}>Primary Trust Tension</span>
-          <div style={itemStyle}><strong>Inclusive policy</strong> versus <strong>inclusive experience.</strong> A policy can be inclusive while the service remains exclusionary in practice.</div>
-        </div>
-        <div style={colAmber}>
-          <span style={{...hdr,color:"#B7770D"}}>Recommendation Signal</span>
-          <div style={{fontWeight:700,fontSize:13,color:"#B7770D",marginBottom:4}}>CAUTION</div>
-          <div style={itemStyle}>Implementation depth and staff cultural competency will determine whether this policy creates genuine safety or maintains exclusionary practices under inclusive language.</div>
-        </div>
-      </div>
-      <div style={{fontWeight:700,fontSize:11,color:"#1E3A4C",marginBottom:6,marginTop:4}}>What the Room Should Discuss</div>
-      {["How will gender diverse consumers experience this policy at first contact — the intake form, the phone call, the reception interaction?",
-        "What happens when staff cultural competency varies across units — and which consumers are most exposed to that variation?",
-        "How will the organisation distinguish genuine inclusive practice from performative compliance?",
-        "How will consumers safely report discrimination without risking their ongoing care relationship?",
-      ].map(function(q,i){return <div key={i} style={{fontSize:11,lineHeight:1.65,color:"#334155",paddingLeft:12,borderLeft:"2px solid #0E6B6B",marginBottom:6}}>{"• "+q}</div>;})}
-      <div style={rowStyle}>
-        <div style={colGreen}>
-          <span style={{...hdr,color:"#1A6B3A"}}>Most Likely to Benefit</span>
-          {["Gender diverse consumers accessing services.","Families and carers of gender diverse individuals.","Staff seeking inclusive practice guidance."].map(function(i,k){return <div key={k} style={itemStyle}>{"• "+i}</div>;})}
-        </div>
-        <div style={colRed}>
-          <span style={{...hdr,color:"#922B21"}}>Most Exposed to Failure</span>
-          {["Consumers in crisis — when cognitive load peaks and staff revert to habits.","Consumers dependent on ongoing care who cannot risk disclosure.","Consumers from intersecting marginalised groups."].map(function(i,k){return <div key={k} style={itemStyle}>{"• "+i}</div>;})}
-        </div>
-      </div>
-      <div style={{background:"#FEF9EE",border:"1px solid #B7770D",borderRadius:8,padding:"10px 12px",marginBottom:10}}>
-        <span style={{...hdr,color:"#B7770D"}}>Non-Negotiable Conditions</span>
-        {["Consumer participation in policy development — not consultation after decisions are finalised.",
-          "Staff cultural competency demonstrated before implementation — not assumed from training attendance.",
-          "Chosen names and pronouns supported operationally without requiring legal documentation.",
-          "Feedback and escalation pathways that do not require consumers to repeatedly retell discrimination experiences.",
-        ].map(function(c,i){return <div key={i} style={itemStyle}>{"• "+c}</div>;})}
-      </div>
-      <div style={{background:"#E8F5F5",border:"1px solid #0E6B6B",borderRadius:8,padding:"10px 12px"}}>
-        <span style={labelStyle}>Governance Implication</span>
-        <div style={{fontWeight:700,fontSize:12,color:"#0F1923"}}>Policy legitimacy depends on lived experience consistency, not policy existence.</div>
-      </div>
-    </div>
-  );
+// ── Generic Governance Record renderer ────────────────────────────────────────
+var GOVERNANCE_SIGNAL_COLORS={
+  PROCEED:{fg:"#1A6B3A",bg:"#EAF7EE",border:"#1A6B3A"},
+  CAUTION:{fg:"#B7770D",bg:"#FEF9EE",border:"#B7770D"},
+  HALT:{fg:"#922B21",bg:"#FDEDEC",border:"#922B21"},
+  FAILED:{fg:"#922B21",bg:"#FDEDEC",border:"#922B21"}
+};
+var GOVERNANCE_NEUTRAL_COLOR={fg:"#1E3A4C",bg:"#EAF2FA",border:"#1A5276"};
+
+function governanceVerdictColor(label,value){
+  var v=(value||"").toUpperCase();
+  if(label==="Recommendation Signal") return GOVERNANCE_SIGNAL_COLORS[v]||GOVERNANCE_NEUTRAL_COLOR;
+  if(label==="Integration Signal") return v.indexOf("LOW")!==-1?GOVERNANCE_SIGNAL_COLORS.HALT:(v.indexOf("MEDIUM")!==-1||v.indexOf("HIGH")!==-1?GOVERNANCE_SIGNAL_COLORS.CAUTION:GOVERNANCE_NEUTRAL_COLOR);
+  if(label==="Fragility Score"){var n=parseInt((value||"").match(/\d+/),10);return isNaN(n)?GOVERNANCE_NEUTRAL_COLOR:n>=7?GOVERNANCE_SIGNAL_COLORS.HALT:n>=4?GOVERNANCE_SIGNAL_COLORS.CAUTION:GOVERNANCE_SIGNAL_COLORS.PROCEED;}
+  if(label==="Epistemic Health Score") return (v.indexOf("COMPROMISED")!==-1||v.indexOf("WEAK")!==-1)?GOVERNANCE_SIGNAL_COLORS.HALT:v.indexOf("ADEQUATE")!==-1?GOVERNANCE_SIGNAL_COLORS.CAUTION:v.indexOf("STRONG")!==-1?GOVERNANCE_SIGNAL_COLORS.PROCEED:GOVERNANCE_NEUTRAL_COLOR;
+  if(label==="Probe Verdict") return v.indexOf("CONCLUSION CHALLENGED")!==-1?GOVERNANCE_SIGNAL_COLORS.HALT:v.indexOf("SIGNIFICANT GAPS")!==-1?GOVERNANCE_SIGNAL_COLORS.CAUTION:v.indexOf("SOUND")!==-1?GOVERNANCE_SIGNAL_COLORS.PROCEED:GOVERNANCE_NEUTRAL_COLOR;
+  if(label==="Operational Confidence") return v.indexOf("LOW")!==-1?GOVERNANCE_SIGNAL_COLORS.HALT:v.indexOf("MEDIUM")!==-1?GOVERNANCE_SIGNAL_COLORS.CAUTION:v.indexOf("HIGH")!==-1?GOVERNANCE_SIGNAL_COLORS.PROCEED:GOVERNANCE_NEUTRAL_COLOR;
+  if(label==="Dominant Signal") return v.indexOf("HALT")!==-1?GOVERNANCE_SIGNAL_COLORS.HALT:v.indexOf("CAUTION")!==-1?GOVERNANCE_SIGNAL_COLORS.CAUTION:v.indexOf("PROCEED")!==-1?GOVERNANCE_SIGNAL_COLORS.PROCEED:GOVERNANCE_NEUTRAL_COLOR;
+  if(label==="Decision Brief Status") return v.indexOf("PARTIAL EVIDENCE BASE")!==-1?{fg:"#B45309",bg:"#FFFBEB",border:"#B45309"}:v.indexOf("COMPLETE")!==-1?{fg:"#0369A1",bg:"#EFF6FF",border:"#0369A1"}:GOVERNANCE_NEUTRAL_COLOR;
+  return GOVERNANCE_NEUTRAL_COLOR;
 }
 
-// ── Adversarial Probe Governance Record ──────────────────────────────────────
-function ProbeGovernanceRecord({decision}) {
-  var itemStyle={fontSize:11,lineHeight:1.7,color:"#334155"};
-  var hdr={fontWeight:700,fontSize:10,textTransform:"uppercase",letterSpacing:0.8,marginBottom:6,display:"block"};
-  return (
-    <div style={{fontSize:11,lineHeight:1.75,color:"#334155"}}>
-      <div style={{background:"#FDEDEC",border:"1px solid #922B21",borderRadius:8,padding:"12px 14px",marginBottom:10}}>
-        <span style={{...hdr,color:"#922B21"}}>Probe Verdict</span>
-        <div style={{fontWeight:700,fontSize:16,color:"#922B21",marginBottom:6}}>SIGNIFICANT GAPS</div>
-        <div style={{fontSize:11,color:"#7B1D1D",lineHeight:1.7}}>The Board has not assessed inaction harm with the same analytical rigour applied to implementation risks. The harmful status quo is being treated as a safe default.</div>
-      </div>
-      <div style={{background:"#EAF2FA",border:"1px solid #1A5276",borderRadius:8,padding:"12px 14px",marginBottom:10}}>
-        <span style={{...hdr,color:"#1A5276"}}>Key Analytical Discovery</span>
-        <div style={{fontWeight:700,fontSize:13,color:"#0F1923",marginBottom:6}}>The Board mapped implementation risks exhaustively while treating current exclusionary practices as a neutral baseline. Inaction is not neutral — it is an active decision with compounding consequences.</div>
-        <div style={{fontSize:11,color:"#4A5568",lineHeight:1.7}}>Every month of delay allows documented harms to accumulate. The four-trajectory analysis was incomplete — phased rollout and modified implementation pathways were available but inadequately examined.</div>
-      </div>
-      <div style={{fontWeight:700,fontSize:11,color:"#1E3A4C",marginBottom:6}}>What the Board Missed</div>
-      {[["Status quo harm not quantified","No Director measured the cost of continued discrimination, delayed care, or trust erosion — only implementation risk was mapped."],
-        ["Four-trajectory analysis incomplete","Modified implementation and phased rollout pathways were not examined as alternatives to full implementation or extended deferral."],
-        ["Temporal dynamics of delay ignored","No Director examined what happens to vulnerable consumers during 1-3 year culture change timelines."],
-        ["Implementation precedent overlooked","Recommendations built on theoretical requirements without examining comparable services that have succeeded."],
-      ].map(function(r,i){return (
-        <div key={i} style={{display:"grid",gridTemplateColumns:"1fr 2fr",gap:0,marginBottom:4}}>
-          <div style={{background:"#FDEDEC",border:"1px solid #E2D0D0",borderRight:"none",borderRadius:"6px 0 0 6px",padding:"8px 10px",fontWeight:700,fontSize:11,color:"#922B21"}}>{r[0]}</div>
-          <div style={{background:"#F8F9FA",border:"1px solid #E2D0D0",borderRadius:"0 6px 6px 0",padding:"8px 10px",fontSize:11,color:"#334155",lineHeight:1.6}}>{r[1]}</div>
-        </div>
-      );})}
-      <div style={{fontWeight:700,fontSize:11,color:"#1E3A4C",marginBottom:6,marginTop:10}}>What the Room Should Discuss</div>
-      {["Has the Board assessed inaction harm with the same rigour applied to implementation risks?",
-        "What would phased rollout look like — which basic dignity protections could begin immediately?",
-        "What evidence exists from comparable services that have successfully implemented this policy?",
-        "How will the Board monitor harm accumulation in the current system while the verification phase proceeds?",
-      ].map(function(q,i){return <div key={i} style={{fontSize:11,lineHeight:1.65,color:"#334155",paddingLeft:12,borderLeft:"2px solid #922B21",marginBottom:6}}>{"• "+q}</div>;})}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginTop:10}}>
-        <div style={{background:"#EAF7EE",border:"1px solid #1A6B3A",borderRadius:8,padding:"10px 12px"}}>
-          <span style={{...hdr,color:"#1A6B3A"}}>Chair Response</span>
-          <div style={{fontWeight:700,fontSize:12,color:"#1A6B3A",marginBottom:4}}>ACCEPTED</div>
-          <div style={itemStyle}>Decision Condition 1 requires immediate basic dignity protections within four weeks — beginning harm reduction before full implementation capacity is confirmed.</div>
-        </div>
-        <div style={{background:"#FDEDEC",border:"1px solid #922B21",borderRadius:8,padding:"10px 12px"}}>
-          <span style={{...hdr,color:"#922B21"}}>Governance Implication</span>
-          <div style={{fontWeight:700,fontSize:12,color:"#0F1923"}}>The most important question is not whether the policy is justified. It is whether the Board has examined both action and inaction with equal rigour.</div>
-        </div>
-      </div>
-    </div>
-  );
+function directorBriefToGovernanceRecord(briefJson){
+  var b={};try{b=JSON.parse(briefJson||"{}");}catch(e){}
+  var g=b.governance_record||{},signal=(b.signal||"").toUpperCase();
+  return {
+    headlineLabel:"Recommendation Signal",headline:signal||"—",headlineColor:governanceVerdictColor("Recommendation Signal",signal),
+    headlineRationale:g.signal_rationale||"",keyDiscoveryLabel:"Key Discovery",keyDiscovery:g.key_discovery||b.core_judgment||"",
+    primaryTension:g.primary_tension||"",roomShouldDiscuss:g.room_should_discuss||[],mostLikelyToBenefit:g.most_likely_to_benefit||[],
+    mostExposedToFailure:g.most_exposed_to_failure||[],nonNegotiableConditions:g.non_negotiable_conditions||[],governanceImplication:g.governance_implication||"",
+    extractionFlags:b.overflow_flags||[]
+  };
 }
 
-// ── Reality Anchor Governance Record ─────────────────────────────────────────
-function RealityGovernanceRecord({decision}) {
-  var itemStyle={fontSize:11,lineHeight:1.7,color:"#334155"};
+function synthesisBriefToGovernanceRecord(briefJson){
+  var b={};try{b=JSON.parse(briefJson||"{}");}catch(e){}
+  return {
+    headlineLabel:b.verdict_label||"Verdict",headline:b.verdict||"—",headlineColor:governanceVerdictColor(b.verdict_label,b.verdict),
+    headlineRationale:b.signal_rationale||"",keyDiscoveryLabel:"Key Discovery",keyDiscovery:b.key_discovery||"",
+    primaryTension:b.primary_tension||"",roomShouldDiscuss:b.room_should_discuss||[],mostLikelyToBenefit:b.most_likely_to_benefit||[],
+    mostExposedToFailure:b.most_exposed_to_failure||[],nonNegotiableConditions:b.non_negotiable_conditions||[],governanceImplication:b.governance_implication||"",
+    extractionFlags:b._fallback_reason?["DETERMINISTIC_FALLBACK: "+b._fallback_reason]:[]
+  };
+}
+
+function governanceRecordToMarkdown(record){
+  if(!record) return "(Governance Record not yet available for this module.)";
+  var out=[];
+  if(record.keyDiscovery) out.push("## "+(record.keyDiscoveryLabel||"Key Discovery")+"\n\n"+record.keyDiscovery);
+  if(record.primaryTension) out.push("## Primary Tension\n\n"+record.primaryTension);
+  if(record.headline&&record.headline!=="—"){
+    var h="## "+record.headlineLabel+"\n\n"+record.headline;
+    if(record.headlineRationale) h+="\n\n"+record.headlineRationale;
+    out.push(h);
+  }
+  if(record.roomShouldDiscuss&&record.roomShouldDiscuss.length) out.push("## What the Room Should Discuss\n\n"+record.roomShouldDiscuss.map(function(x){return "- "+x;}).join("\n"));
+  if(record.mostLikelyToBenefit&&record.mostLikelyToBenefit.length) out.push("## Most Likely to Benefit\n\n"+record.mostLikelyToBenefit.map(function(x){return "- "+x;}).join("\n"));
+  if(record.mostExposedToFailure&&record.mostExposedToFailure.length) out.push("## Most Exposed to Failure\n\n"+record.mostExposedToFailure.map(function(x){return "- "+x;}).join("\n"));
+  if(record.nonNegotiableConditions&&record.nonNegotiableConditions.length) out.push("## Non-Negotiable Conditions\n\n"+record.nonNegotiableConditions.map(function(x){return "- "+x;}).join("\n"));
+  if(record.governanceImplication) out.push("## Governance Implication\n\n"+record.governanceImplication);
+  if(record.extractionFlags&&record.extractionFlags.some(function(x){return /FALLBACK|COMPRESSION/i.test(x);})) out.push("## Extraction Note\n\nThis board-readable record was reconstructed deterministically from the completed technical analysis after structured extraction failed. Review the Technical Analysis for full context.");
+  return out.join("\n\n");
+}
+
+function GovernanceRecord({record}){
+  if(!record) return <div style={{fontSize:11,color:"#94A3B8",fontStyle:"italic"}}>Governance Record is still being derived from the completed analysis.</div>;
+  var r=record,labelStyle={fontWeight:700,textTransform:"uppercase",fontSize:10,letterSpacing:1,display:"block",marginBottom:4};
   var hdr={fontWeight:700,fontSize:10,textTransform:"uppercase",letterSpacing:0.8,marginBottom:6,display:"block"};
-  var realities=[
-    ["Baseline Reality","LOW",["#922B21","#FDEDEC"],"Governance analysis assumes baseline conditions that are largely unverified. Directors reference documented barriers without establishing actual gender diverse consumer utilisation rates, staff competency levels, or existing clinical protocols at this specific service.","Baseline assessment required before implementation decision."],
-    ["Capability Reality","MEDIUM",["#B7770D","#FEF9EE"],"Significant capability mismatch between implementation requirements and verified capacity. 0.2 FTE coordination need is identified but not confirmed. EHR modification scope is unknown.","Gap between requirements and verified capacity is real and unresolved."],
-    ["Monitoring Reality","LOW",["#922B21","#FDEDEC"],"No clear Theory of Change connecting policy interventions to measurable outcomes. Metric theatre risk — activity-based measures substituting for validity measures of actual inclusion.","The governance record may show compliance while actual consumer experience remains unverified."],
-    ["Reversibility Reality","IRREVERSIBLE",["#374151","#F3F4F6"],"Once inclusive policy is adopted, reversal becomes ethically unacceptable. Community reputation shifts take 2-5 years. EHR and physical environment changes cannot be easily undone.","Verification conditions must be satisfied before irreversible commitments are triggered."],
-    ["Accountability Reality","DIFFUSE",["#B7770D","#FEF9EE"],"Accountability pathways are not clearly assigned. No specification of who has authority to halt implementation, who monitors compliance versus clinical judgement conflicts, or who bears responsibility for coordination failures.","Named accountability required for each condition before implementation proceeds."],
-  ];
-  return (
-    <div style={{fontSize:11,lineHeight:1.75,color:"#334155"}}>
-      <div style={{background:"#F3F4F6",border:"1px solid #374151",borderRadius:8,padding:"12px 14px",marginBottom:10}}>
-        <span style={{...hdr,color:"#374151"}}>Key Reality Finding</span>
-        <div style={{fontWeight:700,fontSize:13,color:"#0F1923",marginBottom:6}}>The governance analysis identified extensive implementation requirements. It did not verify whether this specific service has the capacity to meet them simultaneously under existing operational pressures.</div>
-        <div style={{display:"flex",gap:8,marginTop:6}}>
-          <div style={{background:"#FEF9EE",border:"1px solid #B7770D",borderRadius:6,padding:"6px 10px",flex:1}}>
-            <span style={{fontWeight:700,fontSize:10,color:"#B7770D"}}>OPERATIONAL CONFIDENCE</span>
-            <div style={{fontWeight:700,fontSize:14,color:"#B7770D"}}>MEDIUM</div>
-          </div>
-          <div style={{background:"#FDEDEC",border:"1px solid #922B21",borderRadius:6,padding:"6px 10px",flex:2}}>
-            <span style={{fontWeight:700,fontSize:10,color:"#922B21"}}>BINDING CONSTRAINT</span>
-            <div style={{fontSize:11,color:"#922B21",fontWeight:600}}>Staff cognitive bandwidth ceiling — currently active regardless of policy merit.</div>
-          </div>
-        </div>
+  var item={fontSize:11,lineHeight:1.7,color:"#334155"},two={display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:10};
+  var hasPeople=(r.mostLikelyToBenefit&&r.mostLikelyToBenefit.length)||(r.mostExposedToFailure&&r.mostExposedToFailure.length);
+  return <div style={{fontSize:11,lineHeight:1.75,color:"#334155"}}>
+    {r.keyDiscovery&&<div style={{background:"#E8F5F5",border:"1px solid #0E6B6B",borderRadius:8,padding:"12px 14px",marginBottom:10}}>
+      <span style={{...labelStyle,color:"#0E6B6B"}}>{r.keyDiscoveryLabel||"Key Discovery"}</span>
+      <div style={{fontWeight:700,fontSize:13,color:"#0F1923"}}>{r.keyDiscovery}</div>
+    </div>}
+    {(r.primaryTension||r.headline!=="—")&&<div style={two}>
+      {r.primaryTension&&<div style={{background:"#FEF9EE",border:"1px solid #B7770D",borderRadius:8,padding:"10px 12px"}}>
+        <span style={{...hdr,color:"#B7770D"}}>Primary Tension</span><div style={item}>{r.primaryTension}</div>
+      </div>}
+      <div style={{background:r.headlineColor.bg,border:"1px solid "+r.headlineColor.border,borderRadius:8,padding:"10px 12px"}}>
+        <span style={{...hdr,color:r.headlineColor.fg}}>{r.headlineLabel}</span>
+        <div style={{fontWeight:700,fontSize:13,color:r.headlineColor.fg,marginBottom:4}}>{r.headline}</div>
+        {r.headlineRationale&&<div style={item}>{r.headlineRationale}</div>}
       </div>
-      {realities.map(function(r,i){return (
-        <div key={i} style={{display:"grid",gridTemplateColumns:"120px 1fr 1fr",gap:0,marginBottom:4}}>
-          <div style={{background:r[2][1],border:"1px solid #E2E8F0",borderRight:"none",borderRadius:"6px 0 0 6px",padding:"8px 10px"}}>
-            <div style={{fontWeight:700,fontSize:11,color:r[2][0]}}>{r[0]}</div>
-            <div style={{fontSize:10,fontWeight:700,color:r[2][0],marginTop:2}}>{r[1]}</div>
-          </div>
-          <div style={{background:"#FFFFFF",border:"1px solid #E2E8F0",borderRight:"none",padding:"8px 10px",fontSize:11,color:"#334155",lineHeight:1.6}}>{r[3]}</div>
-          <div style={{background:"#F8F9FA",border:"1px solid #E2E8F0",borderRadius:"0 6px 6px 0",padding:"8px 10px",fontSize:11,color:"#4A5568",lineHeight:1.6,fontStyle:"italic"}}>{r[4]}</div>
-        </div>
-      );})}
-      <div style={{fontWeight:700,fontSize:11,color:"#1E3A4C",marginBottom:6,marginTop:10}}>Currently Active Friction Signals</div>
-      {[["Staff cognitive bandwidth ceiling","ACTIVE","#922B21"],
-        ["Consumer feedback reliability compromised by fear of service loss","ACTIVE","#922B21"],
-        ["EHR vendor coordination beyond organisational control","ON IMPLEMENTATION","#B7770D"],
-        ["Clinical supervision bandwidth constraints","ON IMPLEMENTATION","#B7770D"],
-      ].map(function(s,i){return (
-        <div key={i} style={{display:"flex",gap:6,alignItems:"center",marginBottom:4}}>
-          <span style={{fontSize:9,fontWeight:700,padding:"2px 7px",borderRadius:6,background:s[2]==="#922B21"?"#FDEDEC":"#FEF9EE",color:s[2],border:"1px solid "+s[2],whiteSpace:"nowrap"}}>{s[1]}</span>
-          <span style={{fontSize:11,color:"#334155"}}>{s[0]}</span>
-        </div>
-      );})}
-      <div style={{fontWeight:700,fontSize:11,color:"#1E3A4C",marginBottom:6,marginTop:10}}>What the Room Should Discuss</div>
-      {["What baseline data actually exists — and what would it take to obtain what is missing before the verification window opens?",
-        "Has the 0.2 FTE coordination capacity requirement been confirmed as available?",
-        "Who holds specific accountability for each verification condition, with authority to halt implementation?",
-        "Given that reversal is ethically constrained once the policy is adopted, is the Board confident enough to trigger that irreversibility?",
-      ].map(function(q,i){return <div key={i} style={{fontSize:11,lineHeight:1.65,color:"#334155",paddingLeft:12,borderLeft:"2px solid #374151",marginBottom:6}}>{"• "+q}</div>;})}
-      <div style={{background:"#F3F4F6",border:"1px solid #374151",borderRadius:8,padding:"10px 12px",marginTop:8}}>
-        <span style={{...hdr,color:"#374151"}}>Governance Implication</span>
-        <div style={{fontWeight:700,fontSize:12,color:"#0F1923"}}>The question is not whether the policy is justified. The question is whether this institution, at this moment, can implement it without creating new harms in the process of addressing existing ones.</div>
+    </div>}
+    {r.roomShouldDiscuss&&r.roomShouldDiscuss.length>0&&<div style={{marginBottom:10}}>
+      <div style={{fontWeight:700,fontSize:11,color:"#1E3A4C",marginBottom:6}}>What the Room Should Discuss</div>
+      {r.roomShouldDiscuss.map(function(q,i){return <div key={i} style={{fontSize:11,lineHeight:1.65,color:"#334155",paddingLeft:12,borderLeft:"2px solid #0E6B6B",marginBottom:6}}>{"• "+q}</div>;})}
+    </div>}
+    {hasPeople&&<div style={two}>
+      <div style={{background:"#EAF7EE",border:"1px solid #1A6B3A",borderRadius:8,padding:"10px 12px"}}>
+        <span style={{...hdr,color:"#1A6B3A"}}>Most Likely to Benefit</span>{(r.mostLikelyToBenefit||[]).map(function(x,i){return <div key={i} style={item}>{"• "+x}</div>;})}
       </div>
-    </div>
-  );
+      <div style={{background:"#FDEDEC",border:"1px solid #922B21",borderRadius:8,padding:"10px 12px"}}>
+        <span style={{...hdr,color:"#922B21"}}>Most Exposed to Failure</span>{(r.mostExposedToFailure||[]).map(function(x,i){return <div key={i} style={item}>{"• "+x}</div>;})}
+      </div>
+    </div>}
+    {r.nonNegotiableConditions&&r.nonNegotiableConditions.length>0&&<div style={{background:"#FEF9EE",border:"1px solid #B7770D",borderRadius:8,padding:"10px 12px",marginBottom:10}}>
+      <span style={{...hdr,color:"#B7770D"}}>Non-Negotiable Conditions</span>{r.nonNegotiableConditions.map(function(x,i){return <div key={i} style={item}>{"• "+x}</div>;})}
+    </div>}
+    {r.governanceImplication&&<div style={{background:"#E8F5F5",border:"1px solid #0E6B6B",borderRadius:8,padding:"10px 12px",marginBottom:10}}>
+      <span style={labelStyle}>Governance Implication</span><div style={{fontWeight:700,fontSize:12,color:"#0F1923"}}>{r.governanceImplication}</div>
+    </div>}
+    {r.extractionFlags&&r.extractionFlags.some(function(x){return /FALLBACK|COMPRESSION/i.test(x);})&&<div style={{padding:"8px 10px",borderRadius:8,background:"#FFF7ED",border:"1px solid #FED7AA",fontSize:10,color:"#92400E"}}>
+      Structured extraction required deterministic fallback. The Governance Record is source-derived; use Technical Analysis for the complete reasoning record.
+    </div>}
+  </div>;
 }
 
 function DirectorCard({director,output,loading,expanded,onToggle,confidence,onExport,govRecord,govView,setGovView}) {
@@ -2479,17 +2471,13 @@ function extractStatusBadge(content, type) {
     var m3 = text.match(/Fragility Score[^0-9]*(\d+(?:\.\d+)?)(?:\s*\/\s*10)?/);
     if (m3) { label = "FRAGILITY "+m3[1]+"/10"; }
   } else if (type === "chair") {
-    if (/CONDITIONAL APPROVAL/i.test(text)) label = "CONDITIONAL ✓";
-    else if (/PROCEED WITH CONDITIONS/i.test(text)) label = "PROCEED ✓";
-    else if (/PROCEED WITH CAUTION/i.test(text)) label = "CAUTION ⚠";
-    else if (/DO NOT PROCEED/i.test(text)) label = "HALT ✗";
-    else if (/\bPILOT\b/i.test(text)) label = "PILOT →";
-    else if (/\bDEFER\b/i.test(text)) label = "DEFER ⏸";
+    if (/Decision Brief Status[^\n]*Partial Evidence Base/i.test(text)) label = "PARTIAL ⚠";
+    else if (/Decision Brief Status[^\n]*Complete/i.test(text)) label = "COMPLETE ✓";
   }
   if (!label) return null;
-  if (label === "STRONG" || label === "SOUND" || label === "PROCEED ✓" || label === "LOW TENSION" || label === "GROUNDED") { col="#059669"; bg="#D1FAE5"; }
+  if (label === "STRONG" || label === "SOUND" || label === "COMPLETE ✓" || label === "LOW TENSION" || label === "GROUNDED") { col="#059669"; bg="#D1FAE5"; }
   else if (label === "CONDITIONAL ✓") { col="#0891B2"; bg="#ECFEFF"; }
-  else if (label === "ADEQUATE" || label === "CAUTION ⚠" || label === "PILOT →" || label === "CAUTION" || label === "MIXED" || label === "FRICTION ⚠") { col="#D97706"; bg="#FEF3C7"; }
+  else if (label === "ADEQUATE" || label === "PARTIAL ⚠" || label === "CAUTION" || label === "MIXED" || label === "FRICTION ⚠") { col="#D97706"; bg="#FEF3C7"; }
   else if (label === "WEAK" || label === "REASONING GAPS" || label === "DEFER ⏸") { col="#DC2626"; bg="#FEE2E2"; }
   else if (label === "COMPROMISED" || label === "CHALLENGED" || label === "HALT ✗" || label === "HIGH TENSION" || label === "HALT") { col="#7C3AED"; bg="#EDE9FE"; }
   else if (/FRAGILITY/.test(label)) { var fnum=parseInt(label); col=fnum>=7?"#DC2626":fnum>=4?"#D97706":"#059669"; bg=fnum>=7?"#FEE2E2":fnum>=4?"#FEF3C7":"#D1FAE5"; }
@@ -2612,10 +2600,11 @@ function PHDSS() {
   var [done,setDone]=useState(false);
   var [partialFailure,setPartialFailure]=useState(false);
   var [dirOutputs,setDirOutputs]=useState({});
-  // Governance Record toggle state: 'technical' | 'governance'
-  var [livedView,setLivedView]=useState("technical");
-  var [probeView,setProbeView]=useState("technical");
-  var [realityView,setRealityView]=useState("technical");
+  // Governance Records are derived from the same analysis outputs, never from static scenario content.
+  var [dirBriefsState,setDirBriefsState]=useState({});
+  var [synthesisBriefs,setSynthesisBriefs]=useState({});
+  var [dirGovViews,setDirGovViews]=useState({});
+  var [synthesisGovViews,setSynthesisGovViews]=useState({});
   var [dirLoading,setDirLoading]=useState({});
   var [meta,setMeta]=useState(""); var [metaLoading,setMetaLoading]=useState(false);
   var [surfaceMap,setSurfaceMap]=useState(""); var [surfaceMapLoading,setSurfaceMapLoading]=useState(false);
@@ -2630,6 +2619,8 @@ function PHDSS() {
   var epistemicRef=useRef(""); var probeRef=useRef(""); var chairRef=useRef("");
   var metaRef=useRef(""); var realityAnchorRef=useRef(""); var stressRef=useRef("");
   var surfaceMapRef=useRef("");
+  var dirBriefsRef=useRef({});
+  var synthesisBriefsRef=useRef({});
   var [comparator,setComparator]=useState(null);
   var [ledger,setLedger]=useState([]);
   var [autoContinue,setAutoContinue]=useState(true);
@@ -2665,8 +2656,6 @@ function PHDSS() {
   },[]);
 
 
-  var chairSignal=safeMatch(chair,/\*\*Chair Recommendation[^*]*\*\*:?\s*\*?\*?\s*(DO NOT PROCEED|CONDITIONAL APPROVAL|PROCEED WITH CONDITIONS|PROCEED WITH CAUTION|PILOT|DEFER|HALT)/i,1)
-    ||safeMatch(chair,/Chair Recommendation[:\s]+\*{0,2}(CONDITIONAL APPROVAL[^.\n*]*|DO NOT PROCEED|PROCEED WITH CONDITIONS|PROCEED WITH CAUTION|PILOT|DEFER|HALT)\*{0,2}/i,1);
   var totalLoadedDocs=Object.values(docs).reduce(function(acc,arr){return acc+arr.filter(function(e){return e.content;}).length;},0);
   var hasAnyDocs=totalLoadedDocs>0;
   var dialogueSystem=done?chairDialogueSystem(docs.chair||[],decision,directorResultsRef.map(function(d){return "### "+d.label+"\n"+d.output;}).join("\n\n"),meta,stress,chair):"";
@@ -2735,16 +2724,16 @@ function PHDSS() {
 
 
   function commitToLedger(results,metaOut,stressOut,chairOut,epistemicOut,probeOut,comparatorData,activeDir,omittedDir,mode,stressResult){
+    var failedDirs=results.filter(function(r){return /^\[Director failed:/i.test((r.output||"").trim());});
+    var hasChair=chairOut&&chairOut.length>50&&!/Chair failed|Director failed/i.test(chairOut);
+    var briefMatch=(chairOut||"").match(/\*\*Decision Brief Status\*\*:?\s*\*{0,2}(Complete(?:\s*[—–-]\s*Partial Evidence Base)?\s*[—–-]\s*[^\n*]+)/i);
+    var decisionBriefStatus=briefMatch?briefMatch[1].trim():null;
+    var directorOutputs={};
+    results.forEach(function(r){directorOutputs[r.id]=stripCalibrationBleed(r.output||"");});
     var record={
-      decision_id:decisionId, schema_version:"2.5.0", created_at:new Date().toISOString(),
+      decision_id:decisionId, schema_version:LEDGER_SCHEMA, created_at:new Date().toISOString(),
       governance_family:"GOVERNANCE",
-      session_governance_status:(function(){
-        var hasChair=chairOut&&chairOut.length>50&&!/Chair failed|Director failed/i.test(chairOut);
-        var failedDirs=results.filter(function(r){return /^\[Director failed:/i.test((r.output||"").trim());});
-        if(hasChair&&failedDirs.length===0) return "FULL_VERDICT";
-        if(hasChair||results.filter(function(r){return !/^\[Director failed:/i.test((r.output||"").trim());}).length>0) return "PARTIAL_EVIDENCE_BASE";
-        return "INCOMPLETE";
-      })(),
+      session_governance_status:hasChair?(failedDirs.length===0?"COMPLETE":"COMPLETE_PARTIAL_EVIDENCE"):"INCOMPLETE",
       run_intensity:mode==="FULL"?"MAXIMUM":mode==="CORE"?"MINIMUM_VIABLE":"CUSTOM",
       analysis_mode:mode||"FULL",
       coverage_ratio:(activeDir||DIRECTORS).length+"/"+DIRECTORS.length,
@@ -2756,11 +2745,11 @@ function PHDSS() {
       proceed_count:results.filter(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(PROCEED)/,1)==="PROCEED";}).length,
       caution_count:results.filter(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(CAUTION)/,1)==="CAUTION";}).length,
       halt_count:results.filter(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(HALT)/,1)==="HALT";}).length,
-      chair_recommendation:safeMatch(chairOut,/\*\*Chair Recommendation[^*]*\*\*:?\s*\*?\*?\s*(CONDITIONAL APPROVAL[^.\n*]*|DO NOT PROCEED|PROCEED WITH CONDITIONS|PROCEED WITH CAUTION|PILOT|DEFER|HALT)/i,1)||null,
+      decision_brief_status:decisionBriefStatus,
       epistemic_score:(function(){
-        var m=epistemicOut.match(/\*\*Epistemic Health Score\*\*:?\s*(STRONG|ADEQUATE|WEAK|COMPROMISED)/i);
+        var m=(epistemicOut||"").match(/\*\*Epistemic Health Score\*\*:?\s*(STRONG|ADEQUATE|WEAK|COMPROMISED)/i);
         if(m) return m[1].toUpperCase();
-        var m2=epistemicOut.match(/Epistemic Health Score[:\s]+(STRONG|ADEQUATE|WEAK|COMPROMISED)/i);
+        var m2=(epistemicOut||"").match(/Epistemic Health Score[:\s]+(STRONG|ADEQUATE|WEAK|COMPROMISED)/i);
         if(m2) return m2[1].toUpperCase();
         return findSignal(epistemicOut,["STRONG","ADEQUATE","COMPROMISED","WEAK"]);
       })(),
@@ -2768,12 +2757,42 @@ function PHDSS() {
       fragility_score:parseInt(safeMatch(stressOut,/\*\*Fragility Score\*\*:?[^\d]*(\d+)/,1))||null,
       stress_test_ran:(stressResult&&stressResult.run)||false,
       stress_test_reason:(stressResult&&stressResult.reason)||null,
-      instruction_source: instrLoadState==="ready"?"github":instrLoadState==="partial"?"github_partial":"inline_fallback",
+      instruction_source:instrLoadState==="ready"?"github":instrLoadState==="partial"?"github_partial":"inline_fallback",
+      instruction_commit:INSTRUCTION_COMMIT,
+      runtime_contract:RUNTIME_CONTRACT,
       comparator:comparatorData||null,
-      outputs:{meta:metaOut,stress:stressOut,chair:stripCalibrationBleed(chairOut),epistemic:epistemicOut?stripCalibrationBleed(epistemicOut):null,probe:stripCalibrationBleed(probeOut||"")||null},      tags:[],
+      outputs:{
+        directors:directorOutputs,
+        surface_map:stripCalibrationBleed(surfaceMapRef.current||"")||null,
+        meta:stripCalibrationBleed(metaOut||"")||null,
+        reality_anchor:stripCalibrationBleed(realityAnchorRef.current||"")||null,
+        probe:stripCalibrationBleed(probeOut||"")||null,
+        stress:stripCalibrationBleed(stressOut||"")||null,
+        epistemic:stripCalibrationBleed(epistemicOut||"")||null,
+        chair:stripCalibrationBleed(chairOut||"")||null
+      },
+      structured_records:{
+        directors:Object.assign({},dirBriefsRef.current),
+        synthesis:Object.assign({},synthesisBriefsRef.current)
+      },
+      tags:[]
     };
     setLedger(function(prev){return prev.concat([record]);});
     return record;
+  }
+
+  async function storeSynthesisBrief(key, moduleLabel, output) {
+    try {
+      var brief=await compressSynthesisOutput(moduleLabel,output);
+      synthesisBriefsRef.current=Object.assign({},synthesisBriefsRef.current,{[key]:brief});
+      setSynthesisBriefs(function(prev){var n=Object.assign({},prev);n[key]=brief;return n;});
+      return brief;
+    } catch(e) {
+      var fallback=deterministicSynthesisBrief(moduleLabel,output,e.message||String(e));
+      synthesisBriefsRef.current=Object.assign({},synthesisBriefsRef.current,{[key]:fallback});
+      setSynthesisBriefs(function(prev){var n=Object.assign({},prev);n[key]=fallback;return n;});
+      return fallback;
+    }
   }
 
 
@@ -2783,10 +2802,12 @@ function PHDSS() {
     var omittedDir=DIRECTORS.filter(function(d){return !activeDir.some(function(a){return a.id===d.id;});});
     setActiveDirectorsRef(activeDir); setOmittedDirectorsRef(omittedDir);
     setRunning(true); setDone(false); setPartialFailure(false); setError("");
-    setDirOutputs({}); setMeta(""); setSurfaceMap(""); setRealityAnchor(""); setStress(""); setChair("");
+    setDirOutputs({}); setDirBriefsState({}); setSynthesisBriefs({}); setDirGovViews({}); setSynthesisGovViews({});
+    setMeta(""); setSurfaceMap(""); setRealityAnchor(""); setStress(""); setChair("");
     setEpistemic(""); setProbe(""); setComparator(null);
     // Reset synthesis refs alongside state so stale content from previous runs cannot leak into exports
     epistemicRef.current=""; probeRef.current=""; chairRef.current=""; metaRef.current=""; realityAnchorRef.current=""; stressRef.current=""; surfaceMapRef.current="";
+    dirBriefsRef.current={}; synthesisBriefsRef.current={};
     setStagesDone(0); setDialogueHistory([]); setDirectorResultsRef([]); setExpandedDirs({});
     var loading={}; activeDir.forEach(function(d){loading[d.id]=true;}); setDirLoading(loading);
     var ctx=getSessionContext();
@@ -2841,8 +2862,17 @@ function PHDSS() {
           setDirOutputs(function(p){var n=Object.assign({},p); n[cId]=cOut; return n;});
           setDirLoading(function(p){var n=Object.assign({},p); n[cId]=false; return n;});
           results_seq.push(Object.assign({}, dirI, {output: cOut}));
-          try { var brief_i=await compressDirectorOutput(dirI.label, cOut); dirBriefs[cId]=brief_i; }
-          catch(compErr) { dirBriefs[cId]=null; }
+          try {
+            var brief_i=await compressDirectorOutput(dirI.label,cOut);
+            dirBriefs[cId]=brief_i;
+            dirBriefsRef.current=Object.assign({},dirBriefsRef.current,{[cId]:brief_i});
+            setDirBriefsState(function(prev){var n=Object.assign({},prev);n[cId]=brief_i;return n;});
+          } catch(compErr) {
+            var fallback_i=deterministicDirectorBrief(dirI.label,cOut,compErr.message||String(compErr));
+            dirBriefs[cId]=fallback_i;
+            dirBriefsRef.current=Object.assign({},dirBriefsRef.current,{[cId]:fallback_i});
+            setDirBriefsState(function(prev){var n=Object.assign({},prev);n[cId]=fallback_i;return n;});
+          }
         } catch(dirErr) {
           var eId=dirId_i+""; var errMsg="[Director failed: "+dirErr.message+"]";
           setDirLoading(function(p){var n=Object.assign({},p); n[eId]=false; return n;});
@@ -2873,7 +2903,7 @@ function PHDSS() {
       // Compute authoritative dominant signal — highest count wins; HALT overrides only if strictly > CAUTION
       var _smDominant=(_smHalt>_smCaution&&_smHalt>_smProceed)?"HALT":(_smCaution>=_smHalt&&_smCaution>=_smProceed)?"CAUTION":(_smProceed>0)?"PROCEED":"MIXED";
       var signalCountNote="\n\n[AUTHORITATIVE SIGNAL COUNTS — use these exact figures in your Signal Tally, do not recount from text: "+_smProceed+" PROCEED / "+_smCaution+" CAUTION / "+_smHalt+" HALT"+(_smNotApplicable>0?" / "+_smNotApplicable+" NOT APPLICABLE":"")+(_smUndefined>0?" / "+_smUndefined+" UNDEFINED":"")+". Total directors: "+results.length+". DOMINANT SIGNAL: "+_smDominant+" — use exactly this single word for the Dominant Signal field, not a compound like HALT/CAUTION. NOT APPLICABLE means the Director correctly determined the proposal is outside their mandate — do not count as PROCEED.]";
-      try{setSurfaceMapLoading(true);surfaceMapOut=await callClaude_synthesis(surfaceMapperSystem(analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nAll Director Governance Briefs:\n"+briefSummary+signalCountNote,autoContinue);setSurfaceMap(surfaceMapOut);surfaceMapRef.current=surfaceMapOut;}catch(e){stageErrors.push("Surface Mapper failed");}
+      try{setSurfaceMapLoading(true);surfaceMapOut=await callGovernedSynthesis("surface_map",surfaceMapperSystem(analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nAll Director Governance Briefs:\n"+briefSummary+signalCountNote,autoContinue);setSurfaceMap(surfaceMapOut);surfaceMapRef.current=surfaceMapOut;await storeSynthesisBrief("surfacemap","Decision Surface Map",surfaceMapOut);}catch(e){stageErrors.push("Surface Mapper failed");}
       setSurfaceMapLoading(false); setStagesDone(2);
 
 
@@ -2896,31 +2926,32 @@ function PHDSS() {
       }).join("\n\n");
       try{
         setEpistemicLoading(true);
-        epistemicOut=await callClaude_synthesis(epistemicAuditorSystem(analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDirector Governance Briefs (with confidence ratings):\n"+epistemicBriefSummary,autoContinue);
+        epistemicOut=await callGovernedSynthesis("epistemic_audit",epistemicAuditorSystem(analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDirector Governance Briefs (with confidence ratings):\n"+epistemicBriefSummary,autoContinue);
         // Guard: if output is suspiciously short, retry up to twice with fresh call.
         // Empty = ~839 bytes. Near-empty = ~1000-2000 bytes.
         if(epistemicOut && epistemicOut.length < 2000) {
           console.warn("PHDSS: Epistemic output short ("+epistemicOut.length+" chars), retry 1 of 2...");
           await new Promise(function(r){setTimeout(r,2000);});
-          epistemicOut=await callClaude_synthesis(epistemicAuditorSystem(analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDirector Governance Briefs (with confidence ratings):\n"+epistemicBriefSummary,autoContinue);
+          epistemicOut=await callGovernedSynthesis("epistemic_audit",epistemicAuditorSystem(analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDirector Governance Briefs (with confidence ratings):\n"+epistemicBriefSummary,autoContinue);
           if(epistemicOut && epistemicOut.length < 2000) {
             console.warn("PHDSS: Epistemic still short ("+epistemicOut.length+" chars), retry 2 of 2...");
             await new Promise(function(r){setTimeout(r,4000);});
-            epistemicOut=await callClaude_synthesis(epistemicAuditorSystem(analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDirector Governance Briefs (with confidence ratings):\n"+epistemicBriefSummary,autoContinue);
+            epistemicOut=await callGovernedSynthesis("epistemic_audit",epistemicAuditorSystem(analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDirector Governance Briefs (with confidence ratings):\n"+epistemicBriefSummary,autoContinue);
           }
         }
         var epistemicCleaned=epistemicOut?stripCalibrationBleed(epistemicOut):epistemicOut;
         setEpistemic(epistemicCleaned);epistemicRef.current=epistemicCleaned;
         epistemicOut=epistemicCleaned;
+        await storeSynthesisBrief("epistemic","Epistemic Confidence Audit",epistemicOut);
       }catch(e){stageErrors.push("Epistemic failed");}
       setEpistemicLoading(false); setStagesDone(3);
 
 
-      try{setMetaLoading(true);metaOut=await callClaude_synthesis(metaSystem(docs.meta||[],webSearch,publicWebSearch,sessionEvidence,analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDecision Surface Map:\n"+surfaceMapOut+"\n\nDirector Governance Briefs:\n"+briefSummary+(epistemicOut?"\n\nEpistemic Audit:\n"+epistemicOut:""),autoContinue,webSearch||publicWebSearch);setMeta(metaOut);metaRef.current=metaOut;}catch(e){stageErrors.push("META failed");}
+      try{setMetaLoading(true);metaOut=await callGovernedSynthesis("cross_domain_tension_analysis",metaSystem(docs.meta||[],webSearch,publicWebSearch,sessionEvidence,analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDecision Surface Map:\n"+surfaceMapOut+"\n\nDirector Governance Briefs:\n"+briefSummary+(epistemicOut?"\n\nEpistemic Audit:\n"+epistemicOut:""),autoContinue,webSearch||publicWebSearch);setMeta(metaOut);metaRef.current=metaOut;await storeSynthesisBrief("meta","Cross-Domain Tension Analysis",metaOut);}catch(e){stageErrors.push("META failed");}
       setMetaLoading(false); setStagesDone(4);
 
 
-      try{setRealityAnchorLoading(true);realityAnchorOut=await callClaude_synthesis(realityAnchorSystem(analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDirector Governance Briefs:\n"+briefSummary+"\n\nDecision Surface Map:\n"+surfaceMapOut+"\n\nMETA Synthesis:\n"+metaOut,autoContinue);setRealityAnchor(realityAnchorOut);realityAnchorRef.current=realityAnchorOut;}catch(e){stageErrors.push("Reality Anchor failed");}
+      try{setRealityAnchorLoading(true);realityAnchorOut=await callGovernedSynthesis("reality_anchor",realityAnchorSystem(analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDirector Governance Briefs:\n"+briefSummary+"\n\nDecision Surface Map:\n"+surfaceMapOut+"\n\nMETA Synthesis:\n"+metaOut,autoContinue);setRealityAnchor(realityAnchorOut);realityAnchorRef.current=realityAnchorOut;await storeSynthesisBrief("reality","Reality Anchor",realityAnchorOut);}catch(e){stageErrors.push("Reality Anchor failed");}
       setRealityAnchorLoading(false); setStagesDone(5);
 
 
@@ -2929,8 +2960,9 @@ function PHDSS() {
         var sigs=results.map(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(PROCEED|CAUTION|HALT)/,1);}).filter(Boolean);
         var sigCounts=sigs.reduce(function(a,s){return Object.assign({},a,{[s]:(a[s]||0)+1});},{});
         var dominant=Object.entries(sigCounts).sort(function(a,b){return b[1]-a[1];})[0]?.[0]||"UNKNOWN";
-        probeOut=await callClaude_synthesis(adversarialProbeSystem(dominant,analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nAll Director Governance Briefs:\n"+briefSummary+"\n\nMETA-AUTHOR Synthesis:\n"+metaOut+"\n\nReality Anchor:\n"+realityAnchorOut,autoContinue);
+        probeOut=await callGovernedSynthesis("adversarial_probe",adversarialProbeSystem(dominant,analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nAll Director Governance Briefs:\n"+briefSummary+"\n\nMETA-AUTHOR Synthesis:\n"+metaOut+"\n\nReality Anchor:\n"+realityAnchorOut,autoContinue);
         setProbe(probeOut);probeRef.current=probeOut;
+        await storeSynthesisBrief("probe","Adversarial Probe",probeOut);
       }catch(e){stageErrors.push("Probe failed");}
       setProbeLoading(false); setStagesDone(6);
 
@@ -2939,7 +2971,7 @@ function PHDSS() {
       var stressDecision=shouldRunStressTest(analysisMode,decision,results,surfaceMapOut,epistemicOut,probeVerdict,realityAnchorOut);
       setStressTestResult(stressDecision);
       if(stressDecision.run){
-        try{setStressLoading(true);stressOut=await callClaude_synthesis(stressSystem(docs.stress||[],webSearch,publicWebSearch,sessionEvidence,analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDecision Surface Map:\n"+surfaceMapOut+"\n\nMETA-AUTHOR:\n"+metaOut+"\n\nReality Anchor:\n"+realityAnchorOut,autoContinue,webSearch||publicWebSearch);setStress(stressOut);stressRef.current=stressOut;}catch(e){stageErrors.push("Stress failed");}
+        try{setStressLoading(true);stressOut=await callGovernedSynthesis("stress_test",stressSystem(docs.stress||[],webSearch,publicWebSearch,sessionEvidence,analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDecision Surface Map:\n"+surfaceMapOut+"\n\nMETA-AUTHOR:\n"+metaOut+"\n\nReality Anchor:\n"+realityAnchorOut,autoContinue,webSearch||publicWebSearch);setStress(stressOut);stressRef.current=stressOut;await storeSynthesisBrief("stress","Decision Stress Test",stressOut);}catch(e){stageErrors.push("Stress failed");}
         setStressLoading(false);
       }
       setStagesDone(7);
@@ -2954,9 +2986,17 @@ function PHDSS() {
         // Extract the Strongest Counter-Argument section text
         var strongestMatch=probeOut.match(/\*\*The Strongest Counter-Argument\*\*[^\n]*\n([\s\S]*?)(?=\n\*\*[A-Za-z]|$)/i);
         var strongest=strongestMatch?(strongestMatch[1]||"").trim().substring(0,600):"See Adversarial Probe output.";
-        return "\n\n⚠ ADVERSARIAL PROBE VERDICT: "+verdict+"\nThe Probe's strongest argument was:\n"+strongest+"\n\nYou MUST include a **Adversarial Probe Response** section in your output — between **Coverage Limitations** and **Chair Recommendation** — that either ACCEPTS this finding (explaining how it is addressed in your conditions) or REBUTS it (with explicit Director-grounded reasoning). This section is mandatory and parser-matched. Do not proceed to Chair Recommendation without writing it.";
+        return "\n\n⚠ ADVERSARIAL PROBE VERDICT: "+verdict+"\nThe Probe's strongest argument was:\n"+strongest+"\n\nYou MUST include an **Adversarial Probe Response** section in your output — between **Coverage Limitations** and **Director Signal Distribution** — that either ACCEPTS this finding (explaining how it changes the decision conditions) or REBUTS it (with explicit Director-grounded reasoning). This section is mandatory and parser-matched. Do not convert the Probe finding into a preferred course of action.";
       })();
-      try{setChairLoading(true);chairOut=await callClaude_synthesis(chairSystem(docs.chair||[],webSearch,publicWebSearch,sessionEvidence,analysisMode,activeDir,failedDirLabels,instructions),"Decision: "+decision+"\n\nDecision Surface Map:\n"+surfaceMapOut+"\n\nMETA-AUTHOR:\n"+metaOut+"\n\nReality Anchor:\n"+realityAnchorOut+(stressOut?"\n\nStress Test:\n"+stressOut:"")+(probeOut?"\n\nAdversarial Bias Probe:\n"+probeOut:"")+probeInjection,autoContinue,webSearch||publicWebSearch);setChair(chairOut);chairRef.current=chairOut;}catch(e){stageErrors.push("Chair failed");}
+      try{
+        setChairLoading(true);
+        var chairPrompt=chairSystem(docs.chair||[],webSearch,publicWebSearch,sessionEvidence,analysisMode,activeDir,failedDirLabels,instructions);
+        var chairUser="Decision: "+decision+"\n\nDecision Surface Map:\n"+surfaceMapOut+"\n\nMETA-AUTHOR:\n"+metaOut+"\n\nReality Anchor:\n"+realityAnchorOut+(stressOut?"\n\nStress Test:\n"+stressOut:"")+(probeOut?"\n\nAdversarial Bias Probe:\n"+probeOut:"")+probeInjection;
+        chairOut=await callGovernedSynthesis("chair",chairPrompt,chairUser,autoContinue,webSearch||publicWebSearch);
+        chairOut=await repairChairDecisionBoundary(chairOut,chairPrompt,chairUser);
+        setChair(chairOut);chairRef.current=chairOut;
+        await storeSynthesisBrief("chair","Chair Decision",chairOut);
+      }catch(e){stageErrors.push("Chair failed: "+e.message);}
       setChairLoading(false); setStagesDone(8);
 
 
@@ -2980,7 +3020,7 @@ function PHDSS() {
           if(hints.length===0) return "";
           return "\n\nKILL SWITCH REQUIREMENT: Each kill_switch entry must contain a measurable indicator + specific threshold + timeframe. Examples from Director analyses:\n"+hints.map(function(h){return "- "+h;}).join("\n")+"\nFormat each kill switch as: \"[indicator] exceeds/falls below [threshold] [timeframe].\"";
         })();
-        var compRaw=await callClaude_synthesis(comparatorJsonSystem(decisionId,decisionSignal,results,analysisMode,activeDir,chairOut,instructions,_pCount,_cCount,_hCount),"Run comparator now."+killSwitchHints,autoContinue);
+        var compRaw=await callGovernedSynthesis("comparator",comparatorJsonSystem(decisionId,decisionSignal,results,analysisMode,activeDir,chairOut,instructions,_pCount,_cCount,_hCount),"Run comparator now."+killSwitchHints,autoContinue);
         var compParsed=extractFirstJsonObject(compRaw);
         // P1.2b: validate signal interpretation against authoritative counts; correct if drifted
         if(compParsed&&compParsed.summary&&typeof compParsed.summary.decision_signal_interpretation==="string"){
@@ -3054,6 +3094,7 @@ function PHDSS() {
     setDecision(""); setDecisionSignal(""); setOrgContext(""); setConstraintsText(""); setEvidenceLinksText("");
     setAdvisoryDone(false); setRunning(false); setAdvisoryOutput({}); setLensComparator("");
     setDirOutputs({}); setStagesDone(0); setError(""); setDirectorResultsRef([]);
+    dirBriefsRef.current={}; synthesisBriefsRef.current={};
     setExpandedDirs({}); setDecisionId(makeDecisionId());
   }
 
@@ -3072,7 +3113,8 @@ function PHDSS() {
   function reset(){
     setDecision("");setDecisionSignal("");setOrgContext("");setConstraintsText("");setEvidenceLinksText("");
     setDone(false);setRunning(false);
-    setDirOutputs({});setMeta("");setSurfaceMap("");setRealityAnchor("");setStress("");setChair("");
+    setDirOutputs({});setDirBriefsState({});setSynthesisBriefs({});setDirGovViews({});setSynthesisGovViews({});
+    setMeta("");setSurfaceMap("");setRealityAnchor("");setStress("");setChair("");
     setEpistemic("");setProbe("");setComparator(null);
     setStagesDone(0);setError("");setDialogueHistory([]);setDirectorResultsRef([]);setStressTestResult(null);setSessionEvidenceOpen(false);
     setActiveDirectorsRef(DIRECTORS);setOmittedDirectorsRef([]);
@@ -3180,7 +3222,7 @@ function PHDSS() {
           <div style={{animation:"fadeIn 0.3s ease"}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
               <div><div style={{fontSize:13,fontWeight:700,color:"#0F172A",marginBottom:3}}>Decision Ledger</div><div style={{fontSize:12,color:"#64748B"}}>{ledger.length} decision{ledger.length!==1?"s":""} recorded this session.</div></div>
-              {ledger.length>0&&<button onClick={function(){downloadJson("phdss-ledger_"+new Date().toISOString().slice(0,10)+(ledger.length>1?"__"+ledger.length+"_":"")+".json",{schema_version:"2.5.0",generated_at:new Date().toISOString(),record_count:ledger.length,decisions:ledger});}} style={{padding:"8px 18px",borderRadius:8,border:"none",background:"linear-gradient(135deg,#A78BFA,#7C3AED)",color:"#FFFFFF",fontSize:12,fontWeight:600,cursor:"pointer"}}>Export JSON</button>}
+              {ledger.length>0&&<button onClick={function(){downloadJson("phdss-ledger_"+new Date().toISOString().slice(0,10)+(ledger.length>1?"__"+ledger.length+"_":"")+".json",{schema_version:LEDGER_SCHEMA,generated_at:new Date().toISOString(),record_count:ledger.length,decisions:ledger});}} style={{padding:"8px 18px",borderRadius:8,border:"none",background:"linear-gradient(135deg,#A78BFA,#7C3AED)",color:"#FFFFFF",fontSize:12,fontWeight:600,cursor:"pointer"}}>Export JSON</button>}
             </div>
             {ledger.length===0?<div style={{textAlign:"center",padding:"60px 20px"}}><div style={{fontSize:13,color:"#94A3B8"}}>No decisions recorded yet.</div></div>
             :ledger.map(function(rec){
@@ -3194,19 +3236,15 @@ function PHDSS() {
                         <span style={{fontSize:10,padding:"2px 7px",borderRadius:8,background:"#F1F5F9",color:"#64748B",fontWeight:600}}>{rec.coverage_ratio} directors</span>
                         {rec.instruction_source&&<span style={{fontSize:9,padding:"1px 6px",borderRadius:7,background:rec.instruction_source==="github"?"#D1FAE5":rec.instruction_source==="github_partial"?"#FEF3C7":"#F1F5F9",color:rec.instruction_source==="github"?"#059669":rec.instruction_source==="github_partial"?"#92400E":"#64748B",fontWeight:600}}>{rec.instruction_source}</span>}
                       </div>
-                      {rec.chair_recommendation&&(function(){
-                        // Split token from rationale clause: "CONDITIONAL APPROVAL — clause text"
-                        var full = rec.chair_recommendation.trim();
-                        var dashIdx = full.search(/\s[—–-]\s/);
-                        var token = dashIdx!==-1 ? full.slice(0,dashIdx).trim() : full;
-                        var clause = dashIdx!==-1 ? full.slice(dashIdx).replace(/^\s*[—–-]\s*/,"").trim() : null;
-                        var recCol = token==="CONDITIONAL APPROVAL"?"#0891B2":token==="DO NOT PROCEED"?"#DC2626":token==="DEFER"?"#7C3AED":(token&&token.indexOf("CONDITIONS")!==-1)?"#059669":(token&&token.indexOf("CAUTION")!==-1)?"#D97706":"#64748B";
-                        var recBg2 = token==="CONDITIONAL APPROVAL"?"#ECFEFF":token==="DO NOT PROCEED"?"#FEF2F2":token==="DEFER"?"#F5F3FF":(token&&token.indexOf("CONDITIONS")!==-1)?"#F0FDF4":(token&&token.indexOf("CAUTION")!==-1)?"#FFFBEB":"#F8FAFC";
-                        return <div style={{marginBottom:6,padding:"7px 11px",borderRadius:8,background:recBg2,border:"1px solid "+recCol+"33",borderLeft:"3px solid "+recCol}}>
-                          <span style={{fontSize:11,fontWeight:700,color:recCol}}>{token}</span>
-                          {clause&&<span style={{fontSize:11,color:"#475569",marginLeft:6,lineHeight:1.55}}>{clause}</span>}
-                        </div>;
-                      })()}
+                      {rec.decision_brief_status&&<div style={{marginBottom:6,padding:"7px 11px",borderRadius:8,background:rec.decision_brief_status.indexOf("Partial Evidence Base")!==-1?"#FFFBEB":"#EFF6FF",border:"1px solid "+(rec.decision_brief_status.indexOf("Partial Evidence Base")!==-1?"#FDE68A":"#BFDBFE"),borderLeft:"3px solid "+(rec.decision_brief_status.indexOf("Partial Evidence Base")!==-1?"#B45309":"#0369A1")}}>
+                        <span style={{fontSize:10,fontWeight:700,color:"#64748B",textTransform:"uppercase",letterSpacing:0.5,display:"block",marginBottom:2}}>Decision Brief Status</span>
+                        <span style={{fontSize:11,fontWeight:700,color:rec.decision_brief_status.indexOf("Partial Evidence Base")!==-1?"#B45309":"#0369A1",lineHeight:1.55}}>{rec.decision_brief_status}</span>
+                      </div>}
+                      <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:6}}>
+                        {rec.instruction_commit&&<span style={{fontSize:9,padding:"2px 6px",borderRadius:7,background:"#F1F5F9",color:"#475569",fontFamily:"monospace"}}>instr {rec.instruction_commit.slice(0,8)}</span>}
+                        {rec.runtime_contract&&<span style={{fontSize:9,padding:"2px 6px",borderRadius:7,background:"#F1F5F9",color:"#475569"}}>{rec.runtime_contract}</span>}
+                        {rec.schema_version&&<span style={{fontSize:9,padding:"2px 6px",borderRadius:7,background:"#F1F5F9",color:"#475569"}}>schema {rec.schema_version}</span>}
+                      </div>
                       <div style={{fontSize:13,fontWeight:600,color:"#0F172A",lineHeight:1.5,marginBottom:4}}>{rec.question}</div>
                     </div>
                     <div style={{fontSize:10,color:"#94A3B8",flexShrink:0,marginLeft:12}}>{new Date(rec.created_at).toLocaleString("en-AU")}</div>
@@ -3478,19 +3516,24 @@ function PHDSS() {
 
             {hasStarted&&<div style={{animation:"fadeIn 0.4s ease"}}>
               {(chair||chairLoading)&&<div style={{marginBottom:18}}>
-                <div style={{fontSize:10,letterSpacing:1.5,color:"#0369A1",textTransform:"uppercase",fontWeight:700,marginBottom:12,background:"#EFF6FF",padding:"4px 10px",borderRadius:8,display:"inline-block"}}>Board Decision</div>
+                <div style={{fontSize:10,letterSpacing:1.5,color:"#0369A1",textTransform:"uppercase",fontWeight:700,marginBottom:12,background:"#EFF6FF",padding:"4px 10px",borderRadius:8,display:"inline-block"}}>Decision Brief</div>
                 {(function(){
                   var failedLabels=activeDirectorsRef.filter(function(d){var out=dirOutputs[d.id]||""; return out.length>0&&/^\[Director failed:/i.test(out.trim());}).map(function(d){return d.label;});
                   if(!failedLabels.length) return null;
                   return <div style={{marginBottom:8,padding:"9px 13px",borderRadius:9,background:"#FFF7ED",border:"1px solid #FED7AA",display:"flex",gap:8,alignItems:"flex-start"}}>
                     <span style={{fontSize:13,flexShrink:0}}>⚠</span>
-                    <div><span style={{fontSize:11,fontWeight:700,color:"#92400E"}}>PARTIAL EVIDENCE BASE — </span><span style={{fontSize:11,color:"#92400E"}}>Chair recommendation synthesised without: {failedLabels.join(", ")}.</span></div>
+                    <div><span style={{fontSize:11,fontWeight:700,color:"#92400E"}}>PARTIAL EVIDENCE BASE — </span><span style={{fontSize:11,color:"#92400E"}}>Decision Brief synthesised without: {failedLabels.join(", ")}.</span></div>
                   </div>;
                 })()}
-                <Panel title="Governance Reasoning Record" icon="C" color="#0369A1" tooltip="Surfaces the governance reasoning record — key discovery, tensions, adversarial challenge, and current governance position. Final decision authority remains with human governance leaders." content={chair} loading={chairLoading} badge={extractStatusBadge(chair,"chair")||(chairSignal?<SignalPill signal={chairSignal}/>:null)} onExport={chair?function(){exportPanel("Chair_Decision",chairRef.current||chair,decisionId,decision,decisionSignal,orgContext);}:null}>
-                  {chair&&!chairLoading&&d&&d.keyDiscovery&&<div style={{background:"#EAF2FA",border:"1px solid #1A5276",borderRadius:8,padding:"10px 14px",marginBottom:12,fontSize:11,color:"#0F1923"}}><span style={{fontWeight:700,color:"#1A5276",textTransform:"uppercase",fontSize:10,letterSpacing:1,display:"block",marginBottom:4}}>Key Discovery</span>{d.keyDiscovery}</div>}
-                  {chair&&!chairLoading&&<ChairDialogue dialogueSystem={dialogueSystem} dialogueHistory={dialogueHistory} onDialogueHistory={setDialogueHistory}/>}
-                </Panel>
+                {(function(){
+                  var view=synthesisGovViews.chair||"governance";
+                  var rec=synthesisBriefs.chair?synthesisBriefToGovernanceRecord(synthesisBriefs.chair):null;
+                  return <Panel title="Decision Brief" icon="C" color="#0369A1" tooltip="Integrates tensions, conditions, uncertainties and adversarial challenge without selecting a preferred course of action. Decision authority remains with human governance leaders." content={view==="technical"?chair:""} loading={chairLoading} badge={extractStatusBadge(chair,"chair")} onExport={chair?function(){exportPanel("Chair_Decision",chairRef.current||chair,decisionId,decision,decisionSignal,orgContext,view,rec);}:null}>
+                    {chair&&!chairLoading&&<GovToggle view={view} setView={function(v){setSynthesisGovViews(function(prev){var n=Object.assign({},prev);n.chair=v;return n;});}} hasContent={!!chair}/>}
+                    {chair&&!chairLoading&&view==="governance"&&<GovernanceRecord record={rec}/>}
+                    {chair&&!chairLoading&&<ChairDialogue dialogueSystem={dialogueSystem} dialogueHistory={dialogueHistory} onDialogueHistory={setDialogueHistory}/>}
+                  </Panel>;
+                })()}
               </div>}
 
 
@@ -3503,30 +3546,70 @@ function PHDSS() {
                 {DIRECTORS.map(function(dir){
                   var isActive=activeDirectorsRef.some(function(a){return a.id===dir.id;});
                   if(!isActive) return <OmittedDirectorCard key={dir.id} director={dir}/>;
+                  var dirBrief=dirBriefsState[dir.id]||null;
+                  var dirView=dirGovViews[dir.id]||"governance";
+                  var dirRecord=dirBrief?directorBriefToGovernanceRecord(dirBrief):null;
                   return <DirectorCard key={dir.id} director={dir} output={dirOutputs[dir.id]} loading={dirLoading[dir.id]} expanded={expandedDirs[dir.id]}
                     onToggle={function(){setExpandedDirs(function(p){var n=Object.assign({},p);n[dir.id]=!p[dir.id];return n;});}}
                     confidence={dirConfidence[dir.id]}
-                    onExport={dirOutputs[dir.id]?function(){exportDirector(dir,dirOutputs[dir.id],decisionId,decision,decisionSignal,orgContext);}:null}
-                    govRecord={dir.id==="lived"&&dirOutputs[dir.id]?<LivedGovernanceRecord decision={decision}/>:null}
-                    govView={dir.id==="lived"?livedView:null}
-                    setGovView={dir.id==="lived"?setLivedView:null}
+                    onExport={dirOutputs[dir.id]?function(){exportDirector(dir,dirOutputs[dir.id],decisionId,decision,decisionSignal,orgContext,dirView,dirRecord);}:null}
+                    govRecord={dirBrief?<GovernanceRecord record={dirRecord}/>:null}
+                    govView={dirView}
+                    setGovView={function(v){setDirGovViews(function(prev){var n=Object.assign({},prev);n[dir.id]=v;return n;});}}
                   />;
                 })}
               </div>
               <div>
                 <div style={{fontSize:10,letterSpacing:1.5,color:"#6D28D9",textTransform:"uppercase",fontWeight:700,marginBottom:12,background:"#EDE9FE",padding:"4px 10px",borderRadius:8,display:"inline-block"}}>Governance Synthesis</div>
-                <Panel title="Decision Stress Test" icon="S" color="#EF4444" tooltip="Worst-case failure cascade analysis. Tests the decision against adverse scenarios, second-order consequences, and irreversibility. Fragility Score 1–10 (10 = extremely fragile)." content={stress} loading={stressLoading} badge={stressTestResult&&!stressTestResult.run&&done?<span style={{fontSize:9,padding:"2px 7px",borderRadius:8,background:"#F1F5F9",color:"#64748B",fontWeight:600}}>SKIPPED</span>:extractStatusBadge(stress,"stress")} onExport={stress?function(){exportPanel("Stress_Test",stressRef.current||stress,decisionId,decision,decisionSignal,orgContext);}:null}>{stressTestResult&&!stressTestResult.run&&done&&<div style={{fontSize:11,color:"#64748B",padding:"8px 0",fontStyle:"italic"}}>{stressTestResult.reason}</div>}</Panel>
-                <Panel title="Adversarial Bias Probe" icon="P" color="#7C3AED" tooltip="Steelmans the strongest counter-argument and actively challenges the Board's reasoning. Identifies what was missed, whose perspective is absent, and where AI limitations are most visible." content={probeView==="technical"?probe:""} loading={probeLoading} badge={extractStatusBadge(probe,"probe")} onExport={probe?function(){exportPanel("Adversarial_Probe",probeRef.current||probe,decisionId,decision,decisionSignal,orgContext);}:null}>
-                  {probe&&!probeLoading&&<GovToggle view={probeView} setView={setProbeView} hasContent={!!probe}/>}
-                  {probe&&!probeLoading&&probeView==="governance"&&<ProbeGovernanceRecord decision={decision}/>}
-                </Panel>
-                <Panel title="Reality Anchor" icon="A" color="#0369A1" tooltip="Grounds the analysis in operational reality — baseline conditions, implementation capability, reversibility, and accountability. Flags where the governance reasoning departs from what is actually achievable." content={realityView==="technical"?realityAnchor:""} loading={realityAnchorLoading} badge={extractStatusBadge(realityAnchor,"reality")} onExport={realityAnchor?function(){exportPanel("Reality_Anchor",realityAnchorRef.current||realityAnchor,decisionId,decision,decisionSignal,orgContext);}:null}>
-                  {realityAnchor&&!realityAnchorLoading&&<GovToggle view={realityView} setView={setRealityView} hasContent={!!realityAnchor}/>}
-                  {realityAnchor&&!realityAnchorLoading&&realityView==="governance"&&<RealityGovernanceRecord decision={decision}/>}
-                </Panel>
-                <Panel title="Cross-Domain Tension Analysis" icon="M" color="#7C3AED" tooltip="Synthesises all Director outputs into a cross-domain reasoning map. Surfaces conflicts, hidden assumptions, reasoning gaps, and unresolved tensions. Produces the Integration Signal (HIGH/MEDIUM/LOW)." content={meta} loading={metaLoading} badge={extractStatusBadge(meta,"meta")} onExport={meta?function(){exportPanel("Cross-Domain_Tension_Analysis",metaRef.current||meta,decisionId,decision,decisionSignal,orgContext);}:null}/>
-                <Panel title="Epistemic Confidence Audit" icon="E" color="#DC2626" tooltip="Rates each Director's analytical confidence (HIGH/MEDIUM/LOW/UNCERTAIN) and flags overconfidence, systematic bias signals, and epistemic gaps. Produces the Epistemic Health Score used in AI Integrity." content={epistemic} loading={epistemicLoading} badge={extractStatusBadge(epistemic,"epistemic")} onExport={epistemic?function(){exportPanel("Epistemic_Audit",epistemicRef.current||epistemic,decisionId,decision,decisionSignal,orgContext);}:null}/>
-                <Panel title="Decision Surface Map" icon="⊕" color="#0891B2" tooltip="Maps the full signal landscape across all active Directors — consensus zones, conflict zones, trade-off axes, and fragility hotspots. Produces the Dominant Signal summary." content={surfaceMap} loading={surfaceMapLoading} badge={extractStatusBadge(surfaceMap,"surfacemap")} onExport={surfaceMap?function(){exportPanel("Decision_Surface_Map",surfaceMapRef.current||surfaceMap,decisionId,decision,decisionSignal,orgContext);}:null}/>
+                {(function(){
+                  var view=synthesisGovViews.stress||"governance";
+                  var rec=synthesisBriefs.stress?synthesisBriefToGovernanceRecord(synthesisBriefs.stress):null;
+                  return <Panel title="Decision Stress Test" icon="S" color="#EF4444" tooltip="Worst-case failure cascade analysis. Tests the decision against adverse scenarios, second-order consequences, and irreversibility. Fragility Score 1–10 (10 = extremely fragile)." content={view==="technical"?stress:""} loading={stressLoading} badge={stressTestResult&&!stressTestResult.run&&done?<span style={{fontSize:9,padding:"2px 7px",borderRadius:8,background:"#F1F5F9",color:"#64748B",fontWeight:600}}>SKIPPED</span>:extractStatusBadge(stress,"stress")} onExport={stress?function(){exportPanel("Stress_Test",stressRef.current||stress,decisionId,decision,decisionSignal,orgContext,view,rec);}:null}>
+                    {stressTestResult&&!stressTestResult.run&&done&&<div style={{fontSize:11,color:"#64748B",padding:"8px 0",fontStyle:"italic"}}>{stressTestResult.reason}</div>}
+                    {stress&&!stressLoading&&<GovToggle view={view} setView={function(v){setSynthesisGovViews(function(prev){var n=Object.assign({},prev);n.stress=v;return n;});}} hasContent={!!stress}/>}
+                    {stress&&!stressLoading&&view==="governance"&&<GovernanceRecord record={rec}/>}
+                  </Panel>;
+                })()}
+                {(function(){
+                  var view=synthesisGovViews.probe||"governance";
+                  var rec=synthesisBriefs.probe?synthesisBriefToGovernanceRecord(synthesisBriefs.probe):null;
+                  return <Panel title="Adversarial Bias Probe" icon="P" color="#7C3AED" tooltip="Steelmans the strongest counter-argument and actively challenges the Board's reasoning. Identifies what was missed, whose perspective is absent, and where AI limitations are most visible." content={view==="technical"?probe:""} loading={probeLoading} badge={extractStatusBadge(probe,"probe")} onExport={probe?function(){exportPanel("Adversarial_Probe",probeRef.current||probe,decisionId,decision,decisionSignal,orgContext,view,rec);}:null}>
+                    {probe&&!probeLoading&&<GovToggle view={view} setView={function(v){setSynthesisGovViews(function(prev){var n=Object.assign({},prev);n.probe=v;return n;});}} hasContent={!!probe}/>}
+                    {probe&&!probeLoading&&view==="governance"&&<GovernanceRecord record={rec}/>}
+                  </Panel>;
+                })()}
+                {(function(){
+                  var view=synthesisGovViews.reality||"governance";
+                  var rec=synthesisBriefs.reality?synthesisBriefToGovernanceRecord(synthesisBriefs.reality):null;
+                  return <Panel title="Reality Anchor" icon="A" color="#0369A1" tooltip="Grounds the analysis in operational reality — baseline conditions, implementation capability, reversibility, and accountability." content={view==="technical"?realityAnchor:""} loading={realityAnchorLoading} badge={extractStatusBadge(realityAnchor,"reality")} onExport={realityAnchor?function(){exportPanel("Reality_Anchor",realityAnchorRef.current||realityAnchor,decisionId,decision,decisionSignal,orgContext,view,rec);}:null}>
+                    {realityAnchor&&!realityAnchorLoading&&<GovToggle view={view} setView={function(v){setSynthesisGovViews(function(prev){var n=Object.assign({},prev);n.reality=v;return n;});}} hasContent={!!realityAnchor}/>}
+                    {realityAnchor&&!realityAnchorLoading&&view==="governance"&&<GovernanceRecord record={rec}/>}
+                  </Panel>;
+                })()}
+                {(function(){
+                  var view=synthesisGovViews.meta||"governance";
+                  var rec=synthesisBriefs.meta?synthesisBriefToGovernanceRecord(synthesisBriefs.meta):null;
+                  return <Panel title="Cross-Domain Tension Analysis" icon="M" color="#7C3AED" tooltip="Synthesises all Director outputs into a cross-domain reasoning map. Surfaces conflicts, hidden assumptions, reasoning gaps, and unresolved tensions." content={view==="technical"?meta:""} loading={metaLoading} badge={extractStatusBadge(meta,"meta")} onExport={meta?function(){exportPanel("Cross-Domain_Tension_Analysis",metaRef.current||meta,decisionId,decision,decisionSignal,orgContext,view,rec);}:null}>
+                    {meta&&!metaLoading&&<GovToggle view={view} setView={function(v){setSynthesisGovViews(function(prev){var n=Object.assign({},prev);n.meta=v;return n;});}} hasContent={!!meta}/>}
+                    {meta&&!metaLoading&&view==="governance"&&<GovernanceRecord record={rec}/>}
+                  </Panel>;
+                })()}
+                {(function(){
+                  var view=synthesisGovViews.epistemic||"governance";
+                  var rec=synthesisBriefs.epistemic?synthesisBriefToGovernanceRecord(synthesisBriefs.epistemic):null;
+                  return <Panel title="Epistemic Confidence Audit" icon="E" color="#DC2626" tooltip="Rates analytical confidence and flags overconfidence, systematic bias signals, and epistemic gaps." content={view==="technical"?epistemic:""} loading={epistemicLoading} badge={extractStatusBadge(epistemic,"epistemic")} onExport={epistemic?function(){exportPanel("Epistemic_Audit",epistemicRef.current||epistemic,decisionId,decision,decisionSignal,orgContext,view,rec);}:null}>
+                    {epistemic&&!epistemicLoading&&<GovToggle view={view} setView={function(v){setSynthesisGovViews(function(prev){var n=Object.assign({},prev);n.epistemic=v;return n;});}} hasContent={!!epistemic}/>}
+                    {epistemic&&!epistemicLoading&&view==="governance"&&<GovernanceRecord record={rec}/>}
+                  </Panel>;
+                })()}
+                {(function(){
+                  var view=synthesisGovViews.surfacemap||"governance";
+                  var rec=synthesisBriefs.surfacemap?synthesisBriefToGovernanceRecord(synthesisBriefs.surfacemap):null;
+                  return <Panel title="Decision Surface Map" icon="⊕" color="#0891B2" tooltip="Maps the signal landscape across active Directors — convergence, conflict zones, trade-offs and fragility hotspots." content={view==="technical"?surfaceMap:""} loading={surfaceMapLoading} badge={extractStatusBadge(surfaceMap,"surfacemap")} onExport={surfaceMap?function(){exportPanel("Decision_Surface_Map",surfaceMapRef.current||surfaceMap,decisionId,decision,decisionSignal,orgContext,view,rec);}:null}>
+                    {surfaceMap&&!surfaceMapLoading&&<GovToggle view={view} setView={function(v){setSynthesisGovViews(function(prev){var n=Object.assign({},prev);n.surfacemap=v;return n;});}} hasContent={!!surfaceMap}/>}
+                    {surfaceMap&&!surfaceMapLoading&&view==="governance"&&<GovernanceRecord record={rec}/>}
+                  </Panel>;
+                })()}
                 {done&&<div style={{marginTop:12,padding:"11px 15px",borderRadius:12,background:"#F0FDF4",border:"1px solid #BBF7D0",fontSize:11,color:"#065F46",lineHeight:1.6,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
                   <span>Audit Trail: {activeDirectorsRef.length} Directors ({analysisMode}) · Surface Map · Epistemic · META · Reality · Probe{stressTestResult&&stressTestResult.run?" · Stress Test":" · Stress Test (skipped)"} · Chair{comparator?" · Comparator":""} — {decisionId}</span>
                   <button onClick={function(){setTab("dashboard");}} style={{fontSize:11,padding:"5px 14px",borderRadius:9,border:"none",background:"linear-gradient(135deg,#0EA5E9,#0369A1)",color:"#FFFFFF",fontWeight:600,cursor:"pointer"}}>View Dashboard</button>
@@ -3561,7 +3644,7 @@ function PHDSS() {
                   onExport={lensComparator?function(){exportPanel("Lens_Comparator",lensComparator,decisionId,decision,decisionSignal,orgContext);}:null}/>
               </div>}
               {advisoryDone&&<div style={{marginTop:12,padding:"11px 15px",borderRadius:12,background:"#F5F3FF",border:"1px solid #DDD6FE",fontSize:11,color:"#5B21B6",lineHeight:1.7}}>
-                <strong>Advisory only.</strong> For governance-grade analysis with Chair recommendation, switch to a Governance Run.
+                <strong>Advisory only.</strong> For governance-grade analysis with a Decision Brief and full audit trail, switch to a Governance Run.
               </div>}
             </div>}
 
@@ -3569,7 +3652,7 @@ function PHDSS() {
             {!hasStarted&&!advisoryStarted&&<div style={{textAlign:"center",padding:"60px 20px",animation:"fadeIn 0.5s ease"}}>
               <div style={{width:64,height:64,borderRadius:18,background:"linear-gradient(135deg,#EFF6FF,#DBEAFE)",border:"1px solid #BFDBFE",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 20px",fontSize:28,fontWeight:700,color:"#0369A1"}}>P</div>
               <div style={{fontSize:16,color:"#0F172A",marginBottom:8,fontWeight:700}}>Governance-Grade Decision Intelligence</div>
-              <div style={{fontSize:13,color:"#64748B",maxWidth:520,margin:"0 auto 24px",lineHeight:1.8}}><strong>Governance Runs</strong>: CORE, FULL, or CHAIR SPECIFIED — full synthesis pipeline with Chair decision. <strong>Advisory Runs</strong>: Director Brief or Dual Lens — fast domain briefings without governance modules.</div>
+              <div style={{fontSize:13,color:"#64748B",maxWidth:520,margin:"0 auto 24px",lineHeight:1.8}}><strong>Governance Runs</strong>: CORE, FULL, or CHAIR SPECIFIED — full synthesis pipeline with a Chair Decision Brief. <strong>Advisory Runs</strong>: Director Brief or Dual Lens — fast domain briefings without governance modules.</div>
               <div style={{display:"flex",justifyContent:"center",flexWrap:"wrap",gap:8}}>
                 {DIRECTORS.map(function(d){return <div key={d.id} style={{display:"flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:20,background:"#FFFFFF",border:"1px solid #E2E8F0"}}><div style={{width:20,height:20,borderRadius:6,background:d.color+"18",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10}}><span style={{color:d.color}}>{d.icon}</span></div><span style={{fontSize:11,fontWeight:500,color:"#334155"}}>{d.label}</span></div>;})}
               </div>

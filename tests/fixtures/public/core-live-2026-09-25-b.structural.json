@@ -1,0 +1,203 @@
+{
+  "fixture_schema_version": "1.0.0",
+  "fixture_id": "core-live-2026-09-25-b",
+  "fixture_class": "public_structural",
+  "source": {
+    "deployment_ref": "gh-pages",
+    "deployment_commit": "830d3226e7f4a884fdba40fdd73d93776d1547bf",
+    "instruction_commit": "56ad2305ca62ed7409c3e89723f9bd1ca914d935",
+    "observed_date": "2026-09-25",
+    "source_classification": "GOVERNANCE_IN_CONFIDENCE",
+    "contains_source_prose": false
+  },
+  "run_contract": {
+    "mode": "CORE",
+    "registry_size": 13,
+    "coverage_count": 5,
+    "active_directors": [
+      "systems",
+      "equity",
+      "lived",
+      "digital",
+      "safety"
+    ],
+    "omitted_directors": [
+      "economics",
+      "behaviour",
+      "policy",
+      "ethics",
+      "sovereignty",
+      "physics",
+      "measurement",
+      "innovation"
+    ],
+    "signal_distribution": {
+      "PROCEED": 0,
+      "CAUTION": 4,
+      "HALT": 1
+    }
+  },
+  "synthesis_contract": {
+    "modules_expected": [
+      "surface_map",
+      "epistemic_audit",
+      "cross_domain_tension_analysis",
+      "reality_anchor",
+      "adversarial_probe",
+      "stress_test",
+      "chair_decision_brief",
+      "comparator"
+    ],
+    "stress": {
+      "ran": true,
+      "trigger_class": "emergency_domain",
+      "fragility_score": 9
+    },
+    "epistemic_score": "WEAK",
+    "probe_verdict": "SIGNIFICANT_GAPS",
+    "decision_brief_status_class": "COMPLETE_PARTIAL_EVIDENCE"
+  },
+  "view_contract": {
+    "technical_view_expected": true,
+    "governance_record_view_expected": true,
+    "exports_expected": [
+      "technical_analysis",
+      "governance_record",
+      "transparency_dashboard",
+      "ledger_json"
+    ]
+  },
+  "record_shape": {
+    "director_governance_record_sections": [
+      "key_discovery",
+      "primary_tension",
+      "signal",
+      "signal_rationale",
+      "room_should_discuss",
+      "most_likely_to_benefit",
+      "most_exposed_to_failure",
+      "non_negotiable_conditions",
+      "governance_implication"
+    ],
+    "synthesis_governance_record_sections": {
+      "surface_map": [
+        "key_discovery",
+        "primary_tension",
+        "dominant_signal",
+        "room_should_discuss",
+        "most_likely_to_benefit",
+        "most_exposed_to_failure",
+        "non_negotiable_conditions",
+        "governance_implication"
+      ],
+      "epistemic_audit": [
+        "key_discovery",
+        "primary_tension",
+        "epistemic_health_score",
+        "room_should_discuss",
+        "most_likely_to_benefit",
+        "most_exposed_to_failure",
+        "non_negotiable_conditions",
+        "governance_implication"
+      ],
+      "cross_domain_tension_analysis": [
+        "key_discovery",
+        "primary_tension",
+        "integration_signal",
+        "room_should_discuss",
+        "most_likely_to_benefit",
+        "most_exposed_to_failure",
+        "non_negotiable_conditions",
+        "governance_implication"
+      ],
+      "reality_anchor": [
+        "key_discovery",
+        "primary_tension",
+        "operational_confidence",
+        "room_should_discuss",
+        "most_likely_to_benefit",
+        "most_exposed_to_failure",
+        "non_negotiable_conditions",
+        "governance_implication"
+      ],
+      "adversarial_probe": [
+        "key_discovery",
+        "primary_tension",
+        "probe_verdict",
+        "room_should_discuss",
+        "most_likely_to_benefit",
+        "most_exposed_to_failure",
+        "non_negotiable_conditions",
+        "governance_implication"
+      ],
+      "stress_test": [
+        "key_discovery",
+        "primary_tension",
+        "fragility_score",
+        "room_should_discuss",
+        "most_likely_to_benefit",
+        "most_exposed_to_failure",
+        "non_negotiable_conditions",
+        "governance_implication"
+      ],
+      "chair_decision_brief": [
+        "key_discovery",
+        "primary_tension",
+        "decision_brief_status",
+        "room_should_discuss",
+        "most_likely_to_benefit",
+        "most_exposed_to_failure",
+        "non_negotiable_conditions",
+        "governance_implication"
+      ]
+    }
+  },
+  "ledger_contract": {
+    "schema_version_observed": "2.5.0",
+    "required_fields_observed": [
+      "analysis_mode",
+      "coverage_ratio",
+      "active_directors",
+      "omitted_directors",
+      "proceed_count",
+      "caution_count",
+      "halt_count",
+      "decision_brief_status",
+      "epistemic_score",
+      "probe_verdict",
+      "fragility_score",
+      "stress_test_ran",
+      "stress_test_reason",
+      "instruction_source",
+      "comparator"
+    ],
+    "provenance_gaps_observed": [
+      "exact_instruction_commit",
+      "runtime_contract",
+      "release_id",
+      "complete_source_outputs",
+      "structured_records"
+    ]
+  },
+  "authority_observations": {
+    "constitutional_contract_version": "1.0.0",
+    "known_defects": [
+      {
+        "id": "AUTH-SURFACE-001",
+        "layer": "surface_map",
+        "class": "ADJUDICATION",
+        "observed": true,
+        "preserve": false,
+        "description": "Reference synthesis record crossed from landscape characterisation into institutional pathway disposition."
+      },
+      {
+        "id": "AUTH-STRESS-001",
+        "layer": "stress_test",
+        "class": "ADJUDICATION",
+        "observed": true,
+        "preserve": false,
+        "description": "Reference stress record converted fragility analysis into a directive about the institutional course."
+      }
+    ]
+  }
+}

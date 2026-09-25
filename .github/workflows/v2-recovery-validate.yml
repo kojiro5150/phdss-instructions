@@ -1,0 +1,41 @@
+name: PHDSS v2 Recovery Validation
+
+on:
+  push:
+    branches:
+      - v2.0
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "App_FINAL.jsx"
+      - "package.json"
+      - "index.html"
+      - "src/**"
+      - "vite.config.js"
+      - ".github/scripts/**"
+      - ".github/workflows/v2-recovery-validate.yml"
+      - "docs/AUTHORITY_*.md"
+      - "docs/FIXTURE_SCHEMA.md"
+      - "tests/fixtures/**"
+
+jobs:
+  validate-recovery-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: npm install --no-package-lock
+
+      - name: Validate recovered JSX and contracts
+        run: npm run validate
+
+      - name: Build local v2 application
+        run: npm run build

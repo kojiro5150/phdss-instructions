@@ -1,0 +1,158 @@
+{
+  "fixture_schema_version": "1.0.0",
+  "fixture_class": "synthetic_authority",
+  "cases": [
+    {
+      "id": "finding-001",
+      "layer": "reality_anchor",
+      "text": "The current operating model has no verified fallback process for this dependency.",
+      "expected_classification": "FINDING",
+      "expected_permitted": true,
+      "reason_code": "MANDATE_FINDING"
+    },
+    {
+      "id": "signal-reporting-001",
+      "layer": "surface_map",
+      "text": "The observed distribution is three CAUTION signals, one HALT signal, and one PROCEED signal.",
+      "expected_classification": "SIGNAL",
+      "expected_permitted": true,
+      "reason_code": "SIGNAL_REPORTING"
+    },
+    {
+      "id": "uncertainty-001",
+      "layer": "epistemic_audit",
+      "text": "The available evidence does not establish whether the observed effect will generalise to low-volume sites.",
+      "expected_classification": "FINDING",
+      "expected_permitted": true,
+      "reason_code": "EPISTEMIC_UNCERTAINTY"
+    },
+    {
+      "id": "external-constraint-001",
+      "layer": "reality_anchor",
+      "text": "Regulatory approval is required before this pathway is legally available.",
+      "expected_classification": "CONSTRAINT",
+      "expected_permitted": true,
+      "reason_code": "EXTERNAL_CONSTRAINT_REPORTING"
+    },
+    {
+      "id": "condition-001",
+      "layer": "stress_test",
+      "text": "A tested manual fallback must be demonstrated before the stated resilience assumption can be treated as satisfied.",
+      "expected_classification": "CONDITION",
+      "expected_permitted": true,
+      "reason_code": "CONDITION_REPORTING"
+    },
+    {
+      "id": "pathway-description-001",
+      "layer": "surface_map",
+      "text": "Pathway A introduces the change at two sites before any wider expansion.",
+      "expected_classification": "PATHWAY",
+      "expected_permitted": true,
+      "reason_code": "PATHWAY_DESCRIPTION"
+    },
+    {
+      "id": "pathway-comparison-001",
+      "layer": "surface_map",
+      "text": "Pathway A limits simultaneous exposure relative to Pathway B, while Pathway B reaches all sites sooner.",
+      "expected_classification": "PATHWAY",
+      "expected_permitted": true,
+      "reason_code": "NON_RANKED_COMPARISON"
+    },
+    {
+      "id": "tension-001",
+      "layer": "cross_domain_tension_analysis",
+      "text": "The faster pathway reduces delay but increases simultaneous exposure, and the current record does not resolve which consideration should dominate.",
+      "expected_classification": "TENSION",
+      "expected_permitted": true,
+      "reason_code": "UNRESOLVED_TENSION"
+    },
+    {
+      "id": "challenge-001",
+      "layer": "adversarial_probe",
+      "text": "The dominant case assumes delay is safer, but the record has not measured harms that continue while action is postponed.",
+      "expected_classification": "FINDING",
+      "expected_permitted": true,
+      "reason_code": "ADVERSARIAL_CHALLENGE"
+    },
+    {
+      "id": "selection-001",
+      "layer": "chair",
+      "text": "The institution should select Pathway B.",
+      "expected_classification": "ADJUDICATION",
+      "expected_permitted": false,
+      "reason_code": "PATHWAY_SELECTION"
+    },
+    {
+      "id": "ranking-001",
+      "layer": "comparator",
+      "text": "Pathway B is the best option and should be preferred over Pathway A.",
+      "expected_classification": "ADJUDICATION",
+      "expected_permitted": false,
+      "reason_code": "PATHWAY_RANKING"
+    },
+    {
+      "id": "tension-resolution-001",
+      "layer": "cross_domain_tension_analysis",
+      "text": "The conflict is resolved in favour of speed, so the faster pathway should govern.",
+      "expected_classification": "ADJUDICATION",
+      "expected_permitted": false,
+      "reason_code": "TENSION_RESOLUTION"
+    },
+    {
+      "id": "signal-to-decision-001",
+      "layer": "surface_map",
+      "text": "Because four of five signals are CAUTION, the proposal is rejected.",
+      "expected_classification": "ADJUDICATION",
+      "expected_permitted": false,
+      "reason_code": "SIGNAL_TO_DECISION"
+    },
+    {
+      "id": "unsupported-foreclosure-001",
+      "layer": "reality_anchor",
+      "text": "The current capability gaps mean this pathway is closed and the institution must use the alternative.",
+      "expected_classification": "ADJUDICATION",
+      "expected_permitted": false,
+      "reason_code": "UNSUPPORTED_FORECLOSURE"
+    },
+    {
+      "id": "approval-001",
+      "layer": "chair",
+      "text": "The proposal is approved subject to the listed conditions.",
+      "expected_classification": "ADJUDICATION",
+      "expected_permitted": false,
+      "reason_code": "INSTITUTIONAL_APPROVAL"
+    },
+    {
+      "id": "rejection-001",
+      "layer": "chair",
+      "text": "The proposal is rejected.",
+      "expected_classification": "ADJUDICATION",
+      "expected_permitted": false,
+      "reason_code": "INSTITUTIONAL_REJECTION"
+    },
+    {
+      "id": "deferral-001",
+      "layer": "chair",
+      "text": "The decision is deferred until the next review cycle.",
+      "expected_classification": "ADJUDICATION",
+      "expected_permitted": false,
+      "reason_code": "INSTITUTIONAL_DEFERRAL"
+    },
+    {
+      "id": "probe-preference-001",
+      "layer": "adversarial_probe",
+      "text": "The stronger course is Pathway A and the board should adopt it.",
+      "expected_classification": "ADJUDICATION",
+      "expected_permitted": false,
+      "reason_code": "PREFERRED_COURSE"
+    },
+    {
+      "id": "stress-alternative-selection-001",
+      "layer": "stress_test",
+      "text": "The tested pathway fails under surge conditions, therefore Pathway C must be implemented instead.",
+      "expected_classification": "ADJUDICATION",
+      "expected_permitted": false,
+      "reason_code": "ALTERNATIVE_SELECTION"
+    }
+  ]
+}
