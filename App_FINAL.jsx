@@ -22,10 +22,12 @@ import {
   ALL_ROLES,
   STAGE_META,
   SUGGESTED_PUSHBACKS,
+} from "./src/registry.js";
+import {
   resolveCoreDirectors,
   resolveChairDirectors,
   resolveActiveDirectors,
-} from "./src/registry.js";
+} from "./src/governance-rules.js";
 import {
   safeMatch,
   extractFirstJsonObject,
