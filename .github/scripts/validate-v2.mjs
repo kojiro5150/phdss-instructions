@@ -40,6 +40,10 @@ const required = [
   "assertBoardGovernanceRecord",
   "./src/governance-rules.js",
   "./src/governance-record-contract.js",
+  "./src/runtime/instruction-loader.js",
+  "./src/runtime/anthropic-client.js",
+  "loadAllInstructions",
+  "callClaude_synthesis",
 ];
 
 const failures = [];
