@@ -252,11 +252,13 @@ for(const name of removedDefinitions){
   }
 }
 
-if(!/async function\s+enforceSynthesisAuthority\s*\(/.test(app)) failures.push("main synthesis authority enforcement moved");
-if(!/async function\s+callGovernedSynthesis\s*\(/.test(app)) failures.push("governed synthesis execution moved");
-if(!/async function\s+storeSynthesisBrief\s*\(/.test(app)) failures.push("synthesis brief storage moved");
-if(!/function\s+commitToLedger\s*\(/.test(app)) failures.push("ledger assembly moved");
+if(!app.includes("./src/pipeline.js")) failures.push("governance pipeline runtime is not wired");
+if(/async function\s+enforceSynthesisAuthority\s*\(/.test(app)) failures.push("authority enforcement remains duplicated in App_FINAL.jsx");
+if(/async function\s+callGovernedSynthesis\s*\(/.test(app)) failures.push("governed synthesis remains duplicated in App_FINAL.jsx");
+if(/async function\s+storeSynthesisBrief\s*\(/.test(app)) failures.push("synthesis brief storage remains duplicated in App_FINAL.jsx");
+if(/function\s+commitToLedger\s*\(/.test(app)) failures.push("ledger assembly remains duplicated in App_FINAL.jsx");
 if(!/function\s+parseDashboard\s*\(/.test(app)) failures.push("parseDashboard moved");
+if(!/async function\s+runBoard\s*\(/.test(app)) failures.push("React pipeline adapter moved");
 
 if(failures.length){
   console.error("PHDSS Governance Brief compression verification failed:");
