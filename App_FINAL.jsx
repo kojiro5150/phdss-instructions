@@ -2309,174 +2309,113 @@ function GovToggle({view, setView, hasContent}) {
   );
 }
 
-// ── Lived Experience Governance Record ───────────────────────────────────────
-function LivedGovernanceRecord({decision}) {
-  var sectionStyle={background:"#E8F5F5",border:"1px solid #0E6B6B",borderRadius:8,padding:"12px 14px",marginBottom:10};
-  var labelStyle={fontWeight:700,color:"#0E6B6B",textTransform:"uppercase",fontSize:10,letterSpacing:1,display:"block",marginBottom:4};
-  var rowStyle={display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:10};
-  var colGreen={background:"#EAF7EE",border:"1px solid #1A6B3A",borderRadius:8,padding:"10px 12px"};
-  var colRed={background:"#FDEDEC",border:"1px solid #922B21",borderRadius:8,padding:"10px 12px"};
-  var colAmber={background:"#FEF9EE",border:"1px solid #B7770D",borderRadius:8,padding:"10px 12px"};
-  var itemStyle={fontSize:11,lineHeight:1.7,color:"#0F1923"};
-  var hdr={fontWeight:700,fontSize:10,textTransform:"uppercase",letterSpacing:0.8,marginBottom:6,display:"block"};
-  return (
-    <div style={{fontSize:11,lineHeight:1.75,color:"#334155"}}>
-      <div style={sectionStyle}>
-        <span style={labelStyle}>Key Human Discovery</span>
-        <div style={{fontWeight:700,fontSize:13,color:"#0F1923",marginBottom:6}}>Many gender diverse consumers enter mental health services expecting discrimination. Implementation quality — not policy existence — determines whether this service becomes a place of genuine therapeutic safety or a further source of institutional harm.</div>
-        <div style={{fontSize:11,color:"#4A5568",lineHeight:1.7}}>Consumers will judge inclusion by the first phone call, the intake form, and the pronoun usage of the first staff member they meet — not by what the policy document says.</div>
-      </div>
-      <div style={rowStyle}>
-        <div style={colAmber}>
-          <span style={{...hdr,color:"#B7770D"}}>Primary Trust Tension</span>
-          <div style={itemStyle}><strong>Inclusive policy</strong> versus <strong>inclusive experience.</strong> A policy can be inclusive while the service remains exclusionary in practice.</div>
-        </div>
-        <div style={colAmber}>
-          <span style={{...hdr,color:"#B7770D"}}>Recommendation Signal</span>
-          <div style={{fontWeight:700,fontSize:13,color:"#B7770D",marginBottom:4}}>CAUTION</div>
-          <div style={itemStyle}>Implementation depth and staff cultural competency will determine whether this policy creates genuine safety or maintains exclusionary practices under inclusive language.</div>
-        </div>
-      </div>
-      <div style={{fontWeight:700,fontSize:11,color:"#1E3A4C",marginBottom:6,marginTop:4}}>What the Room Should Discuss</div>
-      {["How will gender diverse consumers experience this policy at first contact — the intake form, the phone call, the reception interaction?",
-        "What happens when staff cultural competency varies across units — and which consumers are most exposed to that variation?",
-        "How will the organisation distinguish genuine inclusive practice from performative compliance?",
-        "How will consumers safely report discrimination without risking their ongoing care relationship?",
-      ].map(function(q,i){return <div key={i} style={{fontSize:11,lineHeight:1.65,color:"#334155",paddingLeft:12,borderLeft:"2px solid #0E6B6B",marginBottom:6}}>{"• "+q}</div>;})}
-      <div style={rowStyle}>
-        <div style={colGreen}>
-          <span style={{...hdr,color:"#1A6B3A"}}>Most Likely to Benefit</span>
-          {["Gender diverse consumers accessing services.","Families and carers of gender diverse individuals.","Staff seeking inclusive practice guidance."].map(function(i,k){return <div key={k} style={itemStyle}>{"• "+i}</div>;})}
-        </div>
-        <div style={colRed}>
-          <span style={{...hdr,color:"#922B21"}}>Most Exposed to Failure</span>
-          {["Consumers in crisis — when cognitive load peaks and staff revert to habits.","Consumers dependent on ongoing care who cannot risk disclosure.","Consumers from intersecting marginalised groups."].map(function(i,k){return <div key={k} style={itemStyle}>{"• "+i}</div>;})}
-        </div>
-      </div>
-      <div style={{background:"#FEF9EE",border:"1px solid #B7770D",borderRadius:8,padding:"10px 12px",marginBottom:10}}>
-        <span style={{...hdr,color:"#B7770D"}}>Non-Negotiable Conditions</span>
-        {["Consumer participation in policy development — not consultation after decisions are finalised.",
-          "Staff cultural competency demonstrated before implementation — not assumed from training attendance.",
-          "Chosen names and pronouns supported operationally without requiring legal documentation.",
-          "Feedback and escalation pathways that do not require consumers to repeatedly retell discrimination experiences.",
-        ].map(function(c,i){return <div key={i} style={itemStyle}>{"• "+c}</div>;})}
-      </div>
-      <div style={{background:"#E8F5F5",border:"1px solid #0E6B6B",borderRadius:8,padding:"10px 12px"}}>
-        <span style={labelStyle}>Governance Implication</span>
-        <div style={{fontWeight:700,fontSize:12,color:"#0F1923"}}>Policy legitimacy depends on lived experience consistency, not policy existence.</div>
-      </div>
-    </div>
-  );
+// ── Generic Governance Record renderer ────────────────────────────────────────
+var GOVERNANCE_SIGNAL_COLORS={
+  PROCEED:{fg:"#1A6B3A",bg:"#EAF7EE",border:"#1A6B3A"},
+  CAUTION:{fg:"#B7770D",bg:"#FEF9EE",border:"#B7770D"},
+  HALT:{fg:"#922B21",bg:"#FDEDEC",border:"#922B21"},
+  FAILED:{fg:"#922B21",bg:"#FDEDEC",border:"#922B21"}
+};
+var GOVERNANCE_NEUTRAL_COLOR={fg:"#1E3A4C",bg:"#EAF2FA",border:"#1A5276"};
+
+function governanceVerdictColor(label,value){
+  var v=(value||"").toUpperCase();
+  if(label==="Recommendation Signal") return GOVERNANCE_SIGNAL_COLORS[v]||GOVERNANCE_NEUTRAL_COLOR;
+  if(label==="Integration Signal") return v.indexOf("LOW")!==-1?GOVERNANCE_SIGNAL_COLORS.HALT:(v.indexOf("MEDIUM")!==-1||v.indexOf("HIGH")!==-1?GOVERNANCE_SIGNAL_COLORS.CAUTION:GOVERNANCE_NEUTRAL_COLOR);
+  if(label==="Fragility Score"){var n=parseInt((value||"").match(/\d+/),10);return isNaN(n)?GOVERNANCE_NEUTRAL_COLOR:n>=7?GOVERNANCE_SIGNAL_COLORS.HALT:n>=4?GOVERNANCE_SIGNAL_COLORS.CAUTION:GOVERNANCE_SIGNAL_COLORS.PROCEED;}
+  if(label==="Epistemic Health Score") return (v.indexOf("COMPROMISED")!==-1||v.indexOf("WEAK")!==-1)?GOVERNANCE_SIGNAL_COLORS.HALT:v.indexOf("ADEQUATE")!==-1?GOVERNANCE_SIGNAL_COLORS.CAUTION:v.indexOf("STRONG")!==-1?GOVERNANCE_SIGNAL_COLORS.PROCEED:GOVERNANCE_NEUTRAL_COLOR;
+  if(label==="Probe Verdict") return v.indexOf("CONCLUSION CHALLENGED")!==-1?GOVERNANCE_SIGNAL_COLORS.HALT:v.indexOf("SIGNIFICANT GAPS")!==-1?GOVERNANCE_SIGNAL_COLORS.CAUTION:v.indexOf("SOUND")!==-1?GOVERNANCE_SIGNAL_COLORS.PROCEED:GOVERNANCE_NEUTRAL_COLOR;
+  if(label==="Operational Confidence") return v.indexOf("LOW")!==-1?GOVERNANCE_SIGNAL_COLORS.HALT:v.indexOf("MEDIUM")!==-1?GOVERNANCE_SIGNAL_COLORS.CAUTION:v.indexOf("HIGH")!==-1?GOVERNANCE_SIGNAL_COLORS.PROCEED:GOVERNANCE_NEUTRAL_COLOR;
+  if(label==="Dominant Signal") return v.indexOf("HALT")!==-1?GOVERNANCE_SIGNAL_COLORS.HALT:v.indexOf("CAUTION")!==-1?GOVERNANCE_SIGNAL_COLORS.CAUTION:v.indexOf("PROCEED")!==-1?GOVERNANCE_SIGNAL_COLORS.PROCEED:GOVERNANCE_NEUTRAL_COLOR;
+  if(label==="Decision Brief Status") return v.indexOf("PARTIAL EVIDENCE BASE")!==-1?{fg:"#B45309",bg:"#FFFBEB",border:"#B45309"}:v.indexOf("COMPLETE")!==-1?{fg:"#0369A1",bg:"#EFF6FF",border:"#0369A1"}:GOVERNANCE_NEUTRAL_COLOR;
+  return GOVERNANCE_NEUTRAL_COLOR;
 }
 
-// ── Adversarial Probe Governance Record ──────────────────────────────────────
-function ProbeGovernanceRecord({decision}) {
-  var itemStyle={fontSize:11,lineHeight:1.7,color:"#334155"};
-  var hdr={fontWeight:700,fontSize:10,textTransform:"uppercase",letterSpacing:0.8,marginBottom:6,display:"block"};
-  return (
-    <div style={{fontSize:11,lineHeight:1.75,color:"#334155"}}>
-      <div style={{background:"#FDEDEC",border:"1px solid #922B21",borderRadius:8,padding:"12px 14px",marginBottom:10}}>
-        <span style={{...hdr,color:"#922B21"}}>Probe Verdict</span>
-        <div style={{fontWeight:700,fontSize:16,color:"#922B21",marginBottom:6}}>SIGNIFICANT GAPS</div>
-        <div style={{fontSize:11,color:"#7B1D1D",lineHeight:1.7}}>The Board has not assessed inaction harm with the same analytical rigour applied to implementation risks. The harmful status quo is being treated as a safe default.</div>
-      </div>
-      <div style={{background:"#EAF2FA",border:"1px solid #1A5276",borderRadius:8,padding:"12px 14px",marginBottom:10}}>
-        <span style={{...hdr,color:"#1A5276"}}>Key Analytical Discovery</span>
-        <div style={{fontWeight:700,fontSize:13,color:"#0F1923",marginBottom:6}}>The Board mapped implementation risks exhaustively while treating current exclusionary practices as a neutral baseline. Inaction is not neutral — it is an active decision with compounding consequences.</div>
-        <div style={{fontSize:11,color:"#4A5568",lineHeight:1.7}}>Every month of delay allows documented harms to accumulate. The four-trajectory analysis was incomplete — phased rollout and modified implementation pathways were available but inadequately examined.</div>
-      </div>
-      <div style={{fontWeight:700,fontSize:11,color:"#1E3A4C",marginBottom:6}}>What the Board Missed</div>
-      {[["Status quo harm not quantified","No Director measured the cost of continued discrimination, delayed care, or trust erosion — only implementation risk was mapped."],
-        ["Four-trajectory analysis incomplete","Modified implementation and phased rollout pathways were not examined as alternatives to full implementation or extended deferral."],
-        ["Temporal dynamics of delay ignored","No Director examined what happens to vulnerable consumers during 1-3 year culture change timelines."],
-        ["Implementation precedent overlooked","Recommendations built on theoretical requirements without examining comparable services that have succeeded."],
-      ].map(function(r,i){return (
-        <div key={i} style={{display:"grid",gridTemplateColumns:"1fr 2fr",gap:0,marginBottom:4}}>
-          <div style={{background:"#FDEDEC",border:"1px solid #E2D0D0",borderRight:"none",borderRadius:"6px 0 0 6px",padding:"8px 10px",fontWeight:700,fontSize:11,color:"#922B21"}}>{r[0]}</div>
-          <div style={{background:"#F8F9FA",border:"1px solid #E2D0D0",borderRadius:"0 6px 6px 0",padding:"8px 10px",fontSize:11,color:"#334155",lineHeight:1.6}}>{r[1]}</div>
-        </div>
-      );})}
-      <div style={{fontWeight:700,fontSize:11,color:"#1E3A4C",marginBottom:6,marginTop:10}}>What the Room Should Discuss</div>
-      {["Has the Board assessed inaction harm with the same rigour applied to implementation risks?",
-        "What would phased rollout look like — which basic dignity protections could begin immediately?",
-        "What evidence exists from comparable services that have successfully implemented this policy?",
-        "How will the Board monitor harm accumulation in the current system while the verification phase proceeds?",
-      ].map(function(q,i){return <div key={i} style={{fontSize:11,lineHeight:1.65,color:"#334155",paddingLeft:12,borderLeft:"2px solid #922B21",marginBottom:6}}>{"• "+q}</div>;})}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginTop:10}}>
-        <div style={{background:"#EAF7EE",border:"1px solid #1A6B3A",borderRadius:8,padding:"10px 12px"}}>
-          <span style={{...hdr,color:"#1A6B3A"}}>Chair Response</span>
-          <div style={{fontWeight:700,fontSize:12,color:"#1A6B3A",marginBottom:4}}>ACCEPTED</div>
-          <div style={itemStyle}>Decision Condition 1 requires immediate basic dignity protections within four weeks — beginning harm reduction before full implementation capacity is confirmed.</div>
-        </div>
-        <div style={{background:"#FDEDEC",border:"1px solid #922B21",borderRadius:8,padding:"10px 12px"}}>
-          <span style={{...hdr,color:"#922B21"}}>Governance Implication</span>
-          <div style={{fontWeight:700,fontSize:12,color:"#0F1923"}}>The most important question is not whether the policy is justified. It is whether the Board has examined both action and inaction with equal rigour.</div>
-        </div>
-      </div>
-    </div>
-  );
+function directorBriefToGovernanceRecord(briefJson){
+  var b={};try{b=JSON.parse(briefJson||"{}");}catch(e){}
+  var g=b.governance_record||{},signal=(b.signal||"").toUpperCase();
+  return {
+    headlineLabel:"Recommendation Signal",headline:signal||"—",headlineColor:governanceVerdictColor("Recommendation Signal",signal),
+    headlineRationale:g.signal_rationale||"",keyDiscoveryLabel:"Key Discovery",keyDiscovery:g.key_discovery||b.core_judgment||"",
+    primaryTension:g.primary_tension||"",roomShouldDiscuss:g.room_should_discuss||[],mostLikelyToBenefit:g.most_likely_to_benefit||[],
+    mostExposedToFailure:g.most_exposed_to_failure||[],nonNegotiableConditions:g.non_negotiable_conditions||[],governanceImplication:g.governance_implication||"",
+    extractionFlags:b.overflow_flags||[]
+  };
 }
 
-// ── Reality Anchor Governance Record ─────────────────────────────────────────
-function RealityGovernanceRecord({decision}) {
-  var itemStyle={fontSize:11,lineHeight:1.7,color:"#334155"};
+function synthesisBriefToGovernanceRecord(briefJson){
+  var b={};try{b=JSON.parse(briefJson||"{}");}catch(e){}
+  return {
+    headlineLabel:b.verdict_label||"Verdict",headline:b.verdict||"—",headlineColor:governanceVerdictColor(b.verdict_label,b.verdict),
+    headlineRationale:b.signal_rationale||"",keyDiscoveryLabel:"Key Discovery",keyDiscovery:b.key_discovery||"",
+    primaryTension:b.primary_tension||"",roomShouldDiscuss:b.room_should_discuss||[],mostLikelyToBenefit:b.most_likely_to_benefit||[],
+    mostExposedToFailure:b.most_exposed_to_failure||[],nonNegotiableConditions:b.non_negotiable_conditions||[],governanceImplication:b.governance_implication||"",
+    extractionFlags:b._fallback_reason?["DETERMINISTIC_FALLBACK: "+b._fallback_reason]:[]
+  };
+}
+
+function governanceRecordToMarkdown(record){
+  if(!record) return "(Governance Record not yet available for this module.)";
+  var out=[];
+  if(record.keyDiscovery) out.push("## "+(record.keyDiscoveryLabel||"Key Discovery")+"\n\n"+record.keyDiscovery);
+  if(record.primaryTension) out.push("## Primary Tension\n\n"+record.primaryTension);
+  if(record.headline&&record.headline!=="—"){
+    var h="## "+record.headlineLabel+"\n\n"+record.headline;
+    if(record.headlineRationale) h+="\n\n"+record.headlineRationale;
+    out.push(h);
+  }
+  if(record.roomShouldDiscuss&&record.roomShouldDiscuss.length) out.push("## What the Room Should Discuss\n\n"+record.roomShouldDiscuss.map(function(x){return "- "+x;}).join("\n"));
+  if(record.mostLikelyToBenefit&&record.mostLikelyToBenefit.length) out.push("## Most Likely to Benefit\n\n"+record.mostLikelyToBenefit.map(function(x){return "- "+x;}).join("\n"));
+  if(record.mostExposedToFailure&&record.mostExposedToFailure.length) out.push("## Most Exposed to Failure\n\n"+record.mostExposedToFailure.map(function(x){return "- "+x;}).join("\n"));
+  if(record.nonNegotiableConditions&&record.nonNegotiableConditions.length) out.push("## Non-Negotiable Conditions\n\n"+record.nonNegotiableConditions.map(function(x){return "- "+x;}).join("\n"));
+  if(record.governanceImplication) out.push("## Governance Implication\n\n"+record.governanceImplication);
+  if(record.extractionFlags&&record.extractionFlags.some(function(x){return /FALLBACK|COMPRESSION/i.test(x);})) out.push("## Extraction Note\n\nThis board-readable record was reconstructed deterministically from the completed technical analysis after structured extraction failed. Review the Technical Analysis for full context.");
+  return out.join("\n\n");
+}
+
+function GovernanceRecord({record}){
+  if(!record) return <div style={{fontSize:11,color:"#94A3B8",fontStyle:"italic"}}>Governance Record is still being derived from the completed analysis.</div>;
+  var r=record,labelStyle={fontWeight:700,textTransform:"uppercase",fontSize:10,letterSpacing:1,display:"block",marginBottom:4};
   var hdr={fontWeight:700,fontSize:10,textTransform:"uppercase",letterSpacing:0.8,marginBottom:6,display:"block"};
-  var realities=[
-    ["Baseline Reality","LOW",["#922B21","#FDEDEC"],"Governance analysis assumes baseline conditions that are largely unverified. Directors reference documented barriers without establishing actual gender diverse consumer utilisation rates, staff competency levels, or existing clinical protocols at this specific service.","Baseline assessment required before implementation decision."],
-    ["Capability Reality","MEDIUM",["#B7770D","#FEF9EE"],"Significant capability mismatch between implementation requirements and verified capacity. 0.2 FTE coordination need is identified but not confirmed. EHR modification scope is unknown.","Gap between requirements and verified capacity is real and unresolved."],
-    ["Monitoring Reality","LOW",["#922B21","#FDEDEC"],"No clear Theory of Change connecting policy interventions to measurable outcomes. Metric theatre risk — activity-based measures substituting for validity measures of actual inclusion.","The governance record may show compliance while actual consumer experience remains unverified."],
-    ["Reversibility Reality","IRREVERSIBLE",["#374151","#F3F4F6"],"Once inclusive policy is adopted, reversal becomes ethically unacceptable. Community reputation shifts take 2-5 years. EHR and physical environment changes cannot be easily undone.","Verification conditions must be satisfied before irreversible commitments are triggered."],
-    ["Accountability Reality","DIFFUSE",["#B7770D","#FEF9EE"],"Accountability pathways are not clearly assigned. No specification of who has authority to halt implementation, who monitors compliance versus clinical judgement conflicts, or who bears responsibility for coordination failures.","Named accountability required for each condition before implementation proceeds."],
-  ];
-  return (
-    <div style={{fontSize:11,lineHeight:1.75,color:"#334155"}}>
-      <div style={{background:"#F3F4F6",border:"1px solid #374151",borderRadius:8,padding:"12px 14px",marginBottom:10}}>
-        <span style={{...hdr,color:"#374151"}}>Key Reality Finding</span>
-        <div style={{fontWeight:700,fontSize:13,color:"#0F1923",marginBottom:6}}>The governance analysis identified extensive implementation requirements. It did not verify whether this specific service has the capacity to meet them simultaneously under existing operational pressures.</div>
-        <div style={{display:"flex",gap:8,marginTop:6}}>
-          <div style={{background:"#FEF9EE",border:"1px solid #B7770D",borderRadius:6,padding:"6px 10px",flex:1}}>
-            <span style={{fontWeight:700,fontSize:10,color:"#B7770D"}}>OPERATIONAL CONFIDENCE</span>
-            <div style={{fontWeight:700,fontSize:14,color:"#B7770D"}}>MEDIUM</div>
-          </div>
-          <div style={{background:"#FDEDEC",border:"1px solid #922B21",borderRadius:6,padding:"6px 10px",flex:2}}>
-            <span style={{fontWeight:700,fontSize:10,color:"#922B21"}}>BINDING CONSTRAINT</span>
-            <div style={{fontSize:11,color:"#922B21",fontWeight:600}}>Staff cognitive bandwidth ceiling — currently active regardless of policy merit.</div>
-          </div>
-        </div>
+  var item={fontSize:11,lineHeight:1.7,color:"#334155"},two={display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:10};
+  var hasPeople=(r.mostLikelyToBenefit&&r.mostLikelyToBenefit.length)||(r.mostExposedToFailure&&r.mostExposedToFailure.length);
+  return <div style={{fontSize:11,lineHeight:1.75,color:"#334155"}}>
+    {r.keyDiscovery&&<div style={{background:"#E8F5F5",border:"1px solid #0E6B6B",borderRadius:8,padding:"12px 14px",marginBottom:10}}>
+      <span style={{...labelStyle,color:"#0E6B6B"}}>{r.keyDiscoveryLabel||"Key Discovery"}</span>
+      <div style={{fontWeight:700,fontSize:13,color:"#0F1923"}}>{r.keyDiscovery}</div>
+    </div>}
+    {(r.primaryTension||r.headline!=="—")&&<div style={two}>
+      {r.primaryTension&&<div style={{background:"#FEF9EE",border:"1px solid #B7770D",borderRadius:8,padding:"10px 12px"}}>
+        <span style={{...hdr,color:"#B7770D"}}>Primary Tension</span><div style={item}>{r.primaryTension}</div>
+      </div>}
+      <div style={{background:r.headlineColor.bg,border:"1px solid "+r.headlineColor.border,borderRadius:8,padding:"10px 12px"}}>
+        <span style={{...hdr,color:r.headlineColor.fg}}>{r.headlineLabel}</span>
+        <div style={{fontWeight:700,fontSize:13,color:r.headlineColor.fg,marginBottom:4}}>{r.headline}</div>
+        {r.headlineRationale&&<div style={item}>{r.headlineRationale}</div>}
       </div>
-      {realities.map(function(r,i){return (
-        <div key={i} style={{display:"grid",gridTemplateColumns:"120px 1fr 1fr",gap:0,marginBottom:4}}>
-          <div style={{background:r[2][1],border:"1px solid #E2E8F0",borderRight:"none",borderRadius:"6px 0 0 6px",padding:"8px 10px"}}>
-            <div style={{fontWeight:700,fontSize:11,color:r[2][0]}}>{r[0]}</div>
-            <div style={{fontSize:10,fontWeight:700,color:r[2][0],marginTop:2}}>{r[1]}</div>
-          </div>
-          <div style={{background:"#FFFFFF",border:"1px solid #E2E8F0",borderRight:"none",padding:"8px 10px",fontSize:11,color:"#334155",lineHeight:1.6}}>{r[3]}</div>
-          <div style={{background:"#F8F9FA",border:"1px solid #E2E8F0",borderRadius:"0 6px 6px 0",padding:"8px 10px",fontSize:11,color:"#4A5568",lineHeight:1.6,fontStyle:"italic"}}>{r[4]}</div>
-        </div>
-      );})}
-      <div style={{fontWeight:700,fontSize:11,color:"#1E3A4C",marginBottom:6,marginTop:10}}>Currently Active Friction Signals</div>
-      {[["Staff cognitive bandwidth ceiling","ACTIVE","#922B21"],
-        ["Consumer feedback reliability compromised by fear of service loss","ACTIVE","#922B21"],
-        ["EHR vendor coordination beyond organisational control","ON IMPLEMENTATION","#B7770D"],
-        ["Clinical supervision bandwidth constraints","ON IMPLEMENTATION","#B7770D"],
-      ].map(function(s,i){return (
-        <div key={i} style={{display:"flex",gap:6,alignItems:"center",marginBottom:4}}>
-          <span style={{fontSize:9,fontWeight:700,padding:"2px 7px",borderRadius:6,background:s[2]==="#922B21"?"#FDEDEC":"#FEF9EE",color:s[2],border:"1px solid "+s[2],whiteSpace:"nowrap"}}>{s[1]}</span>
-          <span style={{fontSize:11,color:"#334155"}}>{s[0]}</span>
-        </div>
-      );})}
-      <div style={{fontWeight:700,fontSize:11,color:"#1E3A4C",marginBottom:6,marginTop:10}}>What the Room Should Discuss</div>
-      {["What baseline data actually exists — and what would it take to obtain what is missing before the verification window opens?",
-        "Has the 0.2 FTE coordination capacity requirement been confirmed as available?",
-        "Who holds specific accountability for each verification condition, with authority to halt implementation?",
-        "Given that reversal is ethically constrained once the policy is adopted, is the Board confident enough to trigger that irreversibility?",
-      ].map(function(q,i){return <div key={i} style={{fontSize:11,lineHeight:1.65,color:"#334155",paddingLeft:12,borderLeft:"2px solid #374151",marginBottom:6}}>{"• "+q}</div>;})}
-      <div style={{background:"#F3F4F6",border:"1px solid #374151",borderRadius:8,padding:"10px 12px",marginTop:8}}>
-        <span style={{...hdr,color:"#374151"}}>Governance Implication</span>
-        <div style={{fontWeight:700,fontSize:12,color:"#0F1923"}}>The question is not whether the policy is justified. The question is whether this institution, at this moment, can implement it without creating new harms in the process of addressing existing ones.</div>
+    </div>}
+    {r.roomShouldDiscuss&&r.roomShouldDiscuss.length>0&&<div style={{marginBottom:10}}>
+      <div style={{fontWeight:700,fontSize:11,color:"#1E3A4C",marginBottom:6}}>What the Room Should Discuss</div>
+      {r.roomShouldDiscuss.map(function(q,i){return <div key={i} style={{fontSize:11,lineHeight:1.65,color:"#334155",paddingLeft:12,borderLeft:"2px solid #0E6B6B",marginBottom:6}}>{"• "+q}</div>;})}
+    </div>}
+    {hasPeople&&<div style={two}>
+      <div style={{background:"#EAF7EE",border:"1px solid #1A6B3A",borderRadius:8,padding:"10px 12px"}}>
+        <span style={{...hdr,color:"#1A6B3A"}}>Most Likely to Benefit</span>{(r.mostLikelyToBenefit||[]).map(function(x,i){return <div key={i} style={item}>{"• "+x}</div>;})}
       </div>
-    </div>
-  );
+      <div style={{background:"#FDEDEC",border:"1px solid #922B21",borderRadius:8,padding:"10px 12px"}}>
+        <span style={{...hdr,color:"#922B21"}}>Most Exposed to Failure</span>{(r.mostExposedToFailure||[]).map(function(x,i){return <div key={i} style={item}>{"• "+x}</div>;})}
+      </div>
+    </div>}
+    {r.nonNegotiableConditions&&r.nonNegotiableConditions.length>0&&<div style={{background:"#FEF9EE",border:"1px solid #B7770D",borderRadius:8,padding:"10px 12px",marginBottom:10}}>
+      <span style={{...hdr,color:"#B7770D"}}>Non-Negotiable Conditions</span>{r.nonNegotiableConditions.map(function(x,i){return <div key={i} style={item}>{"• "+x}</div>;})}
+    </div>}
+    {r.governanceImplication&&<div style={{background:"#E8F5F5",border:"1px solid #0E6B6B",borderRadius:8,padding:"10px 12px",marginBottom:10}}>
+      <span style={labelStyle}>Governance Implication</span><div style={{fontWeight:700,fontSize:12,color:"#0F1923"}}>{r.governanceImplication}</div>
+    </div>}
+    {r.extractionFlags&&r.extractionFlags.some(function(x){return /FALLBACK|COMPRESSION/i.test(x);})&&<div style={{padding:"8px 10px",borderRadius:8,background:"#FFF7ED",border:"1px solid #FED7AA",fontSize:10,color:"#92400E"}}>
+      Structured extraction required deterministic fallback. The Governance Record is source-derived; use Technical Analysis for the complete reasoning record.
+    </div>}
+  </div>;
 }
 
 function DirectorCard({director,output,loading,expanded,onToggle,confidence,onExport,govRecord,govView,setGovView}) {
