@@ -423,7 +423,8 @@ export async function runGovernancePipeline(config,runtime,emit) {
       state.surfaceMapOut=await runGoverned("surface_map",surfaceMapperSystem(config.analysisMode,activeDir,config.instructions),"Decision: "+config.decision+"\n\nAll Director Governance Briefs:\n"+briefSummary+signalCountNote,config.autoContinue);
       emit("stage-output",{stage:"surface_map",output:state.surfaceMapOut});
       await storeSynthesisBrief("surfacemap","Decision Surface Map",state.surfaceMapOut);
-    } catch(e){ state.stageErrors.push("Surface Mapper failed"); }
+      setSynthesisStageStatus("surface_map","success");
+    } catch(e){ recordStageFailure("surface_map","Surface Mapper",e); }
     stageEmitter(emit,"surface_map",false); emit("stages-done",{value:2});
 
     var fullDirSummary=state.results.map(function(d){return "### "+d.label+"\n"+d.output;}).join("\n\n");
@@ -454,7 +455,8 @@ export async function runGovernancePipeline(config,runtime,emit) {
       state.epistemicOut=state.epistemicOut?stripCalibrationBleed(state.epistemicOut):state.epistemicOut;
       emit("stage-output",{stage:"epistemic_audit",output:state.epistemicOut});
       await storeSynthesisBrief("epistemic","Epistemic Confidence Audit",state.epistemicOut);
-    } catch(e){ state.stageErrors.push("Epistemic failed"); }
+      setSynthesisStageStatus("epistemic_audit","success");
+    } catch(e){ recordStageFailure("epistemic_audit","Epistemic",e); }
     stageEmitter(emit,"epistemic_audit",false); emit("stages-done",{value:3});
 
     try {
@@ -462,7 +464,8 @@ export async function runGovernancePipeline(config,runtime,emit) {
       state.metaOut=await runGoverned("cross_domain_tension_analysis",metaSystem((config.docs&&config.docs.meta)||[],config.webSearch,config.publicWebSearch,config.sessionEvidence,config.analysisMode,activeDir,config.instructions),"Decision: "+config.decision+"\n\nDecision Surface Map:\n"+state.surfaceMapOut+"\n\nDirector Governance Briefs:\n"+briefSummary+(state.epistemicOut?"\n\nEpistemic Audit:\n"+state.epistemicOut:""),config.autoContinue,config.webSearch||config.publicWebSearch);
       emit("stage-output",{stage:"meta",output:state.metaOut});
       await storeSynthesisBrief("meta","Cross-Domain Tension Analysis",state.metaOut);
-    } catch(e){ state.stageErrors.push("META failed"); }
+      setSynthesisStageStatus("meta","success");
+    } catch(e){ recordStageFailure("meta","META",e); }
     stageEmitter(emit,"meta",false); emit("stages-done",{value:4});
 
     try {
@@ -470,7 +473,8 @@ export async function runGovernancePipeline(config,runtime,emit) {
       state.realityAnchorOut=await runGoverned("reality_anchor",realityAnchorSystem(config.analysisMode,activeDir,config.instructions),"Decision: "+config.decision+"\n\nDirector Governance Briefs:\n"+briefSummary+"\n\nDecision Surface Map:\n"+state.surfaceMapOut+"\n\nMETA Synthesis:\n"+state.metaOut,config.autoContinue);
       emit("stage-output",{stage:"reality_anchor",output:state.realityAnchorOut});
       await storeSynthesisBrief("reality","Reality Anchor",state.realityAnchorOut);
-    } catch(e){ state.stageErrors.push("Reality Anchor failed"); }
+      setSynthesisStageStatus("reality_anchor","success");
+    } catch(e){ recordStageFailure("reality_anchor","Reality Anchor",e); }
     stageEmitter(emit,"reality_anchor",false); emit("stages-done",{value:5});
 
     try {
@@ -481,7 +485,8 @@ export async function runGovernancePipeline(config,runtime,emit) {
       state.probeOut=await runGoverned("adversarial_probe",adversarialProbeSystem(dominantSignal,config.analysisMode,activeDir,config.instructions),"Decision: "+config.decision+"\n\nAll Director Governance Briefs:\n"+briefSummary+"\n\nMETA-AUTHOR Synthesis:\n"+state.metaOut+"\n\nReality Anchor:\n"+state.realityAnchorOut,config.autoContinue);
       emit("stage-output",{stage:"probe",output:state.probeOut});
       await storeSynthesisBrief("probe","Adversarial Probe",state.probeOut);
-    } catch(e){ state.stageErrors.push("Probe failed"); }
+      setSynthesisStageStatus("probe","success");
+    } catch(e){ recordStageFailure("probe","Probe",e); }
     stageEmitter(emit,"probe",false); emit("stages-done",{value:6});
 
     var probeVerdict=findSignal(state.probeOut,["BOARD REASONING SOUND","SIGNIFICANT GAPS","CONCLUSION CHALLENGED"]);
@@ -493,8 +498,11 @@ export async function runGovernancePipeline(config,runtime,emit) {
         state.stressOut=await runGoverned("stress_test",stressSystem((config.docs&&config.docs.stress)||[],config.webSearch,config.publicWebSearch,config.sessionEvidence,config.analysisMode,activeDir,config.instructions),"Decision: "+config.decision+"\n\nDecision Surface Map:\n"+state.surfaceMapOut+"\n\nMETA-AUTHOR:\n"+state.metaOut+"\n\nReality Anchor:\n"+state.realityAnchorOut,config.autoContinue,config.webSearch||config.publicWebSearch);
         emit("stage-output",{stage:"stress",output:state.stressOut});
         await storeSynthesisBrief("stress","Decision Stress Test",state.stressOut);
-      } catch(e){ state.stageErrors.push("Stress failed"); }
+        setSynthesisStageStatus("stress","success");
+      } catch(e){ recordStageFailure("stress","Stress",e); }
       stageEmitter(emit,"stress",false);
+    } else {
+      setSynthesisStageStatus("stress","skipped");
     }
     emit("stages-done",{value:7});
 
@@ -514,7 +522,8 @@ export async function runGovernancePipeline(config,runtime,emit) {
       state.chairOut=await repairChair(state.chairOut,chairPrompt,chairUser);
       emit("stage-output",{stage:"chair",output:state.chairOut});
       await storeSynthesisBrief("chair","Chair Decision",state.chairOut);
-    } catch(e){ state.stageErrors.push("Chair failed: "+e.message); }
+      setSynthesisStageStatus("chair","success");
+    } catch(e){ recordStageFailure("chair","Chair",e); }
     stageEmitter(emit,"chair",false); emit("stages-done",{value:8});
 
     try {
@@ -544,7 +553,8 @@ export async function runGovernancePipeline(config,runtime,emit) {
       }
       state.comparatorData={raw:compRaw,parsed:compParsed,created_at:runtimeNow(runtime)};
       emit("comparator",{comparatorData:state.comparatorData});
-    } catch(e){ state.stageErrors.push("Comparator failed"); }
+      setSynthesisStageStatus("comparator","success");
+    } catch(e){ recordStageFailure("comparator","Comparator",e); }
 
     if(state.results.length>0){
       var record=buildLedgerRecord(makeLedgerInput(config,state,state.stressDecision),runtime);
