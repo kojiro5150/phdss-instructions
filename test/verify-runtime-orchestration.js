@@ -169,7 +169,9 @@ if(/async function\s+callClaudeChat\s*\(/.test(app)) failures.push("callClaudeCh
 if(/async function\s+fetchInstructionFile\s*\(/.test(app)) failures.push("fetchInstructionFile remains locally defined");
 if(/async function\s+loadAllInstructions\s*\(/.test(app)) failures.push("loadAllInstructions remains locally defined");
 if(!/function\s+parseDashboard\s*\(/.test(app)) failures.push("parseDashboard moved during orchestration PR 1");
-if(!/async function\s+compressDirectorOutput\s*\(/.test(app)) failures.push("compression orchestration moved too early");
+if(!app.includes("./src/runtime/governance-compression.js")) failures.push("Governance Brief compression runtime is not wired");
+if(/async function\s+compressDirectorOutput\s*\(/.test(app)) failures.push("Director compression remains duplicated in App_FINAL.jsx");
+if(/async function\s+compressSynthesisOutput\s*\(/.test(app)) failures.push("synthesis compression remains duplicated in App_FINAL.jsx");
 if(!/async function\s+callGovernedSynthesis\s*\(/.test(app)) failures.push("synthesis authority orchestration moved too early");
 if(!/function\s+commitToLedger\s*\(/.test(app)) failures.push("ledger assembly moved too early");
 
