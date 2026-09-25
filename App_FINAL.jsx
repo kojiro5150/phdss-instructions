@@ -214,6 +214,9 @@ function exportFullDashboard(d, decision, decisionId, decisionSignal, orgContext
   var rows = [
     "GOVERNANCE SCORECARD","--------------------",
     "  Analysis Mode:          "+d.analysisMode,
+    "  Session Status:         "+(d.sessionGovernanceStatus||"UNKNOWN"),
+    "  Failed Synthesis:       "+((d.failedSynthesisStages&&d.failedSynthesisStages.length)?d.failedSynthesisStages.join(", "):"none"),
+    "  Failed Mandatory:       "+((d.failedMandatorySynthesisStages&&d.failedMandatorySynthesisStages.length)?d.failedMandatorySynthesisStages.join(", "):"none"),
     "  Stress Test:            "+(stressRan?"TRIGGERED — "+(stressReason||"triggered"):"SKIPPED — "+(stressReason||"threshold not met")),
     "  Coverage Ratio:         "+d.coverageRatio,
     "  Coverage Note:          "+d.coverageNote,
@@ -236,6 +239,14 @@ function exportFullDashboard(d, decision, decisionId, decisionSignal, orgContext
   // m1 FIX: Added period after each general note phrase so the partial run
   // caveat in aiModeNote reads as a separate sentence, not a run-on.
   rows.push("  AI Integrity Note:      "+( d.aiIntegrityScore!==null ? (d.aiIntegrityScore>=70?"Adequate analytical confidence.":d.aiIntegrityScore>=40?"Moderate uncertainty — review epistemic gaps.":"High uncertainty — analytical limitations likely reflect coverage or evidence gaps.")+aiModeNote : "Not calculated" ));
+  rows.push("","SYNTHESIS EXECUTION","-------------------");
+  var executionLabels={surface_map:"Surface Map",epistemic_audit:"Epistemic Audit",meta:"META",reality_anchor:"Reality Anchor",probe:"Adversarial Probe",stress:"Stress Test",chair:"Chair",comparator:"Comparator"};
+  var executionOrder=["surface_map","epistemic_audit","meta","reality_anchor","probe","stress","chair","comparator"];
+  executionOrder.forEach(function(stage){
+    var rec=d.synthesisStageStatus&&d.synthesisStageStatus[stage];
+    if(!rec) return;
+    rows.push("  "+(executionLabels[stage]||stage).padEnd(22)+" "+String(rec.status||"unknown").toUpperCase()+(rec.reason?" — "+rec.reason:"")+(rec.error?" — "+rec.error:""));
+  });
   rows.push("","ACTIVE DIRECTORS","----------------");
   d.signals.forEach(function(s) { rows.push("  "+s.label.padEnd(34)+" "+s.signal); });
   if (d.omittedDirectors && d.omittedDirectors.length) {
@@ -963,8 +974,12 @@ function PendingNote({stage,running,notStarted}) {
 
 
 // --- TRANSPARENCY DASHBOARD ---------------------------------------------------
-function TransparencyDashboard({decision,dirOutputs,meta,stress,chair,epistemic,probe,dialogueHistory,totalLoadedDocs,webSearch,decisionId,decisionSignal,orgContext,comparator,running,done,surfaceMap,realityAnchor,analysisMode,activeDirectors,omittedDirectors,stressTestResult}) {
+function TransparencyDashboard({decision,dirOutputs,meta,stress,chair,epistemic,probe,dialogueHistory,totalLoadedDocs,webSearch,decisionId,decisionSignal,orgContext,comparator,running,done,surfaceMap,realityAnchor,analysisMode,activeDirectors,omittedDirectors,stressTestResult,sessionGovernanceStatus,stageStatuses,failedSynthesisStages,failedMandatorySynthesisStages}) {
   var d=parseDashboard(decision,dirOutputs,meta,stress,chair,dialogueHistory,totalLoadedDocs,webSearch,epistemic,probe,analysisMode,activeDirectors,omittedDirectors);
+  d.sessionGovernanceStatus=sessionGovernanceStatus||null;
+  d.synthesisStageStatus=stageStatuses||{};
+  d.failedSynthesisStages=failedSynthesisStages||[];
+  d.failedMandatorySynthesisStages=failedMandatorySynthesisStages||[];
   var govColor=d.governanceLevel==="HIGH"?"#059669":d.governanceLevel==="MEDIUM"?"#D97706":"#DC2626";
   var govBg=d.governanceLevel==="HIGH"?"#D1FAE5":d.governanceLevel==="MEDIUM"?"#FEF3C7":"#FEE2E2";
   var fragNum=parseInt(d.fragScore)||0;
@@ -1012,6 +1027,15 @@ function TransparencyDashboard({decision,dirOutputs,meta,stress,chair,epistemic,
           </div>
         </div>
       }
+      {d.sessionGovernanceStatus&&d.sessionGovernanceStatus!=="COMPLETE"&&
+        <div style={{marginBottom:16,padding:"12px 16px",borderRadius:12,background:d.failedMandatorySynthesisStages.length>0?"#FEF2F2":"#FFFBEB",border:"1px solid "+(d.failedMandatorySynthesisStages.length>0?"#FECACA":"#FDE68A")}}>
+          <div style={{fontSize:11,fontWeight:800,color:d.failedMandatorySynthesisStages.length>0?"#B91C1C":"#92400E",letterSpacing:0.4,marginBottom:4}}>
+            {d.failedMandatorySynthesisStages.length>0?"INCOMPLETE GOVERNANCE RUN":"DEGRADED GOVERNANCE RUN"}
+          </div>
+          <div style={{fontSize:11,color:d.failedMandatorySynthesisStages.length>0?"#B91C1C":"#92400E",lineHeight:1.55}}>
+            Session status: {d.sessionGovernanceStatus}. Failed synthesis stages: {d.failedSynthesisStages.length?d.failedSynthesisStages.join(", "):"none"}.
+          </div>
+        </div>}
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:18,flexWrap:"wrap",gap:10}}>
         <div>
           <div style={{fontSize:14,fontWeight:700,color:"#0F172A",marginBottom:3}}>Transparency Dashboard</div>
@@ -1803,7 +1827,7 @@ function PHDSS() {
       if(type==="stage-status"){
         setStageStatuses(function(prev){
           var n=Object.assign({},prev);
-          n[payload.stage]={status:payload.status,error:payload.error||null};
+          n[payload.stage]={status:payload.status,error:payload.error||null,reason:payload.reason||null};
           return n;
         });
         return;
@@ -1857,7 +1881,13 @@ function PHDSS() {
         setError("Session error: "+pipelineState.fatalError.message);
         setPartialFailure(Object.keys(dirOutputs).length>0);
       } else if(pipelineState.stageErrors.length>0) {
-        setError("Completed with partial failures: "+pipelineState.stageErrors.join(", "));
+        var runStatus=pipelineState.ledgerRecord&&pipelineState.ledgerRecord.session_governance_status;
+        var issuePrefix=runStatus&&runStatus.indexOf("INCOMPLETE")===0
+          ?"Session incomplete: "
+          :runStatus==="COMPLETE_DEGRADED"
+            ?"Completed with degraded synthesis: "
+            :"Completed with partial failures: ";
+        setError(issuePrefix+pipelineState.stageErrors.join(", "));
       }
     } catch(fatalErr) {
       setError("Session error: "+fatalErr.message);
@@ -2058,7 +2088,7 @@ function PHDSS() {
                 <button onClick={function(){setModeFamily("GOVERNANCE");setTab("board");}} style={{padding:"9px 22px",borderRadius:8,border:"none",background:"linear-gradient(135deg,#0EA5E9,#0369A1)",color:"#FFFFFF",fontSize:12,fontWeight:600}}>Switch to Governance Run</button>
               </div>
             :(done||Object.keys(dirOutputs).length>0)?
-              <TransparencyDashboard decision={decision} dirOutputs={dirOutputs} meta={meta} stress={stress} chair={chair} epistemic={epistemic} probe={probe} dialogueHistory={dialogueHistory} totalLoadedDocs={totalLoadedDocs} webSearch={webSearch} decisionId={decisionId} decisionSignal={decisionSignal} orgContext={orgContext} comparator={comparator} running={running} done={done} surfaceMap={surfaceMap} realityAnchor={realityAnchor} analysisMode={analysisMode} activeDirectors={activeDirectorsRef} omittedDirectors={omittedDirectorsRef} stressTestResult={stressTestResult}/>
+              <TransparencyDashboard decision={decision} dirOutputs={dirOutputs} meta={meta} stress={stress} chair={chair} epistemic={epistemic} probe={probe} dialogueHistory={dialogueHistory} totalLoadedDocs={totalLoadedDocs} webSearch={webSearch} decisionId={decisionId} decisionSignal={decisionSignal} orgContext={orgContext} comparator={comparator} running={running} done={done} surfaceMap={surfaceMap} realityAnchor={realityAnchor} analysisMode={analysisMode} activeDirectors={activeDirectorsRef} omittedDirectors={omittedDirectorsRef} stressTestResult={stressTestResult} sessionGovernanceStatus={sessionGovernanceStatus} stageStatuses={stageStatuses} failedSynthesisStages={failedSynthesisStages} failedMandatorySynthesisStages={failedMandatorySynthesisStages}/>
             :
               <div style={{textAlign:"center",padding:"80px 20px"}}>
                 <div style={{fontSize:13,color:"#94A3B8",fontWeight:600,marginBottom:8}}>No session data yet</div>

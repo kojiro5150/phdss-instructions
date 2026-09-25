@@ -73,6 +73,9 @@ const required = [
   "./src/pipeline.js",
   "runGovernancePipeline",
   "buildLedgerRecord",
+  "authorityViolationMessage",
+  "required upstream stage chair failed",
+  "SYNTHESIS EXECUTION",
   "loadAllInstructions",
   "callClaude_synthesis",
 ];
