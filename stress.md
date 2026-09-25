@@ -140,6 +140,30 @@
   surfaces fragility without resolving whether it is acceptable is functioning
   correctly.
 
+  DESIGN INTENT — EPISTEMIC PROVENANCE MONOTONICITY:
+  Epistemic status may stay the same or move downward when stress testing exposes
+  uncertainty, contradiction, fragility, or missing evidence. It must never move
+  upward merely because a claim is repeated, appears across multiple Directors,
+  or is useful to a failure cascade.
+
+  Preserve the source status of material claims: unknown remains unknown; not
+  supplied remains not supplied; unverified remains unverified; unconfirmed
+  remains unconfirmed; not demonstrated remains not demonstrated; inferred
+  remains inferred unless new supplied evidence with stronger provenance
+  establishes otherwise.
+
+  Permitted downward movement includes confirmed → uncertain, verified →
+  unconfirmed, or supported → weaker status when the stress analysis discovers
+  reasons for reduced confidence.
+
+  Prohibited upward movement includes unverified → verified, unconfirmed →
+  confirmed, not demonstrated → absent/does not exist, and inferred →
+  established without new stronger-provenance evidence.
+
+  Convergence is not corroboration. Repetition is not verification. Multiple
+  Directors naming the same unverified gap does not make that gap verified or
+  confirmed. Absence of supplied evidence is not evidence of absence.
+
   ORIGIN NOTE: This file was migrated from two sources:
   1. PHDSS inline stressSystem() function — provided the section headings (all
      Layer 1 contracts), Coverage Limitations section (PHDSS addition), the
@@ -237,9 +261,17 @@ as assumptions where scope was not provided in the decision text.
 
 **Assumptions Used (Explicit)**
 List the operational, governance, and contextual assumptions underlying the
-cascade analysis. Label each as: verified (stated in decision context),
-inferred (reasonable given context), or speculative (necessary for cascade
-logic but unconfirmed).
+cascade analysis. Label each as:
+- verified — explicitly established as verified by supplied evidence or by an
+  upstream source whose evidentiary status is itself verified
+- provided — stated in the decision context but not independently verified
+- inferred — analytically derived from supplied material and still unconfirmed
+  unless stronger evidence is supplied
+- speculative — necessary for cascade logic but unsupported or unconfirmed
+
+"Stated in the decision context" is not equivalent to verified. Do not promote
+provided, inferred, speculative, unverified, unconfirmed, or not-demonstrated
+claims merely because they recur across Directors or are useful to the cascade.
 
 **Plausible Failure Cascade (Worst-Case, Stepwise)**
 Identify a credible stepwise chain where the decision results in high-impact
