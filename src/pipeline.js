@@ -26,6 +26,60 @@ import {
   formatBriefForSynthesis,
 } from "./runtime/governance-compression.js";
 
+export const MANDATORY_SYNTHESIS_STAGES = Object.freeze([
+  "surface_map",
+  "epistemic_audit",
+  "meta",
+  "probe",
+  "chair",
+]);
+
+export const DEGRADABLE_SYNTHESIS_STAGES = Object.freeze([
+  "reality_anchor",
+  "stress",
+  "comparator",
+]);
+
+function errorText(error) {
+  return error && error.message ? error.message : String(error);
+}
+
+function stageStatusRecord(status,error) {
+  var record={status:status};
+  if(error) record.error=errorText(error);
+  return record;
+}
+
+function inferSynthesisStageStatus(input,hasChair) {
+  if(input.synthesisStageStatus) return input.synthesisStageStatus;
+  return {
+    surface_map:stageStatusRecord(input.surfaceMapOut?"success":"failed"),
+    epistemic_audit:stageStatusRecord(input.epistemicOut?"success":"failed"),
+    meta:stageStatusRecord(input.metaOut?"success":"failed"),
+    reality_anchor:stageStatusRecord(input.realityAnchorOut?"success":"failed"),
+    probe:stageStatusRecord(input.probeOut?"success":"failed"),
+    stress:stageStatusRecord(input.stressResult&&input.stressResult.run?(input.stressOut?"success":"failed"):"skipped"),
+    chair:stageStatusRecord(hasChair?"success":"failed"),
+    comparator:stageStatusRecord(input.comparatorData?"success":"failed"),
+  };
+}
+
+export function classifySessionGovernanceStatus(input) {
+  var hasChair=input.hasChair===true;
+  var stageStatus=inferSynthesisStageStatus(input,hasChair);
+  var failedMandatory=MANDATORY_SYNTHESIS_STAGES.filter(function(stage){
+    return !stageStatus[stage]||stageStatus[stage].status!=="success";
+  });
+  var failedDegradable=DEGRADABLE_SYNTHESIS_STAGES.filter(function(stage){
+    return stageStatus[stage]&&stageStatus[stage].status==="failed";
+  });
+  if(failedMandatory.length>0) return "INCOMPLETE_MANDATORY_SYNTHESIS_FAILURE";
+  if(!hasChair) return "INCOMPLETE";
+  if(failedDegradable.length>0) return "COMPLETE_DEGRADED";
+  if((input.failedDirectorCount||0)>0) return "COMPLETE_PARTIAL_EVIDENCE";
+  return "COMPLETE";
+}
+
 export function shouldRunStressTest(mode, decisionText, activeDirectorOutputs, surfaceMapOut, epistemicOut, probeVerdict, realityAnchorOut) {
   if (mode === "FULL") return { run: true, reason: "FULL mode — stress test always runs" };
   var lower = (decisionText||"").toLowerCase();
