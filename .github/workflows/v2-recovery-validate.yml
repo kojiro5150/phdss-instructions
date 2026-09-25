@@ -9,6 +9,10 @@ on:
       - main
     paths:
       - "App_FINAL.jsx"
+      - "package.json"
+      - "index.html"
+      - "src/**"
+      - "vite.config.js"
       - ".github/scripts/validate-v2.mjs"
       - ".github/workflows/v2-recovery-validate.yml"
 
@@ -24,8 +28,11 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Install parser
-        run: npm install --no-save --no-package-lock @babel/parser
+      - name: Install dependencies
+        run: npm install --no-package-lock
 
       - name: Validate recovered JSX and contracts
-        run: node .github/scripts/validate-v2.mjs
+        run: npm run validate
+
+      - name: Build local v2 application
+        run: npm run build
