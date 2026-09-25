@@ -1774,7 +1774,9 @@ function PHDSS() {
     setEpistemic(""); setProbe(""); setComparator(null);
     epistemicRef.current=""; probeRef.current=""; chairRef.current=""; metaRef.current=""; realityAnchorRef.current=""; stressRef.current=""; surfaceMapRef.current="";
     dirBriefsRef.current={}; synthesisBriefsRef.current={};
-    setStagesDone(0); setDialogueHistory([]); setDirectorResultsRef([]); setExpandedDirs({});
+    setStagesDone(0); setStageStatuses({}); setSessionGovernanceStatus(null);
+    setFailedSynthesisStages([]); setFailedMandatorySynthesisStages([]);
+    setDialogueHistory([]); setDirectorResultsRef([]); setExpandedDirs({});
 
     var eventHandler=function(type,payload){
       if(type==="active-directors"){
@@ -1798,6 +1800,14 @@ function PHDSS() {
       }
       if(type==="director-results"){ setDirectorResultsRef(payload.results); return; }
       if(type==="stages-done"){ setStagesDone(payload.value); return; }
+      if(type==="stage-status"){
+        setStageStatuses(function(prev){
+          var n=Object.assign({},prev);
+          n[payload.stage]={status:payload.status,error:payload.error||null};
+          return n;
+        });
+        return;
+      }
       if(type==="stage-loading"){
         var loadingSetter={
           surface_map:setSurfaceMapLoading,epistemic_audit:setEpistemicLoading,meta:setMetaLoading,
@@ -1823,7 +1833,14 @@ function PHDSS() {
       }
       if(type==="stress-decision"){setStressTestResult(payload.stressDecision);return;}
       if(type==="comparator"){setComparator(payload.comparatorData);return;}
-      if(type==="ledger-record"){setLedger(function(prev){return prev.concat([payload.record]);});return;}
+      if(type==="ledger-record"){
+        setLedger(function(prev){return prev.concat([payload.record]);});
+        setSessionGovernanceStatus(payload.record.session_governance_status||null);
+        setFailedSynthesisStages(payload.record.failed_synthesis_stages||[]);
+        setFailedMandatorySynthesisStages(payload.record.failed_mandatory_synthesis_stages||[]);
+        if(payload.record.synthesis_stage_status) setStageStatuses(payload.record.synthesis_stage_status);
+        return;
+      }
     };
 
     var pipelineState=null;
