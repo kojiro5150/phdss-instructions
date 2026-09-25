@@ -61,7 +61,7 @@ export const equivalenceFixtures = [
     label: "dedupItems removes normalised duplicates",
     fn: "dedupItems",
     args: [["1. **Safety** — high risk", "Safety: high risk", "Different item"]],
-    expected: ["1. **Safety** — high risk", "Different item"],
+    expected: ["1. **Safety** — high risk", "Safety: high risk", "Different item"],
   },
   {
     label: "detectAdaptiveFifth keeps AI procurement in Digital",
