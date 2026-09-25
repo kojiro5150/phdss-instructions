@@ -3,7 +3,9 @@ import { parse } from "@babel/parser";
 
 const source = fs.readFileSync("App_FINAL.jsx", "utf8");
 const compressionSource = fs.readFileSync("src/runtime/governance-compression.js", "utf8");
-const requiredSource = source + "\n" + compressionSource;
+const promptSource = fs.readFileSync("src/prompt-builders.js", "utf8");
+const coverageSource = fs.readFileSync("src/coverage.js", "utf8");
+const requiredSource = source + "\n" + compressionSource + "\n" + promptSource + "\n" + coverageSource;
 
 parse(source, {
   sourceType: "module",
@@ -12,6 +14,16 @@ parse(source, {
 });
 
 parse(compressionSource, {
+  sourceType: "module",
+  errorRecovery: false,
+});
+
+parse(promptSource, {
+  sourceType: "module",
+  errorRecovery: false,
+});
+
+parse(coverageSource, {
   sourceType: "module",
   errorRecovery: false,
 });
@@ -50,6 +62,8 @@ const required = [
   "./src/runtime/instruction-loader.js",
   "./src/runtime/anthropic-client.js",
   "./src/runtime/governance-compression.js",
+  "./src/prompt-builders.js",
+  "./src/coverage.js",
   "loadAllInstructions",
   "callClaude_synthesis",
 ];
