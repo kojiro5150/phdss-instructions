@@ -319,7 +319,7 @@ await check("ledger assembly preserves recovered schema",async function(){
     }],
   },{nowImpl:function(){return "2026-09-25T00:00:00.000Z";}});
 
-  assert.equal(record.schema_version,"3.0.0-alpha.1");
+  assert.equal(record.schema_version,"3.0.0-alpha.2");
   assert.equal(record.runtime_contract,"2.0-recovery");
   assert.equal(record.created_at,"2026-09-25T00:00:00.000Z");
   assert.equal(record.session_governance_status,"COMPLETE");
@@ -583,7 +583,7 @@ assert.deepStrictEqual(pipelineSequenceContract.synthesisStages.map(s=>s.stage),
   "surface_map","epistemic_audit","cross_domain_tension_analysis","reality_anchor",
   "adversarial_probe","stress_test","chair","comparator"
 ]);
-assert.equal(pipelineSequenceContract.ledger.schemaVersion,"3.0.0-alpha.1");
+assert.equal(pipelineSequenceContract.ledger.schemaVersion,"3.0.0-alpha.2");
 assert.equal(pipelineSequenceContract.ledger.runtimeContract,"2.0-recovery");
 
 const app=fs.readFileSync("App_FINAL.jsx","utf8");
