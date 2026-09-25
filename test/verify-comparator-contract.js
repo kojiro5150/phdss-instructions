@@ -24,7 +24,9 @@ assert.match(source,/monitoring_triggers_30_60_90/i);
 assert.match(source,/difference visibility/i);
 assert.match(source,/human decision-maker/i);
 assert.match(source,/observable/i);
-assert.match(source,/30[\s/-]*60[\s/-]*90/i);
+assert.match(source,/days_0_30/i);
+assert.match(source,/days_31_60/i);
+assert.match(source,/days_61_90/i);
 
 const activeDirectors=DIRECTORS.slice(0,5);
 const instructions={comparator:"GOVERNANCE COMPARATOR SENTINEL"};
