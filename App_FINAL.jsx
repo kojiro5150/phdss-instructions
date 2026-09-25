@@ -2642,10 +2642,11 @@ function PHDSS() {
   var [done,setDone]=useState(false);
   var [partialFailure,setPartialFailure]=useState(false);
   var [dirOutputs,setDirOutputs]=useState({});
-  // Governance Record toggle state: 'technical' | 'governance'
-  var [livedView,setLivedView]=useState("technical");
-  var [probeView,setProbeView]=useState("technical");
-  var [realityView,setRealityView]=useState("technical");
+  // Governance Records are derived from the same analysis outputs, never from static scenario content.
+  var [dirBriefsState,setDirBriefsState]=useState({});
+  var [synthesisBriefs,setSynthesisBriefs]=useState({});
+  var [dirGovViews,setDirGovViews]=useState({});
+  var [synthesisGovViews,setSynthesisGovViews]=useState({});
   var [dirLoading,setDirLoading]=useState({});
   var [meta,setMeta]=useState(""); var [metaLoading,setMetaLoading]=useState(false);
   var [surfaceMap,setSurfaceMap]=useState(""); var [surfaceMapLoading,setSurfaceMapLoading]=useState(false);
@@ -2807,13 +2808,27 @@ function PHDSS() {
   }
 
 
+  async function storeSynthesisBrief(key, moduleLabel, output) {
+    try {
+      var brief=await compressSynthesisOutput(moduleLabel,output);
+      setSynthesisBriefs(function(prev){var n=Object.assign({},prev);n[key]=brief;return n;});
+      return brief;
+    } catch(e) {
+      var fallback=deterministicSynthesisBrief(moduleLabel,output,e.message||String(e));
+      setSynthesisBriefs(function(prev){var n=Object.assign({},prev);n[key]=fallback;return n;});
+      return fallback;
+    }
+  }
+
+
   async function runBoard(){
     if(!decision.trim()||running) return;
     var activeDir=resolveActiveDirectors(analysisMode,decision,chairSelectedIds);
     var omittedDir=DIRECTORS.filter(function(d){return !activeDir.some(function(a){return a.id===d.id;});});
     setActiveDirectorsRef(activeDir); setOmittedDirectorsRef(omittedDir);
     setRunning(true); setDone(false); setPartialFailure(false); setError("");
-    setDirOutputs({}); setMeta(""); setSurfaceMap(""); setRealityAnchor(""); setStress(""); setChair("");
+    setDirOutputs({}); setDirBriefsState({}); setSynthesisBriefs({}); setDirGovViews({}); setSynthesisGovViews({});
+    setMeta(""); setSurfaceMap(""); setRealityAnchor(""); setStress(""); setChair("");
     setEpistemic(""); setProbe(""); setComparator(null);
     // Reset synthesis refs alongside state so stale content from previous runs cannot leak into exports
     epistemicRef.current=""; probeRef.current=""; chairRef.current=""; metaRef.current=""; realityAnchorRef.current=""; stressRef.current=""; surfaceMapRef.current="";
@@ -2871,8 +2886,15 @@ function PHDSS() {
           setDirOutputs(function(p){var n=Object.assign({},p); n[cId]=cOut; return n;});
           setDirLoading(function(p){var n=Object.assign({},p); n[cId]=false; return n;});
           results_seq.push(Object.assign({}, dirI, {output: cOut}));
-          try { var brief_i=await compressDirectorOutput(dirI.label, cOut); dirBriefs[cId]=brief_i; }
-          catch(compErr) { dirBriefs[cId]=null; }
+          try {
+            var brief_i=await compressDirectorOutput(dirI.label,cOut);
+            dirBriefs[cId]=brief_i;
+            setDirBriefsState(function(prev){var n=Object.assign({},prev);n[cId]=brief_i;return n;});
+          } catch(compErr) {
+            var fallback_i=deterministicDirectorBrief(dirI.label,cOut,compErr.message||String(compErr));
+            dirBriefs[cId]=fallback_i;
+            setDirBriefsState(function(prev){var n=Object.assign({},prev);n[cId]=fallback_i;return n;});
+          }
         } catch(dirErr) {
           var eId=dirId_i+""; var errMsg="[Director failed: "+dirErr.message+"]";
           setDirLoading(function(p){var n=Object.assign({},p); n[eId]=false; return n;});
@@ -2903,7 +2925,7 @@ function PHDSS() {
       // Compute authoritative dominant signal — highest count wins; HALT overrides only if strictly > CAUTION
       var _smDominant=(_smHalt>_smCaution&&_smHalt>_smProceed)?"HALT":(_smCaution>=_smHalt&&_smCaution>=_smProceed)?"CAUTION":(_smProceed>0)?"PROCEED":"MIXED";
       var signalCountNote="\n\n[AUTHORITATIVE SIGNAL COUNTS — use these exact figures in your Signal Tally, do not recount from text: "+_smProceed+" PROCEED / "+_smCaution+" CAUTION / "+_smHalt+" HALT"+(_smNotApplicable>0?" / "+_smNotApplicable+" NOT APPLICABLE":"")+(_smUndefined>0?" / "+_smUndefined+" UNDEFINED":"")+". Total directors: "+results.length+". DOMINANT SIGNAL: "+_smDominant+" — use exactly this single word for the Dominant Signal field, not a compound like HALT/CAUTION. NOT APPLICABLE means the Director correctly determined the proposal is outside their mandate — do not count as PROCEED.]";
-      try{setSurfaceMapLoading(true);surfaceMapOut=await callClaude_synthesis(surfaceMapperSystem(analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nAll Director Governance Briefs:\n"+briefSummary+signalCountNote,autoContinue);setSurfaceMap(surfaceMapOut);surfaceMapRef.current=surfaceMapOut;}catch(e){stageErrors.push("Surface Mapper failed");}
+      try{setSurfaceMapLoading(true);surfaceMapOut=await callClaude_synthesis(surfaceMapperSystem(analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nAll Director Governance Briefs:\n"+briefSummary+signalCountNote,autoContinue);setSurfaceMap(surfaceMapOut);surfaceMapRef.current=surfaceMapOut;await storeSynthesisBrief("surfacemap","Decision Surface Map",surfaceMapOut);}catch(e){stageErrors.push("Surface Mapper failed");}
       setSurfaceMapLoading(false); setStagesDone(2);
 
 
@@ -2942,15 +2964,16 @@ function PHDSS() {
         var epistemicCleaned=epistemicOut?stripCalibrationBleed(epistemicOut):epistemicOut;
         setEpistemic(epistemicCleaned);epistemicRef.current=epistemicCleaned;
         epistemicOut=epistemicCleaned;
+        await storeSynthesisBrief("epistemic","Epistemic Confidence Audit",epistemicOut);
       }catch(e){stageErrors.push("Epistemic failed");}
       setEpistemicLoading(false); setStagesDone(3);
 
 
-      try{setMetaLoading(true);metaOut=await callClaude_synthesis(metaSystem(docs.meta||[],webSearch,publicWebSearch,sessionEvidence,analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDecision Surface Map:\n"+surfaceMapOut+"\n\nDirector Governance Briefs:\n"+briefSummary+(epistemicOut?"\n\nEpistemic Audit:\n"+epistemicOut:""),autoContinue,webSearch||publicWebSearch);setMeta(metaOut);metaRef.current=metaOut;}catch(e){stageErrors.push("META failed");}
+      try{setMetaLoading(true);metaOut=await callClaude_synthesis(metaSystem(docs.meta||[],webSearch,publicWebSearch,sessionEvidence,analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDecision Surface Map:\n"+surfaceMapOut+"\n\nDirector Governance Briefs:\n"+briefSummary+(epistemicOut?"\n\nEpistemic Audit:\n"+epistemicOut:""),autoContinue,webSearch||publicWebSearch);setMeta(metaOut);metaRef.current=metaOut;await storeSynthesisBrief("meta","Cross-Domain Tension Analysis",metaOut);}catch(e){stageErrors.push("META failed");}
       setMetaLoading(false); setStagesDone(4);
 
 
-      try{setRealityAnchorLoading(true);realityAnchorOut=await callClaude_synthesis(realityAnchorSystem(analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDirector Governance Briefs:\n"+briefSummary+"\n\nDecision Surface Map:\n"+surfaceMapOut+"\n\nMETA Synthesis:\n"+metaOut,autoContinue);setRealityAnchor(realityAnchorOut);realityAnchorRef.current=realityAnchorOut;}catch(e){stageErrors.push("Reality Anchor failed");}
+      try{setRealityAnchorLoading(true);realityAnchorOut=await callClaude_synthesis(realityAnchorSystem(analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDirector Governance Briefs:\n"+briefSummary+"\n\nDecision Surface Map:\n"+surfaceMapOut+"\n\nMETA Synthesis:\n"+metaOut,autoContinue);setRealityAnchor(realityAnchorOut);realityAnchorRef.current=realityAnchorOut;await storeSynthesisBrief("reality","Reality Anchor",realityAnchorOut);}catch(e){stageErrors.push("Reality Anchor failed");}
       setRealityAnchorLoading(false); setStagesDone(5);
 
 
@@ -2961,6 +2984,7 @@ function PHDSS() {
         var dominant=Object.entries(sigCounts).sort(function(a,b){return b[1]-a[1];})[0]?.[0]||"UNKNOWN";
         probeOut=await callClaude_synthesis(adversarialProbeSystem(dominant,analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nAll Director Governance Briefs:\n"+briefSummary+"\n\nMETA-AUTHOR Synthesis:\n"+metaOut+"\n\nReality Anchor:\n"+realityAnchorOut,autoContinue);
         setProbe(probeOut);probeRef.current=probeOut;
+        await storeSynthesisBrief("probe","Adversarial Probe",probeOut);
       }catch(e){stageErrors.push("Probe failed");}
       setProbeLoading(false); setStagesDone(6);
 
@@ -2969,7 +2993,7 @@ function PHDSS() {
       var stressDecision=shouldRunStressTest(analysisMode,decision,results,surfaceMapOut,epistemicOut,probeVerdict,realityAnchorOut);
       setStressTestResult(stressDecision);
       if(stressDecision.run){
-        try{setStressLoading(true);stressOut=await callClaude_synthesis(stressSystem(docs.stress||[],webSearch,publicWebSearch,sessionEvidence,analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDecision Surface Map:\n"+surfaceMapOut+"\n\nMETA-AUTHOR:\n"+metaOut+"\n\nReality Anchor:\n"+realityAnchorOut,autoContinue,webSearch||publicWebSearch);setStress(stressOut);stressRef.current=stressOut;}catch(e){stageErrors.push("Stress failed");}
+        try{setStressLoading(true);stressOut=await callClaude_synthesis(stressSystem(docs.stress||[],webSearch,publicWebSearch,sessionEvidence,analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDecision Surface Map:\n"+surfaceMapOut+"\n\nMETA-AUTHOR:\n"+metaOut+"\n\nReality Anchor:\n"+realityAnchorOut,autoContinue,webSearch||publicWebSearch);setStress(stressOut);stressRef.current=stressOut;await storeSynthesisBrief("stress","Decision Stress Test",stressOut);}catch(e){stageErrors.push("Stress failed");}
         setStressLoading(false);
       }
       setStagesDone(7);
@@ -2984,9 +3008,17 @@ function PHDSS() {
         // Extract the Strongest Counter-Argument section text
         var strongestMatch=probeOut.match(/\*\*The Strongest Counter-Argument\*\*[^\n]*\n([\s\S]*?)(?=\n\*\*[A-Za-z]|$)/i);
         var strongest=strongestMatch?(strongestMatch[1]||"").trim().substring(0,600):"See Adversarial Probe output.";
-        return "\n\n⚠ ADVERSARIAL PROBE VERDICT: "+verdict+"\nThe Probe's strongest argument was:\n"+strongest+"\n\nYou MUST include a **Adversarial Probe Response** section in your output — between **Coverage Limitations** and **Chair Recommendation** — that either ACCEPTS this finding (explaining how it is addressed in your conditions) or REBUTS it (with explicit Director-grounded reasoning). This section is mandatory and parser-matched. Do not proceed to Chair Recommendation without writing it.";
+        return "\n\n⚠ ADVERSARIAL PROBE VERDICT: "+verdict+"\nThe Probe's strongest argument was:\n"+strongest+"\n\nYou MUST include an **Adversarial Probe Response** section in your output — between **Coverage Limitations** and **Director Signal Distribution** — that either ACCEPTS this finding (explaining how it changes the decision conditions) or REBUTS it (with explicit Director-grounded reasoning). This section is mandatory and parser-matched. Do not convert the Probe finding into a preferred course of action.";
       })();
-      try{setChairLoading(true);chairOut=await callClaude_synthesis(chairSystem(docs.chair||[],webSearch,publicWebSearch,sessionEvidence,analysisMode,activeDir,failedDirLabels,instructions),"Decision: "+decision+"\n\nDecision Surface Map:\n"+surfaceMapOut+"\n\nMETA-AUTHOR:\n"+metaOut+"\n\nReality Anchor:\n"+realityAnchorOut+(stressOut?"\n\nStress Test:\n"+stressOut:"")+(probeOut?"\n\nAdversarial Bias Probe:\n"+probeOut:"")+probeInjection,autoContinue,webSearch||publicWebSearch);setChair(chairOut);chairRef.current=chairOut;}catch(e){stageErrors.push("Chair failed");}
+      try{
+        setChairLoading(true);
+        var chairPrompt=chairSystem(docs.chair||[],webSearch,publicWebSearch,sessionEvidence,analysisMode,activeDir,failedDirLabels,instructions);
+        var chairUser="Decision: "+decision+"\n\nDecision Surface Map:\n"+surfaceMapOut+"\n\nMETA-AUTHOR:\n"+metaOut+"\n\nReality Anchor:\n"+realityAnchorOut+(stressOut?"\n\nStress Test:\n"+stressOut:"")+(probeOut?"\n\nAdversarial Bias Probe:\n"+probeOut:"")+probeInjection;
+        chairOut=await callClaude_synthesis(chairPrompt,chairUser,autoContinue,webSearch||publicWebSearch);
+        chairOut=await repairChairDecisionBoundary(chairOut,chairPrompt,chairUser);
+        setChair(chairOut);chairRef.current=chairOut;
+        await storeSynthesisBrief("chair","Chair Decision",chairOut);
+      }catch(e){stageErrors.push("Chair failed: "+e.message);}
       setChairLoading(false); setStagesDone(8);
 
 
@@ -3102,7 +3134,8 @@ function PHDSS() {
   function reset(){
     setDecision("");setDecisionSignal("");setOrgContext("");setConstraintsText("");setEvidenceLinksText("");
     setDone(false);setRunning(false);
-    setDirOutputs({});setMeta("");setSurfaceMap("");setRealityAnchor("");setStress("");setChair("");
+    setDirOutputs({});setDirBriefsState({});setSynthesisBriefs({});setDirGovViews({});setSynthesisGovViews({});
+    setMeta("");setSurfaceMap("");setRealityAnchor("");setStress("");setChair("");
     setEpistemic("");setProbe("");setComparator(null);
     setStagesDone(0);setError("");setDialogueHistory([]);setDirectorResultsRef([]);setStressTestResult(null);setSessionEvidenceOpen(false);
     setActiveDirectorsRef(DIRECTORS);setOmittedDirectorsRef([]);
