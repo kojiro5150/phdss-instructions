@@ -143,6 +143,33 @@
   Reality Anchor assessment that names an unconfirmed gap without resolving it
   is functioning correctly.
 
+  DESIGN INTENT — EPISTEMIC PROVENANCE MONOTONICITY:
+  Epistemic status may stay the same or move downward when this module discovers
+  additional uncertainty, contradiction, or missing evidence. It must never move
+  upward merely because a claim is repeated, appears across multiple Directors,
+  or is compressed into synthesis.
+
+  Preserve the source status of every material claim:
+  — unknown remains unknown unless new supplied evidence establishes otherwise
+  — not supplied remains not supplied
+  — unverified remains unverified
+  — unconfirmed remains unconfirmed
+  — not demonstrated remains not demonstrated
+  — inferred remains inferred
+
+  Permitted downward movement includes confirmed → uncertain, verified →
+  unconfirmed, or supported → weaker status when new analysis warrants reduced
+  confidence. This is legitimate uncertainty discovery, not suppression.
+
+  Prohibited upward movement includes unverified → verified, unconfirmed →
+  confirmed, not demonstrated → absent/does not exist, and inferred →
+  established when no new evidence with stronger provenance has been supplied.
+
+  Convergence is not corroboration. Repetition is not verification. Multiple
+  Directors independently naming the same unverified or unconfirmed gap does not
+  convert that gap into a confirmed institutional absence. Absence of supplied
+  evidence is not evidence of absence.
+
   LAYER 1 PARSER CONTRACTS — DO NOT CHANGE:
   - **Falsification Conditions** — appears EXACTLY ONCE in the output. Do not
     repeat this heading under any circumstances. All falsification conditions —
