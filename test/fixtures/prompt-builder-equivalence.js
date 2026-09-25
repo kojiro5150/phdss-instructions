@@ -20,7 +20,7 @@ export const promptBuilderExpected = Object.freeze([
   {label:"epistemicAuditorSystem",length:926,fnv1a:"1fd7951c"},
   {label:"adversarialProbeSystem",length:969,fnv1a:"8ee64cd4"},
   {label:"directorBriefSystem",length:1509,fnv1a:"5d5ba77f"},
-  {label:"lensComparatorSystem",length:1887,fnv1a:"4b5d6cbf"},
+  {label:"lensComparatorSystem",length:1862,fnv1a:"10a8f305"},
   {label:"comparatorJsonSystem",length:2452,fnv1a:"e7f00f51"},
 ]);
 
