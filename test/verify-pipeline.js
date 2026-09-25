@@ -132,6 +132,7 @@ await check("stress trigger contract",async function(){
 
 await check("authority repair remains in pipeline",async function(){
   let calls=0;
+  const telemetry=[];
   const safe=await enforceSynthesisAuthority("chair","Material tension remains.","SYS","USER",{apiCallImpl:async function(){calls++;}});
   assert.equal(safe,"Material tension remains.");
   assert.equal(calls,0);
@@ -146,10 +147,20 @@ await check("authority repair remains in pipeline",async function(){
       assert.match(system,/BOUNDARY REPAIR/);
       assert.match(user,/PRIOR OUTPUT TO REPAIR/);
       return {text:"Material tension remains for human judgment."};
-    }}
+    },onAuthorityRepairEvent:function(event){telemetry.push(event);}}
   );
   assert.equal(repaired,"Material tension remains for human judgment.");
   assert.equal(calls,1);
+  assert.equal(telemetry.length,1);
+  assert.deepStrictEqual(telemetry[0],{
+    layer:"chair",
+    initial_violation_reason:"INSTITUTIONAL_DIRECTIVE",
+    attempt_count:1,
+    outcome:"repaired",
+    offending_clause_excerpt:"The Board should approve the proposal.",
+    final_violation_reason:null,
+    final_offending_clause_excerpt:null,
+  });
   assert.equal(chairDecisionBoundaryLeak("The Board should approve the proposal."),true);
   assert.equal(chairDecisionBoundaryLeak("Material tension remains."),false);
 });
@@ -158,6 +169,7 @@ await check("authority repair performs bounded second pass with offending clause
   let calls=0;
   const systems=[];
   const users=[];
+  const telemetry=[];
   const repaired=await enforceSynthesisAuthority(
     "reality_anchor",
     "DO NOT PROCEED.",
@@ -169,30 +181,41 @@ await check("authority repair performs bounded second pass with offending clause
       users.push(user);
       if(calls===1) return {text:"DO NOT PROCEED."};
       return {text:"The current operating conditions remain unresolved and require human judgment."};
-    }}
+    },onAuthorityRepairEvent:function(event){telemetry.push(event);}}
   );
   assert.equal(calls,2);
   assert.equal(repaired,"The current operating conditions remain unresolved and require human judgment.");
   assert.match(systems[1],/BOUNDARY REPAIR ATTEMPT 2 OF 2/);
   assert.match(systems[1],/exact offending clause/i);
   assert.match(users[1],/Rewrite the offending clause into non-adjudicative analytical language/);
+  assert.equal(telemetry.length,1);
+  assert.equal(telemetry[0].attempt_count,2);
+  assert.equal(telemetry[0].outcome,"repaired");
+  assert.equal(telemetry[0].initial_violation_reason,"RETIRED_DECISION_VOCABULARY");
 });
 
 await check("persistent authority failure preserves reason and exact clause",async function(){
   let calls=0;
+  const telemetry=[];
   await assert.rejects(
     enforceSynthesisAuthority(
       "chair",
       "The preferred pathway is trajectory 4.",
       "SYS",
       "USER",
-      {apiCallImpl:async function(){calls++;return {text:"The preferred pathway is trajectory 4."};}}
+      {apiCallImpl:async function(){calls++;return {text:"The preferred pathway is trajectory 4."};},onAuthorityRepairEvent:function(event){telemetry.push(event);}}
     ),
     function(error){
       assert.equal(calls,2);
       assert.match(error.message,/PATHWAY_RANKING/);
       assert.match(error.message,/Offending clause: The preferred pathway is trajectory 4\./);
       assert.match(error.message,/after 2 repair attempts/);
+      assert.equal(telemetry.length,1);
+      assert.equal(telemetry[0].outcome,"failed");
+      assert.equal(telemetry[0].attempt_count,2);
+      assert.equal(telemetry[0].initial_violation_reason,"PATHWAY_RANKING");
+      assert.equal(telemetry[0].final_violation_reason,"PATHWAY_RANKING");
+      assert.equal(telemetry[0].final_offending_clause_excerpt,"The preferred pathway is trajectory 4.");
       return true;
     }
   );
@@ -250,6 +273,10 @@ await check("ledger assembly preserves recovered schema",async function(){
     realityAnchorOut:"REALITY",
     dirBriefs:{systems:"brief"},
     synthesisBriefs:{chair:"chair brief"},
+    authorityRepairEvents:[{
+      layer:"chair",initial_violation_reason:"PATHWAY_RANKING",attempt_count:1,outcome:"repaired",
+      offending_clause_excerpt:"Synthetic ranking clause.",final_violation_reason:null,final_offending_clause_excerpt:null
+    }],
   },{nowImpl:function(){return "2026-09-25T00:00:00.000Z";}});
 
   assert.equal(record.schema_version,"3.0.0-alpha.1");
@@ -269,6 +296,9 @@ await check("ledger assembly preserves recovered schema",async function(){
   assert.equal(record.instruction_source,"github_partial");
   assert.deepStrictEqual(record.structured_records.directors,{systems:"brief"});
   assert.deepStrictEqual(record.structured_records.synthesis,{chair:"chair brief"});
+  assert.equal(record.authority_repair_events.length,1);
+  assert.equal(record.authority_repair_events[0].layer,"chair");
+  assert.equal(record.authority_repair_events[0].outcome,"repaired");
 });
 
 await check("live partial-synthesis fixture fails closed",async function(){
@@ -547,6 +577,7 @@ console.log("Stress trigger matrix: PASS");
 console.log("Authority execution/repair: PASS");
 console.log("Bounded second authority repair: PASS");
 console.log("Authority offending-clause diagnostics: PASS");
+console.log("Authority repair telemetry: PASS");
 console.log("Ledger assembly: PASS");
 console.log("Stage sequence 1-8: PASS");
 console.log("Conditional stress on/off: PASS");
