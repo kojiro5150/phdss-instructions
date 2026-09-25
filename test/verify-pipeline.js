@@ -165,6 +165,46 @@ await check("authority repair remains in pipeline",async function(){
   assert.equal(chairDecisionBoundaryLeak("Material tension remains."),false);
 });
 
+await check("Surface Map governance-act obligation enters repair and telemetry",async function(){
+  let calls=0;
+  const telemetry=[];
+  const repaired=await enforceSynthesisAuthority(
+    "surface_map",
+    "A full 13-director session is warranted before any deployment commitment is made.",
+    "SYS",
+    "USER",
+    {
+      apiCallImpl:async function(system,user){
+        calls++;
+        assert.match(system,/GOVERNANCE_ACT_OBLIGATION/);
+        assert.match(user,/PRIOR OUTPUT TO REPAIR/);
+        return {text:"Eight of thirteen Director domains are absent, limiting the completeness of the current decision surface."};
+      },
+      onAuthorityRepairEvent:function(event){telemetry.push(event);}
+    }
+  );
+  assert.equal(calls,1);
+  assert.equal(repaired,"Eight of thirteen Director domains are absent, limiting the completeness of the current decision surface.");
+  assert.equal(telemetry.length,1);
+  assert.equal(telemetry[0].layer,"surface_map");
+  assert.equal(telemetry[0].initial_violation_reason,"GOVERNANCE_ACT_OBLIGATION");
+  assert.equal(telemetry[0].attempt_count,1);
+  assert.equal(telemetry[0].outcome,"repaired");
+});
+
+await check("external constraint reporting does not trigger governance-act repair",async function(){
+  let calls=0;
+  const safe=await enforceSynthesisAuthority(
+    "reality_anchor",
+    "No pathway to compliant deployment exists under the current regulatory framework.",
+    "SYS",
+    "USER",
+    {apiCallImpl:async function(){calls++;return {text:"unexpected"};}}
+  );
+  assert.equal(safe,"No pathway to compliant deployment exists under the current regulatory framework.");
+  assert.equal(calls,0);
+});
+
 await check("authority repair performs bounded second pass with offending clause",async function(){
   let calls=0;
   const systems=[];
@@ -578,6 +618,8 @@ console.log("Authority execution/repair: PASS");
 console.log("Bounded second authority repair: PASS");
 console.log("Authority offending-clause diagnostics: PASS");
 console.log("Authority repair telemetry: PASS");
+console.log("Surface Map authority-act repair: PASS");
+console.log("External constraint reporting exception: PASS");
 console.log("Ledger assembly: PASS");
 console.log("Stage sequence 1-8: PASS");
 console.log("Conditional stress on/off: PASS");
