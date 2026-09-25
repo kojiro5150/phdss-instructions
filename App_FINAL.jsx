@@ -1827,7 +1827,7 @@ function PHDSS() {
       if(type==="stage-status"){
         setStageStatuses(function(prev){
           var n=Object.assign({},prev);
-          n[payload.stage]={status:payload.status,error:payload.error||null};
+          n[payload.stage]={status:payload.status,error:payload.error||null,reason:payload.reason||null};
           return n;
         });
         return;
@@ -1881,7 +1881,13 @@ function PHDSS() {
         setError("Session error: "+pipelineState.fatalError.message);
         setPartialFailure(Object.keys(dirOutputs).length>0);
       } else if(pipelineState.stageErrors.length>0) {
-        setError("Completed with partial failures: "+pipelineState.stageErrors.join(", "));
+        var runStatus=pipelineState.ledgerRecord&&pipelineState.ledgerRecord.session_governance_status;
+        var issuePrefix=runStatus&&runStatus.indexOf("INCOMPLETE")===0
+          ?"Session incomplete: "
+          :runStatus==="COMPLETE_DEGRADED"
+            ?"Completed with degraded synthesis: "
+            :"Completed with partial failures: ";
+        setError(issuePrefix+pipelineState.stageErrors.join(", "));
       }
     } catch(fatalErr) {
       setError("Session error: "+fatalErr.message);
