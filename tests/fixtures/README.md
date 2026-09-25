@@ -24,7 +24,7 @@ They must not contain Governance-in-Confidence prose, original decision text, or
 
 ### `synthetic/`
 
-Contains invented text used to test semantic contracts, including the distinction between legitimate constraint reporting and prohibited adjudication. The Chair non-substitution fixture keeps epistemic promotion, tension resolution, and condition invention as separate diagnostic cases.
+Contains invented text used to test semantic contracts, including the distinction between legitimate constraint reporting and prohibited adjudication. The Chair non-substitution fixture keeps epistemic promotion, tension resolution, and condition invention as separate diagnostic cases. The provenance-monotonicity fixture separately tests single-claim epistemic promotion, evidence-of-absence promotion, inferred-to-established promotion, permitted confidence downshifts, and multi-Director convergence being misused as confirmation.
 
 Synthetic examples must not copy or lightly paraphrase confidential source artefacts.
 
