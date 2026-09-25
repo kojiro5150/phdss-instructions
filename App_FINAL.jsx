@@ -22,10 +22,12 @@ import {
   ALL_ROLES,
   STAGE_META,
   SUGGESTED_PUSHBACKS,
+} from "./src/registry.js";
+import {
   resolveCoreDirectors,
   resolveChairDirectors,
   resolveActiveDirectors,
-} from "./src/registry.js";
+} from "./src/governance-rules.js";
 import {
   safeMatch,
   extractFirstJsonObject,
@@ -42,6 +44,12 @@ import {
   deduplicateSections,
   renderMd,
 } from "./src/text-utils.js";
+import {
+  SYNTHESIS_VERDICT_FIELDS,
+  isValidDirectorBriefText,
+  isValidSynthesisBriefText,
+  assertBoardGovernanceRecord,
+} from "./src/governance-record-contract.js";
 import { authorityBoundaryPrompt, assessAuthorityBoundary } from "./src/authority-contract.js";
 
 // =============================================================================
@@ -630,27 +638,26 @@ function deterministicDirectorBrief(directorLabel, fullOutput, reason) {
   });
 }
 
-function validDirectorBrief(text) {
-  try { var b=JSON.parse(text); return !!(b&&b.director&&b.signal&&b.governance_record&&typeof b.governance_record.key_discovery==="string"); }
-  catch(e) { return false; }
-}
-
 async function compressDirectorOutput(directorLabel, fullOutput) {
-  if (/^\[Director failed:/i.test((fullOutput||"").trim())) return JSON.stringify({director:directorLabel,signal:"FAILED",confidence:"LOW",core_judgment:"Director failed to complete. Full error: "+fullOutput,critical_risks:[],assumptions:[],prerequisites:[],view_change_triggers:[],coverage_limit:"Director did not complete.",regulatory_blockers:[],overflow_flags:["DIRECTOR_FAILED"],governance_record:{key_discovery:"Director did not complete.",primary_tension:"",signal_rationale:"",room_should_discuss:[],most_likely_to_benefit:[],most_exposed_to_failure:[],non_negotiable_conditions:[],governance_implication:""}});
+  if (/^\[Director failed:/i.test((fullOutput||"").trim())) {
+    var failedBrief=JSON.stringify({director:directorLabel,signal:"FAILED",confidence:"LOW",core_judgment:"Director failed to complete. Full error: "+fullOutput,critical_risks:[],assumptions:[],prerequisites:[],view_change_triggers:[],coverage_limit:"Director did not complete.",regulatory_blockers:[],overflow_flags:["DIRECTOR_FAILED"],governance_record:{key_discovery:"Director did not complete.",primary_tension:"",signal_rationale:"",room_should_discuss:[],most_likely_to_benefit:[],most_exposed_to_failure:[],non_negotiable_conditions:[],governance_implication:""}});
+    if(!isValidDirectorBriefText(failedBrief)) throw new Error("invalid failed Director Governance Brief schema");
+    return failedBrief;
+  }
   var lastError="";
   for (var attempt=0;attempt<2;attempt++) {
     try {
       var suffix=attempt===0?"":"\n\nYour previous extraction attempt was unusable. Return the complete JSON object with every governance_record field present. Do not truncate it.";
       var raw=await apiCall(compressionSystem(),"Director: "+directorLabel+"\n\nFull Director Output:\n"+fullOutput+suffix,false);
       var txt=stripJsonFenceText(raw.text);
-      if(!validDirectorBrief(txt)) throw new Error("invalid Director Governance Brief schema");
+      if(!isValidDirectorBriefText(txt)) throw new Error("invalid Director Governance Brief schema");
       return txt;
     } catch(e) { lastError=e.message||String(e); }
   }
-  return deterministicDirectorBrief(directorLabel,fullOutput,lastError);
+  var fallbackBrief=deterministicDirectorBrief(directorLabel,fullOutput,lastError);
+  if(!isValidDirectorBriefText(fallbackBrief)) throw new Error("invalid deterministic Director Governance Brief schema");
+  return fallbackBrief;
 }
-
-var SYNTHESIS_VERDICT_FIELDS={"Decision Surface Map":"Dominant Signal","Epistemic Confidence Audit":"Epistemic Health Score","Cross-Domain Tension Analysis":"Integration Signal","Reality Anchor":"Operational Confidence","Adversarial Probe":"Probe Verdict","Decision Stress Test":"Fragility Score","Chair Decision":"Decision Brief Status"};
 
 function synthesisBriefSystem(moduleLabel) {
   var verdictLabel=SYNTHESIS_VERDICT_FIELDS[moduleLabel]||"Verdict";
@@ -669,26 +676,27 @@ function deterministicSynthesisBrief(moduleLabel,fullOutput,reason) {
   return JSON.stringify({module:moduleLabel,verdict_label:verdictLabel,verdict:String(verdict).replace(/\*\*/g,"").trim(),key_discovery:executiveDiscovery(fullOutput)||"See Technical Analysis.",primary_tension:extractSection(fullOutput,"Primary Tension")||"",signal_rationale:"",room_should_discuss:extractBulletLines(fullOutput,"What the Room Should Discuss").slice(0,5),most_likely_to_benefit:extractBulletLines(fullOutput,"Most Likely to Benefit").slice(0,4),most_exposed_to_failure:extractBulletLines(fullOutput,"Most Exposed to Failure").slice(0,4),non_negotiable_conditions:extractBulletLines(fullOutput,"Non-Negotiable Conditions").slice(0,8),governance_implication:extractSection(fullOutput,"Governance Implication")||"",_fallback_reason:reason||""});
 }
 
-function validSynthesisBrief(text,moduleLabel) {
-  try { var b=JSON.parse(text); return !!(b&&b.module===moduleLabel&&typeof b.key_discovery==="string"&&b.verdict_label); }
-  catch(e) { return false; }
-}
-
 async function compressSynthesisOutput(moduleLabel,fullOutput) {
-  if(!fullOutput||fullOutput.length<10) return deterministicSynthesisBrief(moduleLabel,fullOutput,"module did not produce output");
+  if(!fullOutput||fullOutput.length<10) {
+    var emptyFallback=deterministicSynthesisBrief(moduleLabel,fullOutput,"module did not produce output");
+    if(!isValidSynthesisBriefText(emptyFallback,moduleLabel)) throw new Error("invalid empty synthesis Governance Brief schema");
+    return emptyFallback;
+  }
   var lastError="";
   for(var attempt=0;attempt<2;attempt++) {
     try {
       var suffix=attempt===0?"":"\n\nYour previous extraction attempt was unusable. Return the complete JSON object exactly as requested.";
       var raw=await apiCall(synthesisBriefSystem(moduleLabel),"Module: "+moduleLabel+"\n\nFull Module Output:\n"+fullOutput+suffix,false);
       var txt=stripJsonFenceText(raw.text);
-      if(!validSynthesisBrief(txt,moduleLabel)) throw new Error("invalid synthesis Governance Brief schema");
+      if(!isValidSynthesisBriefText(txt,moduleLabel)) throw new Error("invalid synthesis Governance Brief schema");
       var authorityAssessment=assessAuthorityBoundary(synthesisLayerForModule(moduleLabel),txt);
       if(authorityAssessment.violates) throw new Error("synthesis Governance Brief authority violation: "+authorityAssessment.reason);
       return txt;
     } catch(e) { lastError=e.message||String(e); }
   }
-  return deterministicSynthesisBrief(moduleLabel,fullOutput,lastError);
+  var fallbackBrief=deterministicSynthesisBrief(moduleLabel,fullOutput,lastError);
+  if(!isValidSynthesisBriefText(fallbackBrief,moduleLabel)) throw new Error("invalid deterministic synthesis Governance Brief schema");
+  return fallbackBrief;
 }
 
 function formatBriefForSynthesis(briefJson, fallbackFullOutput) {
@@ -1924,24 +1932,24 @@ function governanceVerdictColor(label,value){
 function directorBriefToGovernanceRecord(briefJson){
   var b={};try{b=JSON.parse(briefJson||"{}");}catch(e){}
   var g=b.governance_record||{},signal=(b.signal||"").toUpperCase();
-  return {
+  return assertBoardGovernanceRecord({
     headlineLabel:"Recommendation Signal",headline:signal||"—",headlineColor:governanceVerdictColor("Recommendation Signal",signal),
     headlineRationale:g.signal_rationale||"",keyDiscoveryLabel:"Key Discovery",keyDiscovery:g.key_discovery||b.core_judgment||"",
     primaryTension:g.primary_tension||"",roomShouldDiscuss:g.room_should_discuss||[],mostLikelyToBenefit:g.most_likely_to_benefit||[],
     mostExposedToFailure:g.most_exposed_to_failure||[],nonNegotiableConditions:g.non_negotiable_conditions||[],governanceImplication:g.governance_implication||"",
     extractionFlags:b.overflow_flags||[]
-  };
+  });
 }
 
 function synthesisBriefToGovernanceRecord(briefJson){
   var b={};try{b=JSON.parse(briefJson||"{}");}catch(e){}
-  return {
+  return assertBoardGovernanceRecord({
     headlineLabel:b.verdict_label||"Verdict",headline:b.verdict||"—",headlineColor:governanceVerdictColor(b.verdict_label,b.verdict),
     headlineRationale:b.signal_rationale||"",keyDiscoveryLabel:"Key Discovery",keyDiscovery:b.key_discovery||"",
     primaryTension:b.primary_tension||"",roomShouldDiscuss:b.room_should_discuss||[],mostLikelyToBenefit:b.most_likely_to_benefit||[],
     mostExposedToFailure:b.most_exposed_to_failure||[],nonNegotiableConditions:b.non_negotiable_conditions||[],governanceImplication:b.governance_implication||"",
     extractionFlags:b._fallback_reason?["DETERMINISTIC_FALLBACK: "+b._fallback_reason]:[]
-  };
+  });
 }
 
 function governanceRecordToMarkdown(record){

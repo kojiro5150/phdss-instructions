@@ -20,7 +20,7 @@ import {
   resolveCoreDirectors,
   resolveChairDirectors,
   resolveActiveDirectors,
-} from "../src/registry.js";
+} from "../src/governance-rules.js";
 import { equivalenceFixtures, fixtureContract } from "./fixtures/equivalence.js";
 import { dashboardReferenceStates } from "./fixtures/dashboard-states.js";
 
@@ -89,6 +89,8 @@ if (!metaDiagnostic?.expectedDiagnostics?.some(
 const pureModules = [
   "src/constants.js",
   "src/registry.js",
+  "src/governance-rules.js",
+  "src/governance-record-contract.js",
   "src/parsers.js",
   "src/text-utils.js",
 ];

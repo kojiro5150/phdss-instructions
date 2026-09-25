@@ -35,6 +35,11 @@ const required = [
   "callGovernedSynthesis",
   "assessAuthorityBoundary",
   "authorityBoundaryPrompt",
+  "isValidDirectorBriefText",
+  "isValidSynthesisBriefText",
+  "assertBoardGovernanceRecord",
+  "./src/governance-rules.js",
+  "./src/governance-record-contract.js",
 ];
 
 const failures = [];
