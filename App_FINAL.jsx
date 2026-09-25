@@ -1664,6 +1664,10 @@ function PHDSS() {
   var [ledger,setLedger]=useState([]);
   var [autoContinue,setAutoContinue]=useState(true);
   var [stagesDone,setStagesDone]=useState(0);
+  var [stageStatuses,setStageStatuses]=useState({});
+  var [sessionGovernanceStatus,setSessionGovernanceStatus]=useState(null);
+  var [failedSynthesisStages,setFailedSynthesisStages]=useState([]);
+  var [failedMandatorySynthesisStages,setFailedMandatorySynthesisStages]=useState([]);
   var [expandedDirs,setExpandedDirs]=useState({});
   var [error,setError]=useState("");
   var [configSection,setConfigSection]=useState("directors");
