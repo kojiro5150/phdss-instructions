@@ -23,7 +23,7 @@ export function assessProvenanceMonotonicity(sourceText, compressedText) {
   const source=String(sourceText||"");
   const out=String(compressedText||"");
 
-  const sourceLow=countMatches(source,/\b(?:unknown|not supplied|unverified|unconfirmed|not demonstrated|inferred|speculative)\b/gi);
+  const sourceLow=countMatches(source,/\b(?:unknown|not supplied|unverified|unconfirmed|not (?:been )?demonstrated|inferred|speculative)\b/gi);
   const sourceDirectors=countMatches(source,/\bDirector\b/gi);
   const outputStrong=/\b(?:confirmed|verified|established|proven)\b/i.test(out);
   const sourceStrong=/\b(?:confirmed|verified|established|proven)\b/i.test(source);
@@ -36,7 +36,7 @@ export function assessProvenanceMonotonicity(sourceText, compressedText) {
     return {violates:true,reason:"EPISTEMIC_STATUS_PROMOTION"};
   }
 
-  const sourceHasWeakExistence=/\b(?:not supplied|unverified|unconfirmed|not demonstrated|unknown)\b/i.test(source);
+  const sourceHasWeakExistence=/\b(?:not supplied|unverified|unconfirmed|not (?:been )?demonstrated|unknown)\b/i.test(source);
   const outputClaimsAbsence=/\b(?:does not exist|do not exist|non[- ]existent|absent)\b/i.test(out);
   const sourceClaimsAbsence=/\b(?:does not exist|do not exist|non[- ]existent|absent)\b/i.test(source);
   if(sourceHasWeakExistence && outputClaimsAbsence && !sourceClaimsAbsence) {
