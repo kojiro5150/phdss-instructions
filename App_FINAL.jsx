@@ -97,6 +97,7 @@ function deduplicateSections(text) {
 
 
 import { useState, useRef, useEffect } from "react";
+import { authorityBoundaryPrompt, assessAuthorityBoundary } from "./src/authority-contract.js";
 
 // =============================================================================
 // API KEY GATE
@@ -875,7 +876,7 @@ var SYNTHESIS_VERDICT_FIELDS={"Decision Surface Map":"Dominant Signal","Epistemi
 
 function synthesisBriefSystem(moduleLabel) {
   var verdictLabel=SYNTHESIS_VERDICT_FIELDS[moduleLabel]||"Verdict";
-  return "You are the Governance Brief Extractor for a Public Health Decision Stewardship Board.\n\nYou receive the full output of the "+moduleLabel+" synthesis module and compress it into a structured Governance Brief JSON object for board-readable display. This is a board-readable extraction only — it does not feed the synthesis pipeline.\n\nRULES:\n1. verdict_label must be exactly '"+verdictLabel+"'.\n2. verdict must be the literal value of that field from the source output. Do not reinterpret it.\n3. key_discovery: the single most important finding, in plain language, 1-2 sentences.\n4. primary_tension: the core trade-off or conflict, framed as 'X versus Y'. Empty string if none.\n5. signal_rationale: why the module landed on its verdict, 1-2 sentences.\n6. room_should_discuss: 3-5 board questions grounded only in the source.\n7. most_likely_to_benefit: 1-4 short phrases; empty if not applicable.\n8. most_exposed_to_failure: 1-4 short phrases; empty if not applicable.\n9. non_negotiable_conditions: source-grounded conditions; empty if none.\n10. governance_implication: one source-grounded takeaway sentence.\n11. Do not invent content.\n\nReturn ONLY valid JSON in this exact shape:\n{\"module\":\""+moduleLabel+"\",\"verdict_label\":\""+verdictLabel+"\",\"verdict\":\"\",\"key_discovery\":\"\",\"primary_tension\":\"\",\"signal_rationale\":\"\",\"room_should_discuss\":[],\"most_likely_to_benefit\":[],\"most_exposed_to_failure\":[],\"non_negotiable_conditions\":[],\"governance_implication\":\"\"}\n\nNo preamble, commentary, or markdown fences.";
+  return "You are the Governance Brief Extractor for a Public Health Decision Stewardship Board.\n\nYou receive the full output of the "+moduleLabel+" synthesis module and compress it into a structured Governance Brief JSON object for board-readable display. This is a board-readable extraction only — it does not feed the synthesis pipeline.\n\nRULES:\n1. verdict_label must be exactly '"+verdictLabel+"'.\n2. verdict must be the literal value of that field from the source output. Do not reinterpret it.\n3. key_discovery: the single most important finding, in plain language, 1-2 sentences.\n4. primary_tension: the core trade-off or conflict, framed as 'X versus Y'. Empty string if none.\n5. signal_rationale: why the module landed on its verdict, 1-2 sentences.\n6. room_should_discuss: 3-5 board questions grounded only in the source.\n7. most_likely_to_benefit: 1-4 short phrases; empty if not applicable.\n8. most_exposed_to_failure: 1-4 short phrases; empty if not applicable.\n9. non_negotiable_conditions: source-grounded conditions; empty if none.\n10. governance_implication: one source-grounded takeaway sentence.\n11. Do not invent content.\n\nReturn ONLY valid JSON in this exact shape:\n{\"module\":\""+moduleLabel+"\",\"verdict_label\":\""+verdictLabel+"\",\"verdict\":\"\",\"key_discovery\":\"\",\"primary_tension\":\"\",\"signal_rationale\":\"\",\"room_should_discuss\":[],\"most_likely_to_benefit\":[],\"most_exposed_to_failure\":[],\"non_negotiable_conditions\":[],\"governance_implication\":\"\"}\n\nNo preamble, commentary, or markdown fences."+authorityBoundaryPrompt(synthesisLayerForModule(moduleLabel));
 }
 
 function deterministicSynthesisBrief(moduleLabel,fullOutput,reason) {
@@ -904,6 +905,8 @@ async function compressSynthesisOutput(moduleLabel,fullOutput) {
       var raw=await apiCall(synthesisBriefSystem(moduleLabel),"Module: "+moduleLabel+"\n\nFull Module Output:\n"+fullOutput+suffix,false);
       var txt=stripJsonFenceText(raw.text);
       if(!validSynthesisBrief(txt,moduleLabel)) throw new Error("invalid synthesis Governance Brief schema");
+      var authorityAssessment=assessAuthorityBoundary(synthesisLayerForModule(moduleLabel),txt);
+      if(authorityAssessment.violates) throw new Error("synthesis Governance Brief authority violation: "+authorityAssessment.reason);
       return txt;
     } catch(e) { lastError=e.message||String(e); }
   }
@@ -1002,21 +1005,46 @@ function chairDialogueSystem(entries, decision, directorSummary, metaOut, stress
     buildEmbeddedDocs(entries)+"\n\nRespond with authority, nuance and governance rigour while preserving human decision authority.";
 }
 
+function synthesisLayerForModule(moduleLabel) {
+  var map={
+    "Decision Surface Map":"surface_map",
+    "Epistemic Confidence Audit":"epistemic_audit",
+    "Cross-Domain Tension Analysis":"cross_domain_tension_analysis",
+    "Reality Anchor":"reality_anchor",
+    "Adversarial Probe":"adversarial_probe",
+    "Decision Stress Test":"stress_test",
+    "Chair Decision":"chair",
+    "Governance Comparator":"comparator"
+  };
+  return map[moduleLabel]||"chair";
+}
+
+async function enforceSynthesisAuthority(layer,text,systemPrompt,userPrompt) {
+  if(!text) return text;
+  var assessment=assessAuthorityBoundary(layer,text);
+  if(!assessment.violates) return text;
+  var repairSystem=systemPrompt+authorityBoundaryPrompt(layer)+
+    "\n\nBOUNDARY REPAIR: The prior draft crossed the PHDSS authority boundary ("+assessment.reason+"). Rewrite only as needed to remove adjudication. Preserve source-grounded findings, signals, constraints, conditions, tensions, uncertainty, pathway descriptions, section structure, and numeric values. Do not select, rank, resolve, approve, reject, defer, or choose an institutional pathway. Legitimate external constraint reporting may remain. Preserve the original output format exactly; if the input is JSON, return valid JSON only.";
+  var raw=await apiCall(repairSystem,userPrompt+"\n\nPRIOR OUTPUT TO REPAIR:\n"+text,false);
+  var repaired=stripCalibrationBleed(raw.text||"");
+  var after=assessAuthorityBoundary(layer,repaired);
+  if(after.violates) throw new Error(layer+" authority boundary violation persisted after repair: "+after.reason);
+  return repaired;
+}
+
+async function callGovernedSynthesis(layer,systemPrompt,userPrompt,autoContinue,useWeb) {
+  var governedSystem=systemPrompt+authorityBoundaryPrompt(layer);
+  var output=await callClaude_synthesis(governedSystem,userPrompt,autoContinue,useWeb);
+  return enforceSynthesisAuthority(layer,output,governedSystem,userPrompt);
+}
+
+// Compatibility wrapper retained during recovery. Chair is now one layer of the shared authority contract.
 function chairDecisionBoundaryLeak(text) {
-  if(!text) return false;
-  var retired=/\b(PROCEED WITH CONDITIONS|PROCEED WITH CAUTION|CONDITIONAL APPROVAL|DO NOT PROCEED|CHAIR RECOMMENDATION)\b/i;
-  var directive=/\b(?:the board|the chair|this analysis|these findings|the signals?|the governance record|we)\b[^.\n]{0,180}\b(?:should|must|ought to|cannot|can not)\s+(?:not\s+)?(?:proceed|approve|reject|deploy|implement|adopt|defer|pilot)\b/i;
-  var confirm=/\bconfirm(?:s|ed|ing)?\b[^.\n]{0,180}\b(?:should|must)\s+(?:not\s+)?(?:proceed|approve|reject|deploy|implement)\b/i;
-  return retired.test(text)||directive.test(text)||confirm.test(text);
+  return assessAuthorityBoundary("chair",text).violates;
 }
 
 async function repairChairDecisionBoundary(text, systemPrompt, userPrompt) {
-  if(!chairDecisionBoundaryLeak(text)) return text;
-  var repairSystem=systemPrompt+"\n\nBOUNDARY REPAIR: The prior draft crossed the authority boundary. Rewrite it without any preferred course of action. Preserve source-grounded facts, Director signal counts, conditions, tensions and uncertainties. A Director signal may be reported factually but never converted into a Chair instruction.";
-  var raw=await apiCall(repairSystem,userPrompt+"\n\nPRIOR DRAFT TO REPAIR:\n"+text,false);
-  var repaired=stripCalibrationBleed(raw.text||"");
-  if(chairDecisionBoundaryLeak(repaired)) throw new Error("Chair authority boundary violation persisted after repair");
-  return repaired;
+  return enforceSynthesisAuthority("chair",text,systemPrompt,userPrompt);
 }
 
 function epistemicAuditorSystem(analysisMode, activeDirectors, instructions) {
@@ -2875,7 +2903,7 @@ function PHDSS() {
       // Compute authoritative dominant signal — highest count wins; HALT overrides only if strictly > CAUTION
       var _smDominant=(_smHalt>_smCaution&&_smHalt>_smProceed)?"HALT":(_smCaution>=_smHalt&&_smCaution>=_smProceed)?"CAUTION":(_smProceed>0)?"PROCEED":"MIXED";
       var signalCountNote="\n\n[AUTHORITATIVE SIGNAL COUNTS — use these exact figures in your Signal Tally, do not recount from text: "+_smProceed+" PROCEED / "+_smCaution+" CAUTION / "+_smHalt+" HALT"+(_smNotApplicable>0?" / "+_smNotApplicable+" NOT APPLICABLE":"")+(_smUndefined>0?" / "+_smUndefined+" UNDEFINED":"")+". Total directors: "+results.length+". DOMINANT SIGNAL: "+_smDominant+" — use exactly this single word for the Dominant Signal field, not a compound like HALT/CAUTION. NOT APPLICABLE means the Director correctly determined the proposal is outside their mandate — do not count as PROCEED.]";
-      try{setSurfaceMapLoading(true);surfaceMapOut=await callClaude_synthesis(surfaceMapperSystem(analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nAll Director Governance Briefs:\n"+briefSummary+signalCountNote,autoContinue);setSurfaceMap(surfaceMapOut);surfaceMapRef.current=surfaceMapOut;await storeSynthesisBrief("surfacemap","Decision Surface Map",surfaceMapOut);}catch(e){stageErrors.push("Surface Mapper failed");}
+      try{setSurfaceMapLoading(true);surfaceMapOut=await callGovernedSynthesis("surface_map",surfaceMapperSystem(analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nAll Director Governance Briefs:\n"+briefSummary+signalCountNote,autoContinue);setSurfaceMap(surfaceMapOut);surfaceMapRef.current=surfaceMapOut;await storeSynthesisBrief("surfacemap","Decision Surface Map",surfaceMapOut);}catch(e){stageErrors.push("Surface Mapper failed");}
       setSurfaceMapLoading(false); setStagesDone(2);
 
 
@@ -2898,17 +2926,17 @@ function PHDSS() {
       }).join("\n\n");
       try{
         setEpistemicLoading(true);
-        epistemicOut=await callClaude_synthesis(epistemicAuditorSystem(analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDirector Governance Briefs (with confidence ratings):\n"+epistemicBriefSummary,autoContinue);
+        epistemicOut=await callGovernedSynthesis("epistemic_audit",epistemicAuditorSystem(analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDirector Governance Briefs (with confidence ratings):\n"+epistemicBriefSummary,autoContinue);
         // Guard: if output is suspiciously short, retry up to twice with fresh call.
         // Empty = ~839 bytes. Near-empty = ~1000-2000 bytes.
         if(epistemicOut && epistemicOut.length < 2000) {
           console.warn("PHDSS: Epistemic output short ("+epistemicOut.length+" chars), retry 1 of 2...");
           await new Promise(function(r){setTimeout(r,2000);});
-          epistemicOut=await callClaude_synthesis(epistemicAuditorSystem(analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDirector Governance Briefs (with confidence ratings):\n"+epistemicBriefSummary,autoContinue);
+          epistemicOut=await callGovernedSynthesis("epistemic_audit",epistemicAuditorSystem(analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDirector Governance Briefs (with confidence ratings):\n"+epistemicBriefSummary,autoContinue);
           if(epistemicOut && epistemicOut.length < 2000) {
             console.warn("PHDSS: Epistemic still short ("+epistemicOut.length+" chars), retry 2 of 2...");
             await new Promise(function(r){setTimeout(r,4000);});
-            epistemicOut=await callClaude_synthesis(epistemicAuditorSystem(analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDirector Governance Briefs (with confidence ratings):\n"+epistemicBriefSummary,autoContinue);
+            epistemicOut=await callGovernedSynthesis("epistemic_audit",epistemicAuditorSystem(analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDirector Governance Briefs (with confidence ratings):\n"+epistemicBriefSummary,autoContinue);
           }
         }
         var epistemicCleaned=epistemicOut?stripCalibrationBleed(epistemicOut):epistemicOut;
@@ -2919,11 +2947,11 @@ function PHDSS() {
       setEpistemicLoading(false); setStagesDone(3);
 
 
-      try{setMetaLoading(true);metaOut=await callClaude_synthesis(metaSystem(docs.meta||[],webSearch,publicWebSearch,sessionEvidence,analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDecision Surface Map:\n"+surfaceMapOut+"\n\nDirector Governance Briefs:\n"+briefSummary+(epistemicOut?"\n\nEpistemic Audit:\n"+epistemicOut:""),autoContinue,webSearch||publicWebSearch);setMeta(metaOut);metaRef.current=metaOut;await storeSynthesisBrief("meta","Cross-Domain Tension Analysis",metaOut);}catch(e){stageErrors.push("META failed");}
+      try{setMetaLoading(true);metaOut=await callGovernedSynthesis("cross_domain_tension_analysis",metaSystem(docs.meta||[],webSearch,publicWebSearch,sessionEvidence,analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDecision Surface Map:\n"+surfaceMapOut+"\n\nDirector Governance Briefs:\n"+briefSummary+(epistemicOut?"\n\nEpistemic Audit:\n"+epistemicOut:""),autoContinue,webSearch||publicWebSearch);setMeta(metaOut);metaRef.current=metaOut;await storeSynthesisBrief("meta","Cross-Domain Tension Analysis",metaOut);}catch(e){stageErrors.push("META failed");}
       setMetaLoading(false); setStagesDone(4);
 
 
-      try{setRealityAnchorLoading(true);realityAnchorOut=await callClaude_synthesis(realityAnchorSystem(analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDirector Governance Briefs:\n"+briefSummary+"\n\nDecision Surface Map:\n"+surfaceMapOut+"\n\nMETA Synthesis:\n"+metaOut,autoContinue);setRealityAnchor(realityAnchorOut);realityAnchorRef.current=realityAnchorOut;await storeSynthesisBrief("reality","Reality Anchor",realityAnchorOut);}catch(e){stageErrors.push("Reality Anchor failed");}
+      try{setRealityAnchorLoading(true);realityAnchorOut=await callGovernedSynthesis("reality_anchor",realityAnchorSystem(analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDirector Governance Briefs:\n"+briefSummary+"\n\nDecision Surface Map:\n"+surfaceMapOut+"\n\nMETA Synthesis:\n"+metaOut,autoContinue);setRealityAnchor(realityAnchorOut);realityAnchorRef.current=realityAnchorOut;await storeSynthesisBrief("reality","Reality Anchor",realityAnchorOut);}catch(e){stageErrors.push("Reality Anchor failed");}
       setRealityAnchorLoading(false); setStagesDone(5);
 
 
@@ -2932,7 +2960,7 @@ function PHDSS() {
         var sigs=results.map(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(PROCEED|CAUTION|HALT)/,1);}).filter(Boolean);
         var sigCounts=sigs.reduce(function(a,s){return Object.assign({},a,{[s]:(a[s]||0)+1});},{});
         var dominant=Object.entries(sigCounts).sort(function(a,b){return b[1]-a[1];})[0]?.[0]||"UNKNOWN";
-        probeOut=await callClaude_synthesis(adversarialProbeSystem(dominant,analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nAll Director Governance Briefs:\n"+briefSummary+"\n\nMETA-AUTHOR Synthesis:\n"+metaOut+"\n\nReality Anchor:\n"+realityAnchorOut,autoContinue);
+        probeOut=await callGovernedSynthesis("adversarial_probe",adversarialProbeSystem(dominant,analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nAll Director Governance Briefs:\n"+briefSummary+"\n\nMETA-AUTHOR Synthesis:\n"+metaOut+"\n\nReality Anchor:\n"+realityAnchorOut,autoContinue);
         setProbe(probeOut);probeRef.current=probeOut;
         await storeSynthesisBrief("probe","Adversarial Probe",probeOut);
       }catch(e){stageErrors.push("Probe failed");}
@@ -2943,7 +2971,7 @@ function PHDSS() {
       var stressDecision=shouldRunStressTest(analysisMode,decision,results,surfaceMapOut,epistemicOut,probeVerdict,realityAnchorOut);
       setStressTestResult(stressDecision);
       if(stressDecision.run){
-        try{setStressLoading(true);stressOut=await callClaude_synthesis(stressSystem(docs.stress||[],webSearch,publicWebSearch,sessionEvidence,analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDecision Surface Map:\n"+surfaceMapOut+"\n\nMETA-AUTHOR:\n"+metaOut+"\n\nReality Anchor:\n"+realityAnchorOut,autoContinue,webSearch||publicWebSearch);setStress(stressOut);stressRef.current=stressOut;await storeSynthesisBrief("stress","Decision Stress Test",stressOut);}catch(e){stageErrors.push("Stress failed");}
+        try{setStressLoading(true);stressOut=await callGovernedSynthesis("stress_test",stressSystem(docs.stress||[],webSearch,publicWebSearch,sessionEvidence,analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDecision Surface Map:\n"+surfaceMapOut+"\n\nMETA-AUTHOR:\n"+metaOut+"\n\nReality Anchor:\n"+realityAnchorOut,autoContinue,webSearch||publicWebSearch);setStress(stressOut);stressRef.current=stressOut;await storeSynthesisBrief("stress","Decision Stress Test",stressOut);}catch(e){stageErrors.push("Stress failed");}
         setStressLoading(false);
       }
       setStagesDone(7);
@@ -2964,7 +2992,7 @@ function PHDSS() {
         setChairLoading(true);
         var chairPrompt=chairSystem(docs.chair||[],webSearch,publicWebSearch,sessionEvidence,analysisMode,activeDir,failedDirLabels,instructions);
         var chairUser="Decision: "+decision+"\n\nDecision Surface Map:\n"+surfaceMapOut+"\n\nMETA-AUTHOR:\n"+metaOut+"\n\nReality Anchor:\n"+realityAnchorOut+(stressOut?"\n\nStress Test:\n"+stressOut:"")+(probeOut?"\n\nAdversarial Bias Probe:\n"+probeOut:"")+probeInjection;
-        chairOut=await callClaude_synthesis(chairPrompt,chairUser,autoContinue,webSearch||publicWebSearch);
+        chairOut=await callGovernedSynthesis("chair",chairPrompt,chairUser,autoContinue,webSearch||publicWebSearch);
         chairOut=await repairChairDecisionBoundary(chairOut,chairPrompt,chairUser);
         setChair(chairOut);chairRef.current=chairOut;
         await storeSynthesisBrief("chair","Chair Decision",chairOut);
@@ -2992,7 +3020,7 @@ function PHDSS() {
           if(hints.length===0) return "";
           return "\n\nKILL SWITCH REQUIREMENT: Each kill_switch entry must contain a measurable indicator + specific threshold + timeframe. Examples from Director analyses:\n"+hints.map(function(h){return "- "+h;}).join("\n")+"\nFormat each kill switch as: \"[indicator] exceeds/falls below [threshold] [timeframe].\"";
         })();
-        var compRaw=await callClaude_synthesis(comparatorJsonSystem(decisionId,decisionSignal,results,analysisMode,activeDir,chairOut,instructions,_pCount,_cCount,_hCount),"Run comparator now."+killSwitchHints,autoContinue);
+        var compRaw=await callGovernedSynthesis("comparator",comparatorJsonSystem(decisionId,decisionSignal,results,analysisMode,activeDir,chairOut,instructions,_pCount,_cCount,_hCount),"Run comparator now."+killSwitchHints,autoContinue);
         var compParsed=extractFirstJsonObject(compRaw);
         // P1.2b: validate signal interpretation against authoritative counts; correct if drifted
         if(compParsed&&compParsed.summary&&typeof compParsed.summary.decision_signal_interpretation==="string"){
