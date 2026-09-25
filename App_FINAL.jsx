@@ -2625,6 +2625,8 @@ function PHDSS() {
   var epistemicRef=useRef(""); var probeRef=useRef(""); var chairRef=useRef("");
   var metaRef=useRef(""); var realityAnchorRef=useRef(""); var stressRef=useRef("");
   var surfaceMapRef=useRef("");
+  var dirBriefsRef=useRef({});
+  var synthesisBriefsRef=useRef({});
   var [comparator,setComparator]=useState(null);
   var [ledger,setLedger]=useState([]);
   var [autoContinue,setAutoContinue]=useState(true);
@@ -2728,16 +2730,16 @@ function PHDSS() {
 
 
   function commitToLedger(results,metaOut,stressOut,chairOut,epistemicOut,probeOut,comparatorData,activeDir,omittedDir,mode,stressResult){
+    var failedDirs=results.filter(function(r){return /^\[Director failed:/i.test((r.output||"").trim());});
+    var hasChair=chairOut&&chairOut.length>50&&!/Chair failed|Director failed/i.test(chairOut);
+    var briefMatch=(chairOut||"").match(/\*\*Decision Brief Status\*\*:?\s*\*{0,2}(Complete(?:\s*[—–-]\s*Partial Evidence Base)?\s*[—–-]\s*[^\n*]+)/i);
+    var decisionBriefStatus=briefMatch?briefMatch[1].trim():null;
+    var directorOutputs={};
+    results.forEach(function(r){directorOutputs[r.id]=stripCalibrationBleed(r.output||"");});
     var record={
-      decision_id:decisionId, schema_version:"2.5.0", created_at:new Date().toISOString(),
+      decision_id:decisionId, schema_version:LEDGER_SCHEMA, created_at:new Date().toISOString(),
       governance_family:"GOVERNANCE",
-      session_governance_status:(function(){
-        var hasChair=chairOut&&chairOut.length>50&&!/Chair failed|Director failed/i.test(chairOut);
-        var failedDirs=results.filter(function(r){return /^\[Director failed:/i.test((r.output||"").trim());});
-        if(hasChair&&failedDirs.length===0) return "FULL_VERDICT";
-        if(hasChair||results.filter(function(r){return !/^\[Director failed:/i.test((r.output||"").trim());}).length>0) return "PARTIAL_EVIDENCE_BASE";
-        return "INCOMPLETE";
-      })(),
+      session_governance_status:hasChair?(failedDirs.length===0?"COMPLETE":"COMPLETE_PARTIAL_EVIDENCE"):"INCOMPLETE",
       run_intensity:mode==="FULL"?"MAXIMUM":mode==="CORE"?"MINIMUM_VIABLE":"CUSTOM",
       analysis_mode:mode||"FULL",
       coverage_ratio:(activeDir||DIRECTORS).length+"/"+DIRECTORS.length,
@@ -2749,11 +2751,11 @@ function PHDSS() {
       proceed_count:results.filter(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(PROCEED)/,1)==="PROCEED";}).length,
       caution_count:results.filter(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(CAUTION)/,1)==="CAUTION";}).length,
       halt_count:results.filter(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(HALT)/,1)==="HALT";}).length,
-      chair_recommendation:safeMatch(chairOut,/\*\*Chair Recommendation[^*]*\*\*:?\s*\*?\*?\s*(CONDITIONAL APPROVAL[^.\n*]*|DO NOT PROCEED|PROCEED WITH CONDITIONS|PROCEED WITH CAUTION|PILOT|DEFER|HALT)/i,1)||null,
+      decision_brief_status:decisionBriefStatus,
       epistemic_score:(function(){
-        var m=epistemicOut.match(/\*\*Epistemic Health Score\*\*:?\s*(STRONG|ADEQUATE|WEAK|COMPROMISED)/i);
+        var m=(epistemicOut||"").match(/\*\*Epistemic Health Score\*\*:?\s*(STRONG|ADEQUATE|WEAK|COMPROMISED)/i);
         if(m) return m[1].toUpperCase();
-        var m2=epistemicOut.match(/Epistemic Health Score[:\s]+(STRONG|ADEQUATE|WEAK|COMPROMISED)/i);
+        var m2=(epistemicOut||"").match(/Epistemic Health Score[:\s]+(STRONG|ADEQUATE|WEAK|COMPROMISED)/i);
         if(m2) return m2[1].toUpperCase();
         return findSignal(epistemicOut,["STRONG","ADEQUATE","COMPROMISED","WEAK"]);
       })(),
@@ -2761,22 +2763,39 @@ function PHDSS() {
       fragility_score:parseInt(safeMatch(stressOut,/\*\*Fragility Score\*\*:?[^\d]*(\d+)/,1))||null,
       stress_test_ran:(stressResult&&stressResult.run)||false,
       stress_test_reason:(stressResult&&stressResult.reason)||null,
-      instruction_source: instrLoadState==="ready"?"github":instrLoadState==="partial"?"github_partial":"inline_fallback",
+      instruction_source:instrLoadState==="ready"?"github":instrLoadState==="partial"?"github_partial":"inline_fallback",
+      instruction_commit:INSTRUCTION_COMMIT,
+      runtime_contract:RUNTIME_CONTRACT,
       comparator:comparatorData||null,
-      outputs:{meta:metaOut,stress:stressOut,chair:stripCalibrationBleed(chairOut),epistemic:epistemicOut?stripCalibrationBleed(epistemicOut):null,probe:stripCalibrationBleed(probeOut||"")||null},      tags:[],
+      outputs:{
+        directors:directorOutputs,
+        surface_map:stripCalibrationBleed(surfaceMapRef.current||"")||null,
+        meta:stripCalibrationBleed(metaOut||"")||null,
+        reality_anchor:stripCalibrationBleed(realityAnchorRef.current||"")||null,
+        probe:stripCalibrationBleed(probeOut||"")||null,
+        stress:stripCalibrationBleed(stressOut||"")||null,
+        epistemic:stripCalibrationBleed(epistemicOut||"")||null,
+        chair:stripCalibrationBleed(chairOut||"")||null
+      },
+      structured_records:{
+        directors:Object.assign({},dirBriefsRef.current),
+        synthesis:Object.assign({},synthesisBriefsRef.current)
+      },
+      tags:[]
     };
     setLedger(function(prev){return prev.concat([record]);});
     return record;
   }
 
-
   async function storeSynthesisBrief(key, moduleLabel, output) {
     try {
       var brief=await compressSynthesisOutput(moduleLabel,output);
+      synthesisBriefsRef.current=Object.assign({},synthesisBriefsRef.current,{[key]:brief});
       setSynthesisBriefs(function(prev){var n=Object.assign({},prev);n[key]=brief;return n;});
       return brief;
     } catch(e) {
       var fallback=deterministicSynthesisBrief(moduleLabel,output,e.message||String(e));
+      synthesisBriefsRef.current=Object.assign({},synthesisBriefsRef.current,{[key]:fallback});
       setSynthesisBriefs(function(prev){var n=Object.assign({},prev);n[key]=fallback;return n;});
       return fallback;
     }
@@ -2794,6 +2813,7 @@ function PHDSS() {
     setEpistemic(""); setProbe(""); setComparator(null);
     // Reset synthesis refs alongside state so stale content from previous runs cannot leak into exports
     epistemicRef.current=""; probeRef.current=""; chairRef.current=""; metaRef.current=""; realityAnchorRef.current=""; stressRef.current=""; surfaceMapRef.current="";
+    dirBriefsRef.current={}; synthesisBriefsRef.current={};
     setStagesDone(0); setDialogueHistory([]); setDirectorResultsRef([]); setExpandedDirs({});
     var loading={}; activeDir.forEach(function(d){loading[d.id]=true;}); setDirLoading(loading);
     var ctx=getSessionContext();
@@ -2851,10 +2871,12 @@ function PHDSS() {
           try {
             var brief_i=await compressDirectorOutput(dirI.label,cOut);
             dirBriefs[cId]=brief_i;
+            dirBriefsRef.current=Object.assign({},dirBriefsRef.current,{[cId]:brief_i});
             setDirBriefsState(function(prev){var n=Object.assign({},prev);n[cId]=brief_i;return n;});
           } catch(compErr) {
             var fallback_i=deterministicDirectorBrief(dirI.label,cOut,compErr.message||String(compErr));
             dirBriefs[cId]=fallback_i;
+            dirBriefsRef.current=Object.assign({},dirBriefsRef.current,{[cId]:fallback_i});
             setDirBriefsState(function(prev){var n=Object.assign({},prev);n[cId]=fallback_i;return n;});
           }
         } catch(dirErr) {
@@ -3078,6 +3100,7 @@ function PHDSS() {
     setDecision(""); setDecisionSignal(""); setOrgContext(""); setConstraintsText(""); setEvidenceLinksText("");
     setAdvisoryDone(false); setRunning(false); setAdvisoryOutput({}); setLensComparator("");
     setDirOutputs({}); setStagesDone(0); setError(""); setDirectorResultsRef([]);
+    dirBriefsRef.current={}; synthesisBriefsRef.current={};
     setExpandedDirs({}); setDecisionId(makeDecisionId());
   }
 
