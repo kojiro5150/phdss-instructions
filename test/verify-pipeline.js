@@ -14,6 +14,7 @@ import {
 } from "../src/pipeline.js";
 import { pipelineSequenceContract } from "./fixtures/pipeline-sequence.js";
 import { livePartialSynthesis20260925 } from "./fixtures/live-partial-synthesis-2026-09-25.js";
+import { liveAuthorityFailures20260925 } from "./fixtures/live-authority-failures-2026-09-25.js";
 
 const failures=[];
 async function check(label,fn){
@@ -151,6 +152,50 @@ await check("authority repair remains in pipeline",async function(){
   assert.equal(calls,1);
   assert.equal(chairDecisionBoundaryLeak("The Board should approve the proposal."),true);
   assert.equal(chairDecisionBoundaryLeak("Material tension remains."),false);
+});
+
+await check("authority repair performs bounded second pass with offending clause",async function(){
+  let calls=0;
+  const systems=[];
+  const users=[];
+  const repaired=await enforceSynthesisAuthority(
+    "reality_anchor",
+    "DO NOT PROCEED.",
+    "SYS",
+    "USER",
+    {apiCallImpl:async function(system,user){
+      calls++;
+      systems.push(system);
+      users.push(user);
+      if(calls===1) return {text:"DO NOT PROCEED."};
+      return {text:"The current operating conditions remain unresolved and require human judgment."};
+    }}
+  );
+  assert.equal(calls,2);
+  assert.equal(repaired,"The current operating conditions remain unresolved and require human judgment.");
+  assert.match(systems[1],/BOUNDARY REPAIR ATTEMPT 2 OF 2/);
+  assert.match(systems[1],/exact offending clause/i);
+  assert.match(users[1],/Rewrite the offending clause into non-adjudicative analytical language/);
+});
+
+await check("persistent authority failure preserves reason and exact clause",async function(){
+  let calls=0;
+  await assert.rejects(
+    enforceSynthesisAuthority(
+      "chair",
+      "The preferred pathway is trajectory 4.",
+      "SYS",
+      "USER",
+      {apiCallImpl:async function(){calls++;return {text:"The preferred pathway is trajectory 4."};}}
+    ),
+    function(error){
+      assert.equal(calls,2);
+      assert.match(error.message,/PATHWAY_RANKING/);
+      assert.match(error.message,/Offending clause: The preferred pathway is trajectory 4\./);
+      assert.match(error.message,/after 2 repair attempts/);
+      return true;
+    }
+  );
 });
 
 await check("governed synthesis appends authority contract then repairs",async function(){
@@ -333,6 +378,39 @@ await check("pipeline preserves non-Error and Error stage exceptions",async func
   assert.equal(events.some(e=>e.type==="stage-status"&&e.payload.stage==="reality_anchor"&&e.payload.status==="failed"),true);
 });
 
+await check("Chair failure skips Comparator with dependency reason",async function(){
+  const fx=liveAuthorityFailures20260925;
+  const layers=[];
+  const config=baseConfig();
+  const runtime={
+    ...fakeCompression("CAUTION"),
+    sleepImpl:async function(){},
+    callClaudeImpl:async function(){return directorOutput("CAUTION");},
+    callGovernedSynthesisImpl:async function(layer){
+      layers.push(layer);
+      if(layer==="surface_map") return "**Dominant Signal**\nCAUTION";
+      if(layer==="epistemic_audit") return "**Epistemic Health Score**: ADEQUATE\n"+("E".repeat(2100));
+      if(layer==="cross_domain_tension_analysis") return "**Integration Signal**: MEDIUM";
+      if(layer==="reality_anchor") return "**Operational Confidence**: MEDIUM";
+      if(layer==="adversarial_probe") return "**Probe Verdict**: SIGNIFICANT GAPS";
+      if(layer==="stress_test") return "**Fragility Score**: 7/10";
+      if(layer==="chair") throw new Error("chair authority boundary violation persisted after 2 repair attempts: "+fx.failures.chair.reason+" | Offending clause: The preferred pathway is trajectory 4.");
+      if(layer==="comparator") throw new Error("Comparator must not run after Chair failure");
+      return "Synthetic stage output";
+    },
+    repairChairDecisionBoundaryImpl:async function(text){return text;},
+    nowImpl:function(){return "2026-09-25T00:00:00.000Z";},
+  };
+  const state=await runGovernancePipeline(config,runtime,function(){});
+  assert.equal(layers.includes("comparator"),false);
+  assert.equal(state.synthesisStageStatus.chair.status,"failed");
+  assert.equal(state.synthesisStageStatus.comparator.status,fx.expected.comparatorStatus);
+  assert.equal(state.synthesisStageStatus.comparator.reason,fx.expected.comparatorReason);
+  assert.equal(state.comparatorData,null);
+  assert.equal(state.ledgerRecord.comparator,null);
+  assert.equal(state.ledgerRecord.session_governance_status,fx.expected.sessionGovernanceStatus);
+});
+
 await check("pipeline executes recovered stage order with stress",async function(){
   const events=[];
   const layers=[];
@@ -446,11 +524,15 @@ assert.ok(/function\s+parseDashboard\s*\(/.test(app));
 assert.ok(app.includes("INCOMPLETE REASONING CHAIN"));
 assert.ok(app.includes("stage-status"));
 assert.ok(app.includes("INCOMPLETE_MANDATORY_SYNTHESIS_FAILURE"));
+assert.ok(app.includes("Session Status:"));
+assert.ok(app.includes("SYNTHESIS EXECUTION"));
+assert.ok(app.includes("Failed Synthesis:"));
+assert.ok(app.includes("Failed Mandatory:"));
 assert.ok(/async function\s+runAdvisory\s*\(/.test(app));
 for(const name of ["shouldRunStressTest","enforceSynthesisAuthority","callGovernedSynthesis","repairChairDecisionBoundary","commitToLedger","storeSynthesisBrief"]){
   if(new RegExp("(?:async\\s+)?function\\s+"+name+"\\s*\\(").test(app)) failures.push(name+" remains duplicated in App_FINAL.jsx");
 }
-for(const name of ["shouldRunStressTest","enforceSynthesisAuthority","callGovernedSynthesis","repairChairDecisionBoundary","buildLedgerRecord","runGovernancePipeline"]){
+for(const name of ["shouldRunStressTest","authorityViolationMessage","enforceSynthesisAuthority","callGovernedSynthesis","repairChairDecisionBoundary","buildLedgerRecord","runGovernancePipeline"]){
   if(!new RegExp("(?:export\\s+)?(?:async\\s+)?function\\s+"+name+"\\s*\\(").test(pipeline)) failures.push(name+" missing from src/pipeline.js");
 }
 
@@ -463,6 +545,8 @@ if(failures.length){
 console.log("PHDSS governance pipeline verification passed.");
 console.log("Stress trigger matrix: PASS");
 console.log("Authority execution/repair: PASS");
+console.log("Bounded second authority repair: PASS");
+console.log("Authority offending-clause diagnostics: PASS");
 console.log("Ledger assembly: PASS");
 console.log("Stage sequence 1-8: PASS");
 console.log("Conditional stress on/off: PASS");
@@ -470,4 +554,6 @@ console.log("Director 500-retry backoff: PASS");
 console.log("Live partial-synthesis fail-closed fixture: PASS");
 console.log("Stage exception preservation: PASS");
 console.log("Session completion classification: PASS");
+console.log("Chair dependency skips Comparator: PASS");
+console.log("Dashboard execution-status visibility: PASS");
 console.log("Pipeline scope guards: PASS");
