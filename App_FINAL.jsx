@@ -303,29 +303,31 @@ function govHeader(decisionId, title, decision, decisionSignal, orgContext) {
 }
 
 
-function exportDirector(dir, output, decisionId, decision, decisionSignal, orgContext) {
-  var hdr = govHeader(decisionId,"DIRECTOR ANALYSIS - "+dir.label.toUpperCase(),decision,decisionSignal,orgContext);
-  var body = "DIRECTOR:  "+dir.label+"\nDOMAIN:    "+dir.desc+"\n\n"+deduplicateSections(stripCalibrationBleed(output||"(no output yet)"));
-  var ftr = "\n\n-------------------------------------------------------------------\nPHDSS - "+dir.label+" Director - "+decisionId+"\nAI-generated. Requires human expert review before governance use.\n";
-  exportAsText("PHDSS_"+decisionId+"_"+dir.id+".md", hdr+body+ftr);
+function exportDirector(dir, output, decisionId, decision, decisionSignal, orgContext, view, govRecord) {
+  var isGov=view==="governance";
+  var hdr=govHeader(decisionId,"DIRECTOR ANALYSIS - "+dir.label.toUpperCase()+(isGov?" - GOVERNANCE RECORD":""),decision,decisionSignal,orgContext);
+  var body=isGov
+    ? "DIRECTOR:  "+dir.label+"\nDOMAIN:    "+dir.desc+"\n\n"+governanceRecordToMarkdown(govRecord)
+    : "DIRECTOR:  "+dir.label+"\nDOMAIN:    "+dir.desc+"\n\n"+deduplicateSections(stripCalibrationBleed(output||"(no output yet)"));
+  var ftr="\n\n-------------------------------------------------------------------\nPHDSS - "+dir.label+" Director - "+decisionId+"\nAI-generated. Requires human expert review before governance use.\n";
+  exportAsText("PHDSS_"+decisionId+"_"+dir.id+(isGov?"_governance_record":"")+".md",hdr+body+ftr);
 }
 
 
-function exportPanel(role, content, decisionId, decision, decisionSignal, orgContext) {
-  var hdr = govHeader(decisionId, role.toUpperCase(), decision, decisionSignal, orgContext);
-  var ftr = "\n\n-------------------------------------------------------------------\nPHDSS - "+role+" - "+decisionId+"\nAI-generated. Currency: AUD. Requires human expert review.\n";
-  // Fix P1-2: Strip META-AUTHOR heading that leaks architecture layer into governance exports.
-  // Matches "# META-AUTHOR Integration Analysis\n\n" at start of content.
-  var cleaned = (content||"(no output)").replace(/^#\s+META-AUTHOR[^\n]*\n+/i, "");
-  // JSX Fix 2: Strip instruction artifact bleed (e.g. SINGLE INSTANCE ONLY, SECTION CLOSED)
-  // from Chair and other synthesis outputs before export. Primary fix is in chair.md;
-  // this is a pipeline safety net.
-  var debled = role.toUpperCase().indexOf("CHAIR") !== -1
+function exportPanel(role, content, decisionId, decision, decisionSignal, orgContext, view, govRecord) {
+  var isGov=view==="governance";
+  var hdr=govHeader(decisionId,role.toUpperCase()+(isGov?" - GOVERNANCE RECORD":""),decision,decisionSignal,orgContext);
+  var ftr="\n\n-------------------------------------------------------------------\nPHDSS - "+role+" - "+decisionId+"\nAI-generated. Currency: AUD. Requires human expert review.\n";
+  if(isGov){
+    exportAsText("PHDSS_"+decisionId+"_"+role.replace(/[\s/]+/g,"_")+"_governance_record.md",hdr+governanceRecordToMarkdown(govRecord)+ftr);
+    return;
+  }
+  var cleaned=(content||"(no output)").replace(/^#\s+META-AUTHOR[^\n]*\n+/i,"");
+  var debled=role.toUpperCase().indexOf("CHAIR")!==-1
     ? stripInstructionArtifacts(stripCalibrationBleed(cleaned))
     : stripCalibrationBleed(cleaned);
-  exportAsText("PHDSS_"+decisionId+"_"+role.replace(/[\s/]+/g,"_")+".md", hdr+debled+ftr);
+  exportAsText("PHDSS_"+decisionId+"_"+role.replace(/[\s/]+/g,"_")+".md",hdr+debled+ftr);
 }
-
 
 
 function exportFullDashboard(d, decision, decisionId, decisionSignal, orgContext, comparator, stressTestResult) {
@@ -2294,7 +2296,7 @@ function GovToggle({view, setView, hasContent}) {
   if (!hasContent) return null;
   return (
     <div style={{display:"flex",gap:4,marginBottom:10,padding:"2px",background:"#F1F5F9",borderRadius:8,width:"fit-content"}}>
-      {["technical","governance"].map(function(v){
+      {["governance","technical"].map(function(v){
         var active=view===v;
         return <button key={v} onClick={function(e){e.stopPropagation();setView(v);}}
           style={{fontSize:10,fontWeight:700,padding:"4px 12px",borderRadius:6,border:"none",
@@ -3566,13 +3568,16 @@ function PHDSS() {
                 {DIRECTORS.map(function(dir){
                   var isActive=activeDirectorsRef.some(function(a){return a.id===dir.id;});
                   if(!isActive) return <OmittedDirectorCard key={dir.id} director={dir}/>;
+                  var dirBrief=dirBriefsState[dir.id]||null;
+                  var dirView=dirGovViews[dir.id]||"governance";
+                  var dirRecord=dirBrief?directorBriefToGovernanceRecord(dirBrief):null;
                   return <DirectorCard key={dir.id} director={dir} output={dirOutputs[dir.id]} loading={dirLoading[dir.id]} expanded={expandedDirs[dir.id]}
                     onToggle={function(){setExpandedDirs(function(p){var n=Object.assign({},p);n[dir.id]=!p[dir.id];return n;});}}
                     confidence={dirConfidence[dir.id]}
-                    onExport={dirOutputs[dir.id]?function(){exportDirector(dir,dirOutputs[dir.id],decisionId,decision,decisionSignal,orgContext);}:null}
-                    govRecord={dir.id==="lived"&&dirOutputs[dir.id]?<LivedGovernanceRecord decision={decision}/>:null}
-                    govView={dir.id==="lived"?livedView:null}
-                    setGovView={dir.id==="lived"?setLivedView:null}
+                    onExport={dirOutputs[dir.id]?function(){exportDirector(dir,dirOutputs[dir.id],decisionId,decision,decisionSignal,orgContext,dirView,dirRecord);}:null}
+                    govRecord={dirBrief?<GovernanceRecord record={dirRecord}/>:null}
+                    govView={dirView}
+                    setGovView={function(v){setDirGovViews(function(prev){var n=Object.assign({},prev);n[dir.id]=v;return n;});}}
                   />;
                 })}
               </div>
