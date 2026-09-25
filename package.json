@@ -7,10 +7,11 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "validate": "node .github/scripts/validate-v2.mjs && node .github/scripts/authority-regression.mjs && node test/verify.js && node test/verify-governance-contracts.js && node test/verify-runtime-orchestration.js",
+    "validate": "node .github/scripts/validate-v2.mjs && node .github/scripts/authority-regression.mjs && node test/verify.js && node test/verify-governance-contracts.js && node test/verify-runtime-orchestration.js && node test/verify-governance-compression.js",
     "verify:equivalence": "node test/verify.js",
     "verify:governance-contracts": "node test/verify-governance-contracts.js",
-    "verify:runtime-orchestration": "node test/verify-runtime-orchestration.js"
+    "verify:runtime-orchestration": "node test/verify-runtime-orchestration.js",
+    "verify:governance-compression": "node test/verify-governance-compression.js"
   },
   "dependencies": {
     "react": "^19.1.1",
