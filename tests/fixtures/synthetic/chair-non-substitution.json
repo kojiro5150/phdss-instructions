@@ -1,0 +1,159 @@
+{
+  "fixture_class": "synthetic_chair_non_substitution",
+  "upstream": {
+    "director_signals": {
+      "PROCEED": 1,
+      "CAUTION": 3,
+      "HALT": 1
+    },
+    "probe_verdict": "SIGNIFICANT GAPS",
+    "fragility_score": 7,
+    "conditions": [
+      {
+        "id": "capacity_evidence_condition",
+        "source_layer": "reality_anchor",
+        "state": "unconfirmed"
+      },
+      {
+        "id": "baseline_evidence_condition",
+        "source_layer": "epistemic_audit",
+        "state": "unverified"
+      },
+      {
+        "id": "counter_case_condition",
+        "source_layer": "adversarial_probe",
+        "state": "unresolved"
+      }
+    ],
+    "unresolved_tensions": [
+      "access_benefit_vs_response_safety"
+    ],
+    "epistemic_states": {
+      "delivery_capacity": "unconfirmed"
+    }
+  },
+  "cases": [
+    {
+      "id": "valid-faithful-compression",
+      "expected_permitted": true,
+      "expected_reason": null,
+      "chair_projection": {
+        "director_signals": {
+          "PROCEED": 1,
+          "CAUTION": 3,
+          "HALT": 1
+        },
+        "probe_verdict": "SIGNIFICANT GAPS",
+        "fragility_score": 7,
+        "conditions": [
+          {
+            "id": "capacity_evidence_condition",
+            "source_layer": "reality_anchor",
+            "state": "unconfirmed"
+          },
+          {
+            "id": "baseline_evidence_condition",
+            "source_layer": "epistemic_audit",
+            "state": "unverified"
+          }
+        ],
+        "unresolved_tensions": [
+          "access_benefit_vs_response_safety"
+        ],
+        "resolved_tensions": [],
+        "epistemic_states": {
+          "delivery_capacity": "unconfirmed"
+        }
+      }
+    },
+    {
+      "id": "invalid-epistemic-promotion",
+      "expected_permitted": false,
+      "expected_reason": "EPISTEMIC_STATE_PROMOTION",
+      "chair_projection": {
+        "director_signals": {
+          "PROCEED": 1,
+          "CAUTION": 3,
+          "HALT": 1
+        },
+        "probe_verdict": "SIGNIFICANT GAPS",
+        "fragility_score": 7,
+        "conditions": [
+          {
+            "id": "capacity_evidence_condition",
+            "source_layer": "reality_anchor",
+            "state": "unconfirmed"
+          }
+        ],
+        "unresolved_tensions": [
+          "access_benefit_vs_response_safety"
+        ],
+        "resolved_tensions": [],
+        "epistemic_states": {
+          "delivery_capacity": "absent"
+        }
+      }
+    },
+    {
+      "id": "invalid-tension-resolution",
+      "expected_permitted": false,
+      "expected_reason": "TENSION_RESOLUTION",
+      "chair_projection": {
+        "director_signals": {
+          "PROCEED": 1,
+          "CAUTION": 3,
+          "HALT": 1
+        },
+        "probe_verdict": "SIGNIFICANT GAPS",
+        "fragility_score": 7,
+        "conditions": [
+          {
+            "id": "capacity_evidence_condition",
+            "source_layer": "reality_anchor",
+            "state": "unconfirmed"
+          }
+        ],
+        "unresolved_tensions": [],
+        "resolved_tensions": [
+          "access_benefit_vs_response_safety"
+        ],
+        "epistemic_states": {
+          "delivery_capacity": "unconfirmed"
+        }
+      }
+    },
+    {
+      "id": "invalid-condition-invention",
+      "expected_permitted": false,
+      "expected_reason": "CONDITION_INVENTION",
+      "chair_projection": {
+        "director_signals": {
+          "PROCEED": 1,
+          "CAUTION": 3,
+          "HALT": 1
+        },
+        "probe_verdict": "SIGNIFICANT GAPS",
+        "fragility_score": 7,
+        "conditions": [
+          {
+            "id": "capacity_evidence_condition",
+            "source_layer": "reality_anchor",
+            "state": "unconfirmed"
+          },
+          {
+            "id": "new_executive_signoff_required",
+            "source_layer": "chair",
+            "state": "required"
+          }
+        ],
+        "unresolved_tensions": [
+          "access_benefit_vs_response_safety"
+        ],
+        "resolved_tensions": [],
+        "epistemic_states": {
+          "delivery_capacity": "unconfirmed"
+        }
+      }
+    }
+  ]
+}
