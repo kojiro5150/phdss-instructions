@@ -109,9 +109,11 @@ for(const name of moved){
 }
 assert.ok(app.includes("./src/prompt-builders.js"));
 assert.ok(app.includes("./src/coverage.js"));
-assert.ok(/async function\s+enforceSynthesisAuthority\s*\(/.test(app));
-assert.ok(/async function\s+callGovernedSynthesis\s*\(/.test(app));
-assert.ok(/function\s+commitToLedger\s*\(/.test(app));
+assert.ok(app.includes("./src/pipeline.js"));
+assert.ok(!/async function\s+enforceSynthesisAuthority\s*\(/.test(app));
+assert.ok(!/async function\s+callGovernedSynthesis\s*\(/.test(app));
+assert.ok(!/function\s+commitToLedger\s*\(/.test(app));
+assert.ok(/async function\s+runBoard\s*\(/.test(app));
 assert.ok(/function\s+parseDashboard\s*\(/.test(app));
 
 console.log("PHDSS prompt-builder equivalence verification passed.");
