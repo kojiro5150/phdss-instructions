@@ -90,6 +90,7 @@ const pureModules = [
   "src/constants.js",
   "src/registry.js",
   "src/governance-rules.js",
+  "src/governance-record-contract.js",
   "src/parsers.js",
   "src/text-utils.js",
 ];
