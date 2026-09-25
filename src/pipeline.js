@@ -177,7 +177,19 @@ export function buildLedgerRecord(input,runtime) {
   var omittedDir=input.omittedDir||[];
   var mode=input.mode||"FULL";
   var failedDirs=results.filter(function(r){return /^\[Director failed:/i.test((r.output||"").trim());});
-  var hasChair=input.chairOut&&input.chairOut.length>50&&!/Chair failed|Director failed/i.test(input.chairOut);
+  var hasChair=!!(input.chairOut&&input.chairOut.length>50&&!/Chair failed|Director failed/i.test(input.chairOut));
+  var synthesisStageStatus=inferSynthesisStageStatus(input,hasChair);
+  var failedSynthesisStages=Object.keys(synthesisStageStatus).filter(function(stage){
+    return synthesisStageStatus[stage]&&synthesisStageStatus[stage].status==="failed";
+  });
+  var failedMandatorySynthesisStages=MANDATORY_SYNTHESIS_STAGES.filter(function(stage){
+    return failedSynthesisStages.indexOf(stage)!==-1||!synthesisStageStatus[stage]||synthesisStageStatus[stage].status!=="success";
+  });
+  var sessionGovernanceStatus=classifySessionGovernanceStatus({
+    hasChair:hasChair,
+    synthesisStageStatus:synthesisStageStatus,
+    failedDirectorCount:failedDirs.length,
+  });
   var briefMatch=(input.chairOut||"").match(/\*\*Decision Brief Status\*\*:?\s*\*{0,2}(Complete(?:\s*[—–-]\s*Partial Evidence Base)?\s*[—–-]\s*[^\n*]+)/i);
   var decisionBriefStatus=briefMatch?briefMatch[1].trim():null;
   var directorOutputs={};
@@ -185,7 +197,11 @@ export function buildLedgerRecord(input,runtime) {
   return {
     decision_id:input.decisionId, schema_version:LEDGER_SCHEMA, created_at:runtimeNow(runtime),
     governance_family:"GOVERNANCE",
-    session_governance_status:hasChair?(failedDirs.length===0?"COMPLETE":"COMPLETE_PARTIAL_EVIDENCE"):"INCOMPLETE",
+    session_governance_status:sessionGovernanceStatus,
+    synthesis_stage_status:synthesisStageStatus,
+    failed_synthesis_stages:failedSynthesisStages,
+    failed_mandatory_synthesis_stages:failedMandatorySynthesisStages,
+    stage_errors:(input.stageErrors||[]).slice(),
     run_intensity:mode==="FULL"?"MAXIMUM":mode==="CORE"?"MINIMUM_VIABLE":"CUSTOM",
     analysis_mode:mode,
     coverage_ratio:activeDir.length+"/"+DIRECTORS.length,
