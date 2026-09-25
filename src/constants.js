@@ -46,4 +46,4 @@ export const STRESS_KEYWORDS = [
 ];
 
 export const RUNTIME_CONTRACT = "2.0-recovery";
-export const LEDGER_SCHEMA = "3.0.0-alpha.1";
+export const LEDGER_SCHEMA = "3.0.0-alpha.2";
