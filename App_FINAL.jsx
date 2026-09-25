@@ -3230,7 +3230,7 @@ function PHDSS() {
           <div style={{animation:"fadeIn 0.3s ease"}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
               <div><div style={{fontSize:13,fontWeight:700,color:"#0F172A",marginBottom:3}}>Decision Ledger</div><div style={{fontSize:12,color:"#64748B"}}>{ledger.length} decision{ledger.length!==1?"s":""} recorded this session.</div></div>
-              {ledger.length>0&&<button onClick={function(){downloadJson("phdss-ledger_"+new Date().toISOString().slice(0,10)+(ledger.length>1?"__"+ledger.length+"_":"")+".json",{schema_version:"2.5.0",generated_at:new Date().toISOString(),record_count:ledger.length,decisions:ledger});}} style={{padding:"8px 18px",borderRadius:8,border:"none",background:"linear-gradient(135deg,#A78BFA,#7C3AED)",color:"#FFFFFF",fontSize:12,fontWeight:600,cursor:"pointer"}}>Export JSON</button>}
+              {ledger.length>0&&<button onClick={function(){downloadJson("phdss-ledger_"+new Date().toISOString().slice(0,10)+(ledger.length>1?"__"+ledger.length+"_":"")+".json",{schema_version:LEDGER_SCHEMA,generated_at:new Date().toISOString(),record_count:ledger.length,decisions:ledger});}} style={{padding:"8px 18px",borderRadius:8,border:"none",background:"linear-gradient(135deg,#A78BFA,#7C3AED)",color:"#FFFFFF",fontSize:12,fontWeight:600,cursor:"pointer"}}>Export JSON</button>}
             </div>
             {ledger.length===0?<div style={{textAlign:"center",padding:"60px 20px"}}><div style={{fontSize:13,color:"#94A3B8"}}>No decisions recorded yet.</div></div>
             :ledger.map(function(rec){
@@ -3244,19 +3244,15 @@ function PHDSS() {
                         <span style={{fontSize:10,padding:"2px 7px",borderRadius:8,background:"#F1F5F9",color:"#64748B",fontWeight:600}}>{rec.coverage_ratio} directors</span>
                         {rec.instruction_source&&<span style={{fontSize:9,padding:"1px 6px",borderRadius:7,background:rec.instruction_source==="github"?"#D1FAE5":rec.instruction_source==="github_partial"?"#FEF3C7":"#F1F5F9",color:rec.instruction_source==="github"?"#059669":rec.instruction_source==="github_partial"?"#92400E":"#64748B",fontWeight:600}}>{rec.instruction_source}</span>}
                       </div>
-                      {rec.chair_recommendation&&(function(){
-                        // Split token from rationale clause: "CONDITIONAL APPROVAL — clause text"
-                        var full = rec.chair_recommendation.trim();
-                        var dashIdx = full.search(/\s[—–-]\s/);
-                        var token = dashIdx!==-1 ? full.slice(0,dashIdx).trim() : full;
-                        var clause = dashIdx!==-1 ? full.slice(dashIdx).replace(/^\s*[—–-]\s*/,"").trim() : null;
-                        var recCol = token==="CONDITIONAL APPROVAL"?"#0891B2":token==="DO NOT PROCEED"?"#DC2626":token==="DEFER"?"#7C3AED":(token&&token.indexOf("CONDITIONS")!==-1)?"#059669":(token&&token.indexOf("CAUTION")!==-1)?"#D97706":"#64748B";
-                        var recBg2 = token==="CONDITIONAL APPROVAL"?"#ECFEFF":token==="DO NOT PROCEED"?"#FEF2F2":token==="DEFER"?"#F5F3FF":(token&&token.indexOf("CONDITIONS")!==-1)?"#F0FDF4":(token&&token.indexOf("CAUTION")!==-1)?"#FFFBEB":"#F8FAFC";
-                        return <div style={{marginBottom:6,padding:"7px 11px",borderRadius:8,background:recBg2,border:"1px solid "+recCol+"33",borderLeft:"3px solid "+recCol}}>
-                          <span style={{fontSize:11,fontWeight:700,color:recCol}}>{token}</span>
-                          {clause&&<span style={{fontSize:11,color:"#475569",marginLeft:6,lineHeight:1.55}}>{clause}</span>}
-                        </div>;
-                      })()}
+                      {rec.decision_brief_status&&<div style={{marginBottom:6,padding:"7px 11px",borderRadius:8,background:rec.decision_brief_status.indexOf("Partial Evidence Base")!==-1?"#FFFBEB":"#EFF6FF",border:"1px solid "+(rec.decision_brief_status.indexOf("Partial Evidence Base")!==-1?"#FDE68A":"#BFDBFE"),borderLeft:"3px solid "+(rec.decision_brief_status.indexOf("Partial Evidence Base")!==-1?"#B45309":"#0369A1")}}>
+                        <span style={{fontSize:10,fontWeight:700,color:"#64748B",textTransform:"uppercase",letterSpacing:0.5,display:"block",marginBottom:2}}>Decision Brief Status</span>
+                        <span style={{fontSize:11,fontWeight:700,color:rec.decision_brief_status.indexOf("Partial Evidence Base")!==-1?"#B45309":"#0369A1",lineHeight:1.55}}>{rec.decision_brief_status}</span>
+                      </div>}
+                      <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:6}}>
+                        {rec.instruction_commit&&<span style={{fontSize:9,padding:"2px 6px",borderRadius:7,background:"#F1F5F9",color:"#475569",fontFamily:"monospace"}}>instr {rec.instruction_commit.slice(0,8)}</span>}
+                        {rec.runtime_contract&&<span style={{fontSize:9,padding:"2px 6px",borderRadius:7,background:"#F1F5F9",color:"#475569"}}>{rec.runtime_contract}</span>}
+                        {rec.schema_version&&<span style={{fontSize:9,padding:"2px 6px",borderRadius:7,background:"#F1F5F9",color:"#475569"}}>schema {rec.schema_version}</span>}
+                      </div>
                       <div style={{fontSize:13,fontWeight:600,color:"#0F172A",lineHeight:1.5,marginBottom:4}}>{rec.question}</div>
                     </div>
                     <div style={{fontSize:10,color:"#94A3B8",flexShrink:0,marginLeft:12}}>{new Date(rec.created_at).toLocaleString("en-AU")}</div>
