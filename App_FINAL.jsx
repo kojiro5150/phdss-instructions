@@ -553,7 +553,7 @@ var SYNTHESIS_ROLES = [
   { id:"reality",     label:"Reality Anchor",            icon:"A", color:"#0369A1" },
   { id:"probe",       label:"Adversarial Bias Probe",    icon:"P", color:"#7C3AED" },
   { id:"stress",      label:"Decision Stress Test",      icon:"S", color:"#F87171" },
-  { id:"chair",       label:"Governance Reasoning Record",      icon:"C", color:"#0369A1" },
+  { id:"chair",       label:"Decision Brief",                   icon:"C", color:"#0369A1" },
   { id:"comparator",  label:"Governance Comparator",     icon:"G", color:"#64748B" },
 ];
 
@@ -1566,42 +1566,6 @@ function parseDashboard(decision, dirOutputs, meta, stress, chair, dialogueHisto
       var nbRe = /^\s*(?:\(\d+\)|\d+[.):])\s*\*{0,2}([^*\n]{8,})/gm;
       var nbm;
       while ((nbm = nbRe.exec(vpm[1])) !== null) { raw.push(nbm[1].trim()); }
-    }
-
-    // --- Fallback 2: DO NOT PROCEED minimum conditions buried in Reasoning Transparency ---
-    // When Chair writes DO NOT PROCEED, minimum override conditions are often placed here.
-    if (raw.length === 0) {
-      var isDNP = /DO NOT PROCEED/i.test(text);
-      if (isDNP) {
-        var rtSection = extractSection(text, "Reasoning Transparency");
-        if (!rtSection) {
-          // Also try the ## variant
-          var rtM = text.match(/##\s+Reasoning Transparency[^\n]*\n([\s\S]*?)(?=\n##\s+[A-Za-z]|\n\*\*[A-Za-z]|$)/i);
-          rtSection = rtM ? rtM[1].trim() : "";
-        }
-        if (rtSection && rtSection.length > 30) {
-          // Look for "if the decision-maker proceeds" or "minimum conditions" sub-block
-          var minM = rtSection.match(/(?:if.*?proceed[^.]*|minimum (?:conditions|requirements)[^.]*)[.:]\s*([\s\S]{20,})/i);
-          if (minM) {
-            raw.push("Minimum override conditions: " + minM[1].replace(/\n/g," ").trim().substring(0,400));
-          } else if (/minimum|if.*proceed|override|notwithstanding/i.test(rtSection)) {
-            // Fallback: preserve the first substantive sentence from Reasoning Transparency
-            var firstSent = rtSection.match(/([A-Z][^.!?]{30,}[.!?])/);
-            if (firstSent) raw.push(firstSent[1].trim());
-          }
-        }
-      }
-    }
-
-    // --- Fallback 3: inline conditions after the recommendation line ---
-    // Some Chair outputs write: "**Chair Recommendation**: DO NOT PROCEED\n\nIf overridden, conditions include..."
-    if (raw.length === 0) {
-      var afterRec = text.match(/\*\*Chair Recommendation\*\*[^\n]*DO NOT PROCEED[^\n]*\n([\s\S]{20,200})/i);
-      if (afterRec) {
-        var inline = afterRec[1].replace(/\n/g," ").trim();
-        inline = inline.replace(/^\*\*[^*]+\*\*\s*/, "").trim();
-        if (inline.length > 20) raw.push(inline.substring(0,400));
-      }
     }
 
     return dedupItems(raw).filter(function(s){ return s.length > 10; });
