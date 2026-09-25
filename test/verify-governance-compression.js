@@ -3,6 +3,7 @@ import fs from "node:fs";
 
 import {
   compressionSystem,
+  assessProvenanceMonotonicity,
   executiveDiscovery,
   stripJsonFenceText,
   deterministicDirectorBrief,
@@ -18,6 +19,10 @@ import {
   validSurfaceBrief,
 } from "./fixtures/governance-record-contracts.js";
 
+const provenanceFixture=JSON.parse(
+  fs.readFileSync("tests/fixtures/synthetic/provenance-monotonicity.json","utf8")
+);
+
 const failures=[];
 async function check(label,fn){
   try { await fn(); }
@@ -29,6 +34,39 @@ await check("Director compression prompt contract",async function(){
   assert.match(prompt,/Governance Brief Extractor/);
   assert.match(prompt,/governance_record/);
   assert.match(prompt,/Return ONLY valid JSON/);
+});
+
+await check("Compression prompts preserve epistemic provenance",async function(){
+  const directorPrompt=compressionSystem();
+  const synthesisPrompt=synthesisBriefSystem("Reality Anchor");
+  assert.match(directorPrompt,/EPISTEMIC PROVENANCE IS MONOTONIC/);
+  assert.match(directorPrompt,/Convergence is not corroboration/);
+  assert.match(synthesisPrompt,/EPISTEMIC PROVENANCE IS MONOTONIC/);
+  assert.match(synthesisPrompt,/multi-Director convergence/);
+});
+
+await check("Synthetic provenance monotonicity fixture",async function(){
+  assert.equal(provenanceFixture.fixture_class,"synthetic_provenance_monotonicity");
+  for(const testCase of provenanceFixture.cases){
+    const result=assessProvenanceMonotonicity(testCase.source,testCase.compressed);
+    assert.equal(
+      !result.violates,
+      testCase.expected_permitted,
+      testCase.id+": permitted mismatch"
+    );
+    assert.equal(
+      result.reason,
+      testCase.expected_reason,
+      testCase.id+": reason mismatch"
+    );
+  }
+  const ids=new Set(provenanceFixture.cases.map(x=>x.id));
+  assert.ok(ids.has("invalid-unverified-to-confirmed"));
+  assert.ok(ids.has("invalid-unconfirmed-to-absent"));
+  assert.ok(ids.has("invalid-not-demonstrated-to-does-not-exist"));
+  assert.ok(ids.has("invalid-inferred-to-established"));
+  assert.ok(ids.has("invalid-convergence-to-confirmation"));
+  assert.ok(ids.has("permitted-confidence-downshift"));
 });
 
 await check("Executive discovery behavior",async function(){
@@ -105,6 +143,23 @@ await check("Director compression accepts valid first attempt",async function(){
   assert.deepStrictEqual(JSON.parse(text),validDirectorBrief);
 });
 
+await check("Director compression retries epistemic promotion",async function(){
+  const source="The capability remains unverified in the supplied record.";
+  const promoted=structuredClone(validDirectorBrief);
+  promoted.governance_record.key_discovery="The capability is confirmed.";
+  const preserved=structuredClone(validDirectorBrief);
+  preserved.governance_record.key_discovery="The capability remains unverified.";
+  let calls=0;
+  const text=await compressDirectorOutput("Safety",source,{
+    apiCallImpl:async function(){
+      calls++;
+      return {text:JSON.stringify(calls===1?promoted:preserved)};
+    }
+  });
+  assert.equal(calls,2);
+  assert.equal(JSON.parse(text).governance_record.key_discovery,"The capability remains unverified.");
+});
+
 await check("Director compression retries malformed extraction",async function(){
   const userMessages=[];
   let calls=0;
@@ -157,6 +212,27 @@ await check("Synthesis compression accepts valid safe first attempt",async funct
   });
   assert.equal(calls,1);
   assert.deepStrictEqual(JSON.parse(text),validSurfaceBrief);
+});
+
+await check("Synthesis compression retries provenance promotion",async function(){
+  const source="Regional capability is not demonstrated in the supplied record.";
+  const promoted={
+    ...validSurfaceBrief,
+    key_discovery:"Regional capability does not exist."
+  };
+  const preserved={
+    ...validSurfaceBrief,
+    key_discovery:"Regional capability is not demonstrated in the supplied record."
+  };
+  let calls=0;
+  const text=await compressSynthesisOutput("Decision Surface Map",source,{
+    apiCallImpl:async function(){
+      calls++;
+      return {text:JSON.stringify(calls===1?promoted:preserved)};
+    }
+  });
+  assert.equal(calls,2);
+  assert.equal(JSON.parse(text).key_discovery,"Regional capability is not demonstrated in the supplied record.");
 });
 
 await check("Authority violation consumes synthesis retry",async function(){
@@ -270,5 +346,6 @@ console.log("PHDSS Governance Brief compression verification passed.");
 console.log("Director compression retry/fallback: PASS");
 console.log("Synthesis compression retry/fallback: PASS");
 console.log("Authority-violation retry behavior: PASS");
+console.log("Provenance monotonicity retry behavior: PASS");
 console.log("Deterministic fallback extraction: PASS");
 console.log("Compression scope guards: PASS");

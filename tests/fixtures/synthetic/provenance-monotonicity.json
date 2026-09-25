@@ -1,0 +1,47 @@
+{
+  "fixture_class": "synthetic_provenance_monotonicity",
+  "cases": [
+    {
+      "id": "permitted-confidence-downshift",
+      "expected_permitted": true,
+      "expected_reason": null,
+      "source": "The supplied evidence confirms the local service currently has the capability.",
+      "compressed": "The capability is uncertain under the broader stress analysis."
+    },
+    {
+      "id": "invalid-unverified-to-confirmed",
+      "expected_permitted": false,
+      "expected_reason": "EPISTEMIC_STATUS_PROMOTION",
+      "source": "The capability remains unverified in the supplied record.",
+      "compressed": "The Governance Record states that the capability is confirmed."
+    },
+    {
+      "id": "invalid-unconfirmed-to-absent",
+      "expected_permitted": false,
+      "expected_reason": "ABSENCE_PROMOTION",
+      "source": "Regional delivery capacity is unconfirmed.",
+      "compressed": "Regional delivery capacity is absent."
+    },
+    {
+      "id": "invalid-not-demonstrated-to-does-not-exist",
+      "expected_permitted": false,
+      "expected_reason": "ABSENCE_PROMOTION",
+      "source": "A statewide escalation pathway has not been demonstrated.",
+      "compressed": "A statewide escalation pathway does not exist."
+    },
+    {
+      "id": "invalid-inferred-to-established",
+      "expected_permitted": false,
+      "expected_reason": "EPISTEMIC_STATUS_PROMOTION",
+      "source": "The dependency is inferred from the supplied material.",
+      "compressed": "The dependency is established."
+    },
+    {
+      "id": "invalid-convergence-to-confirmation",
+      "expected_permitted": false,
+      "expected_reason": "CONVERGENCE_TO_CONFIRMATION",
+      "source": "Director A: regional capacity is unverified.\nDirector B: regional capacity is unverified.\nDirector C: regional capacity is unverified.\nDirector D: regional capacity is unverified.\nDirector E: regional capacity is unverified.\nDirector F: regional capacity is unverified.\nDirector G: regional capacity is unverified.\nDirector H: regional capacity is unverified.",
+      "compressed": "Regional capacity is confirmed across all Director domains."
+    }
+  ]
+}

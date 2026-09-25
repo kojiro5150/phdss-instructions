@@ -15,8 +15,39 @@ import {
 } from "../authority-contract.js";
 import { apiCall as defaultApiCall } from "./anthropic-client.js";
 
+function countMatches(text,pattern) {
+  return (String(text||"").match(pattern)||[]).length;
+}
+
+export function assessProvenanceMonotonicity(sourceText, compressedText) {
+  const source=String(sourceText||"");
+  const out=String(compressedText||"");
+
+  const sourceLow=countMatches(source,/\b(?:unknown|not supplied|unverified|unconfirmed|not (?:been )?demonstrated|inferred|speculative)\b/gi);
+  const sourceDirectors=countMatches(source,/\bDirector\b/gi);
+  const outputStrong=/\b(?:confirmed|verified|established|proven)\b/i.test(out);
+  const sourceStrong=/\b(?:confirmed|verified|established|proven)\b/i.test(source);
+
+  if(sourceLow>=3 && sourceDirectors>=3 && outputStrong && !sourceStrong) {
+    return {violates:true,reason:"CONVERGENCE_TO_CONFIRMATION"};
+  }
+
+  if(sourceLow>0 && outputStrong && !sourceStrong) {
+    return {violates:true,reason:"EPISTEMIC_STATUS_PROMOTION"};
+  }
+
+  const sourceHasWeakExistence=/\b(?:not supplied|unverified|unconfirmed|not (?:been )?demonstrated|unknown)\b/i.test(source);
+  const outputClaimsAbsence=/\b(?:does not exist|do not exist|non[- ]existent|absent)\b/i.test(out);
+  const sourceClaimsAbsence=/\b(?:does not exist|do not exist|non[- ]existent|absent)\b/i.test(source);
+  if(sourceHasWeakExistence && outputClaimsAbsence && !sourceClaimsAbsence) {
+    return {violates:true,reason:"ABSENCE_PROMOTION"};
+  }
+
+  return {violates:false,reason:null};
+}
+
 export function compressionSystem() {
-  return "You are the Governance Brief Extractor for a Public Health Decision Stewardship Board.\n\nYou receive the full output of a single Director and compress it into a structured Governance Brief JSON object. This JSON serves two consumers: the synthesis pipeline (which reads the technical fields) and a board-readable Governance Record display (which reads the governance_record fields). Populate both fully from the same source output — do not treat either as optional.\n\nRULES — TECHNICAL FIELDS:\n1. Extract, do not paraphrase, any named legal/regulatory/statutory blockers verbatim in regulatory_blockers.\n2. signal must exactly match the Director's Recommendation Signal (PROCEED / CAUTION / HALT). If the output contains a failure error, use FAILED.\n3. confidence must match the Director's stated or implied confidence level (HIGH / MEDIUM / LOW).\n4. core_judgment must stand alone.\n5. overflow_flags must capture any finding too nuanced to compress.\n6. prerequisites are non-negotiable conditions that must be met before the decision is defensible.\n\nRULES — GOVERNANCE RECORD FIELDS:\n8. key_discovery: the single most important finding from this Director, in plain language. 1-2 sentences.\n9. primary_tension: the core trade-off or conflict this domain surfaces, framed as 'X versus Y'. One sentence.\n10. signal_rationale: why this Director landed on its signal, in plain language. 1-2 sentences.\n11. room_should_discuss: 3-5 questions the board should actually discuss.\n12. most_likely_to_benefit: 1-4 short phrases naming who benefits if this domain's concerns are heeded.\n13. most_exposed_to_failure: 1-4 short phrases naming who bears the cost if this domain's concerns are ignored.\n14. non_negotiable_conditions: source-grounded conditions in plain language.\n15. governance_implication: the single takeaway sentence for the decision as a whole.\n16. Do not invent content. Empty source fields must stay empty.\n\nReturn ONLY valid JSON in this exact shape:\n{\"director\":\"\",\"signal\":\"\",\"confidence\":\"\",\"core_judgment\":\"\",\"critical_risks\":[],\"assumptions\":[],\"prerequisites\":[],\"view_change_triggers\":[],\"coverage_limit\":\"\",\"regulatory_blockers\":[],\"overflow_flags\":[],\"governance_record\":{\"key_discovery\":\"\",\"primary_tension\":\"\",\"signal_rationale\":\"\",\"room_should_discuss\":[],\"most_likely_to_benefit\":[],\"most_exposed_to_failure\":[],\"non_negotiable_conditions\":[],\"governance_implication\":\"\"}}\n\nNo preamble, no commentary, no markdown fences.";
+  return "You are the Governance Brief Extractor for a Public Health Decision Stewardship Board.\n\nYou receive the full output of a single Director and compress it into a structured Governance Brief JSON object. This JSON serves two consumers: the synthesis pipeline (which reads the technical fields) and a board-readable Governance Record display (which reads the governance_record fields). Populate both fully from the same source output — do not treat either as optional.\n\nRULES — TECHNICAL FIELDS:\n1. Extract, do not paraphrase, any named legal/regulatory/statutory blockers verbatim in regulatory_blockers.\n2. signal must exactly match the Director's Recommendation Signal (PROCEED / CAUTION / HALT). If the output contains a failure error, use FAILED.\n3. confidence must match the Director's stated or implied confidence level (HIGH / MEDIUM / LOW).\n4. core_judgment must stand alone.\n5. overflow_flags must capture any finding too nuanced to compress.\n6. prerequisites are non-negotiable conditions that must be met before the decision is defensible.\n\nRULES — GOVERNANCE RECORD FIELDS:\n8. key_discovery: the single most important finding from this Director, in plain language. 1-2 sentences.\n9. primary_tension: the core trade-off or conflict this domain surfaces, framed as 'X versus Y'. One sentence.\n10. signal_rationale: why this Director landed on its signal, in plain language. 1-2 sentences.\n11. room_should_discuss: 3-5 questions the board should actually discuss.\n12. most_likely_to_benefit: 1-4 short phrases naming who benefits if this domain's concerns are heeded.\n13. most_exposed_to_failure: 1-4 short phrases naming who bears the cost if this domain's concerns are ignored.\n14. non_negotiable_conditions: source-grounded conditions in plain language.\n15. governance_implication: the single takeaway sentence for the decision as a whole.\n16. Do not invent content. Empty source fields must stay empty.\n17. EPISTEMIC PROVENANCE IS MONOTONIC: compression may preserve or lower confidence when the source warrants it, but must never increase evidentiary status. Preserve unknown, not supplied, unverified, unconfirmed, not demonstrated, inferred, and speculative status. Do not rewrite these as verified, confirmed, established, absent, non-existent, or does not exist unless the source itself supplies that stronger status. Convergence is not corroboration; repetition is not verification; absence of supplied evidence is not evidence of absence.\n\nReturn ONLY valid JSON in this exact shape:\n{\"director\":\"\",\"signal\":\"\",\"confidence\":\"\",\"core_judgment\":\"\",\"critical_risks\":[],\"assumptions\":[],\"prerequisites\":[],\"view_change_triggers\":[],\"coverage_limit\":\"\",\"regulatory_blockers\":[],\"overflow_flags\":[],\"governance_record\":{\"key_discovery\":\"\",\"primary_tension\":\"\",\"signal_rationale\":\"\",\"room_should_discuss\":[],\"most_likely_to_benefit\":[],\"most_exposed_to_failure\":[],\"non_negotiable_conditions\":[],\"governance_implication\":\"\"}}\n\nNo preamble, no commentary, no markdown fences.";
 }
 
 export function executiveDiscovery(text) {
@@ -69,6 +100,8 @@ export async function compressDirectorOutput(directorLabel, fullOutput, runtime)
       var raw=await apiCallFor(runtime)(compressionSystem(),"Director: "+directorLabel+"\n\nFull Director Output:\n"+fullOutput+suffix,false);
       var txt=stripJsonFenceText(raw.text);
       if(!isValidDirectorBriefText(txt)) throw new Error("invalid Director Governance Brief schema");
+      var provenanceAssessment=assessProvenanceMonotonicity(fullOutput,txt);
+      if(provenanceAssessment.violates) throw new Error("Director Governance Brief provenance violation: "+provenanceAssessment.reason);
       return txt;
     } catch(e) { lastError=e.message||String(e); }
   }
@@ -93,7 +126,7 @@ export function synthesisLayerForModule(moduleLabel) {
 
 export function synthesisBriefSystem(moduleLabel) {
   var verdictLabel=SYNTHESIS_VERDICT_FIELDS[moduleLabel]||"Verdict";
-  return "You are the Governance Brief Extractor for a Public Health Decision Stewardship Board.\n\nYou receive the full output of the "+moduleLabel+" synthesis module and compress it into a structured Governance Brief JSON object for board-readable display. This is a board-readable extraction only — it does not feed the synthesis pipeline.\n\nRULES:\n1. verdict_label must be exactly '"+verdictLabel+"'.\n2. verdict must be the literal value of that field from the source output. Do not reinterpret it.\n3. key_discovery: the single most important finding, in plain language, 1-2 sentences.\n4. primary_tension: the core trade-off or conflict, framed as 'X versus Y'. Empty string if none.\n5. signal_rationale: why the module landed on its verdict, 1-2 sentences.\n6. room_should_discuss: 3-5 board questions grounded only in the source.\n7. most_likely_to_benefit: 1-4 short phrases; empty if not applicable.\n8. most_exposed_to_failure: 1-4 short phrases; empty if not applicable.\n9. non_negotiable_conditions: source-grounded conditions; empty if none.\n10. governance_implication: one source-grounded takeaway sentence.\n11. Do not invent content.\n\nReturn ONLY valid JSON in this exact shape:\n{\"module\":\""+moduleLabel+"\",\"verdict_label\":\""+verdictLabel+"\",\"verdict\":\"\",\"key_discovery\":\"\",\"primary_tension\":\"\",\"signal_rationale\":\"\",\"room_should_discuss\":[],\"most_likely_to_benefit\":[],\"most_exposed_to_failure\":[],\"non_negotiable_conditions\":[],\"governance_implication\":\"\"}\n\nNo preamble, commentary, or markdown fences."+authorityBoundaryPrompt(synthesisLayerForModule(moduleLabel));
+  return "You are the Governance Brief Extractor for a Public Health Decision Stewardship Board.\n\nYou receive the full output of the "+moduleLabel+" synthesis module and compress it into a structured Governance Brief JSON object for board-readable display. This is a board-readable extraction only — it does not feed the synthesis pipeline.\n\nRULES:\n1. verdict_label must be exactly '"+verdictLabel+"'.\n2. verdict must be the literal value of that field from the source output. Do not reinterpret it.\n3. key_discovery: the single most important finding, in plain language, 1-2 sentences.\n4. primary_tension: the core trade-off or conflict, framed as 'X versus Y'. Empty string if none.\n5. signal_rationale: why the module landed on its verdict, 1-2 sentences.\n6. room_should_discuss: 3-5 board questions grounded only in the source.\n7. most_likely_to_benefit: 1-4 short phrases; empty if not applicable.\n8. most_exposed_to_failure: 1-4 short phrases; empty if not applicable.\n9. non_negotiable_conditions: source-grounded conditions; empty if none.\n10. governance_implication: one source-grounded takeaway sentence.\n11. Do not invent content.\n12. EPISTEMIC PROVENANCE IS MONOTONIC: compression may preserve or lower confidence when warranted, but must not strengthen evidentiary status. Preserve unknown, not supplied, unverified, unconfirmed, not demonstrated, inferred, and speculative claims at that status. Do not convert repetition or multi-Director convergence into verification or confirmation. Do not convert missing evidence into evidence of absence.\n\nReturn ONLY valid JSON in this exact shape:\n{\"module\":\""+moduleLabel+"\",\"verdict_label\":\""+verdictLabel+"\",\"verdict\":\"\",\"key_discovery\":\"\",\"primary_tension\":\"\",\"signal_rationale\":\"\",\"room_should_discuss\":[],\"most_likely_to_benefit\":[],\"most_exposed_to_failure\":[],\"non_negotiable_conditions\":[],\"governance_implication\":\"\"}\n\nNo preamble, commentary, or markdown fences."+authorityBoundaryPrompt(synthesisLayerForModule(moduleLabel));
 }
 
 export function deterministicSynthesisBrief(moduleLabel,fullOutput,reason) {
@@ -121,6 +154,8 @@ export async function compressSynthesisOutput(moduleLabel,fullOutput,runtime) {
       var raw=await apiCallFor(runtime)(synthesisBriefSystem(moduleLabel),"Module: "+moduleLabel+"\n\nFull Module Output:\n"+fullOutput+suffix,false);
       var txt=stripJsonFenceText(raw.text);
       if(!isValidSynthesisBriefText(txt,moduleLabel)) throw new Error("invalid synthesis Governance Brief schema");
+      var provenanceAssessment=assessProvenanceMonotonicity(fullOutput,txt);
+      if(provenanceAssessment.violates) throw new Error("synthesis Governance Brief provenance violation: "+provenanceAssessment.reason);
       var authorityAssessment=assessAuthorityBoundary(synthesisLayerForModule(moduleLabel),txt);
       if(authorityAssessment.violates) throw new Error("synthesis Governance Brief authority violation: "+authorityAssessment.reason);
       return txt;
