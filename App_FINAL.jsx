@@ -355,7 +355,7 @@ function exportFullDashboard(d, decision, decisionId, decisionSignal, orgContext
   ];
   if (d.aiIntegrityScore!==null && d.aiIntegrityScore!==undefined) rows.push("  AI Integrity Score:     "+d.aiIntegrityScore+"% (composite: Epistemic health 60% + Adversarial Probe 40%)");
   var aiModeNote = (d.analysisMode!=="FULL")
-    ? " Score is structurally depressed on partial runs ("+d.activeDirectorCount+"/"+DIRECTORS.length+" directors)" — compare against FULL mode baseline, not an absolute threshold."
+    ? " Score is structurally depressed on partial runs ("+d.activeDirectorCount+"/"+DIRECTORS.length+" directors) — compare against FULL mode baseline, not an absolute threshold."
     : "";
   // m1 FIX: Added period after each general note phrase so the partial run
   // caveat in aiModeNote reads as a separate sentence, not a run-on.
