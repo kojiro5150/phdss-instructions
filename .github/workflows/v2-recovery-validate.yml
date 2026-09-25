@@ -13,8 +13,11 @@ on:
       - "index.html"
       - "src/**"
       - "vite.config.js"
-      - ".github/scripts/validate-v2.mjs"
+      - ".github/scripts/**"
       - ".github/workflows/v2-recovery-validate.yml"
+      - "docs/AUTHORITY_*.md"
+      - "docs/FIXTURE_SCHEMA.md"
+      - "tests/fixtures/**"
 
 jobs:
   validate-recovery-contract:
