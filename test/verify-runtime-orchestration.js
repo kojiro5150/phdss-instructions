@@ -172,8 +172,10 @@ if(!/function\s+parseDashboard\s*\(/.test(app)) failures.push("parseDashboard mo
 if(!app.includes("./src/runtime/governance-compression.js")) failures.push("Governance Brief compression runtime is not wired");
 if(/async function\s+compressDirectorOutput\s*\(/.test(app)) failures.push("Director compression remains duplicated in App_FINAL.jsx");
 if(/async function\s+compressSynthesisOutput\s*\(/.test(app)) failures.push("synthesis compression remains duplicated in App_FINAL.jsx");
-if(!/async function\s+callGovernedSynthesis\s*\(/.test(app)) failures.push("synthesis authority orchestration moved too early");
-if(!/function\s+commitToLedger\s*\(/.test(app)) failures.push("ledger assembly moved too early");
+if(!app.includes("./src/pipeline.js")) failures.push("governance pipeline runtime is not wired");
+if(/async function\s+callGovernedSynthesis\s*\(/.test(app)) failures.push("synthesis authority orchestration remains duplicated in App_FINAL.jsx");
+if(/function\s+commitToLedger\s*\(/.test(app)) failures.push("ledger assembly remains duplicated in App_FINAL.jsx");
+if(!/async function\s+runBoard\s*\(/.test(app)) failures.push("React runBoard adapter moved unexpectedly");
 
 if(failures.length){
   console.error("PHDSS runtime orchestration boundary verification failed:");
