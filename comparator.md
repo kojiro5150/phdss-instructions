@@ -4,8 +4,8 @@
   Schema: PHDSS Decision Ledger 3.0.0-alpha.2
   Changed: [2026-09-25 — AUTHORITY AND SCHEMA ALIGNMENT:
   - comparator terminus aligned to difference visibility rather than adjudication;
-  - chair_resolution.recommendation retired in favour of decision_brief_status;
-  - next_actions_30_60_90 retired in favour of monitoring_triggers_30_60_90;
+  - the legacy Chair recommendation field retired in favour of decision_brief_status;
+  - the legacy sequenced-action horizon field retired in favour of monitoring_triggers_30_60_90;
   - time-horizon content reframed as observable evidence/conditions rather than
     sequenced institutional actions;
   - duplicate embedded JSON schema removed so comparatorJsonSystem() is the
