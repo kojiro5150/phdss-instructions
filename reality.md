@@ -4,6 +4,10 @@
   Schema: PHDSS v2.5.0
   Created: [date]
   Changed: [date — reason — previous version summary]
+            [2026-09-25 — AUTHORITY ALIGNMENT: removed recommendation-direction
+  falsification language and stale Chair adjudication wording. Bidirectional
+  falsification is preserved as changes in operational feasibility/confidence;
+  institutional disposition remains with the human decision-maker.]
             [date — LAYER 1 PARSER CONTRACTS added for Falsification Conditions;
   single-instance instruction and merged content structure added. Run 5 Tier 2
   review identified the section appearing twice with different content (operational
@@ -18,11 +22,11 @@
   requirement added. Housing run Tier 2 review identified that Reality Friction
   Signals were presented as an undifferentiated list of equivalent present risks,
   when some signals are currently operating and others activate only conditionally
-  upon specific reform attempts. This distinction matters: the Chair's response
-  differs by category — currently active signals require monitoring now; signals
-  that activate upon coordination attempts require preparation before action;
-  signals that activate upon constitutional reform attempts are relevant only
-  to a specific pathway. Fix adds instruction to Reality Friction Signals section
+  upon specific reform attempts. This distinction matters because timing and
+  pathway dependence change the meaning of the friction — currently active
+  signals describe present conditions; signals activated by coordination attempts
+  describe contingent conditions; signals activated by constitutional reform
+  are relevant only to that pathway. Fix adds instruction to Reality Friction Signals section
   requiring classification of each signal as: (a) currently active, (b) activated
   upon coordination attempt, or (c) activated upon constitutional/structural reform
   attempt. The classification must appear alongside each signal, not as a
@@ -83,32 +87,33 @@
   Conditions section is the most analytically distinctive element of this module.
   It asks: what observable evidence would prove the current reasoning incorrect?
   This is not a risk assessment — it is an epistemological discipline. A
-  governance decision that cannot be falsified is not a governance decision;
-  it is an assertion. Falsification conditions make the decision testable and
-  create the review triggers that responsible governance requires.
+  governance reasoning that cannot be falsified is not decision-grade reasoning;
+  it is an assertion. Falsification conditions make the reasoning testable and
+  create observable review triggers without determining the institutional response.
 
   DESIGN INTENT — FRICTION SIGNAL CLASSIFICATION (I8): Reality Friction Signals
   presented as an undifferentiated list of present risks misrepresent the actual
   risk landscape — some frictions are operating now and require monitoring
   regardless of any decision; others activate only if a specific governance
-  pathway is chosen. The Chair cannot respond appropriately to a friction signal
-  without knowing whether it is a current condition or a conditional one. The
+  pathway is chosen. Without temporal and pathway classification, the reasoning
+  record cannot distinguish current conditions from contingent ones. The
   classification (currently active / activated upon coordination attempt /
   activated upon constitutional or structural reform attempt) is not a separate
   analytical section — it is a label attached to each signal to make the signal
-  actionable. This design intent must be preserved: the classification appears
+  temporally legible. This design intent must be preserved: the classification appears
   alongside each signal, not as a separate taxonomy section.
 
   FALSIFICATION CONDITIONS — BOTH DIRECTIONS REQUIRED: The section has an
   obligation to name conditions in BOTH directions:
-  — Upgrade conditions: what verified finding would improve the feasibility
-    assessment and move the recommendation toward PROCEED?
-  — Downgrade conditions: what verified finding would worsen the feasibility
-    assessment and move the recommendation toward DEFER or DO NOT PROCEED?
+  — Upgrade conditions: what verified finding would materially increase
+    operational feasibility or confidence?
+  — Downgrade conditions: what verified finding would materially decrease
+    operational feasibility or confidence, or establish a stronger evidenced
+    operational constraint?
   Both are mandatory. An analysis that only names upgrade conditions is
   incomplete — downgrade conditions are equally important to governance
-  integrity. Do not omit downgrade conditions even when the current signal
-  is already CAUTION or HALT.
+  integrity. Do not omit downgrade conditions even when Operational Confidence
+  is already LOW.
 
   DESIGN INTENT — SYNTHESIS BOUNDARY: This module tests whether Director-supplied
   evidence and assumptions hold up against real institutional conditions. It
@@ -146,8 +151,8 @@
     The section has two content obligations:
     (1) Metrics and outcomes that would contradict predicted benefits or invalidate
         safety assumptions (what failure looks like during deployment).
-    (2) Assumptions that, if verified, would change the recommendation (what
-        evidence would upgrade or downgrade the feasibility assessment).
+    (2) Assumptions that, if verified, would materially change operational
+        feasibility or confidence in either direction.
     Do not split these into two separate sections. Write them under one heading
     with labelled sub-sections if both are present.
 
@@ -275,24 +280,26 @@ assumptions — frame as testable conditions with specific thresholds where poss
 - What safety or equity outcomes would show harm rather than benefit?
 - What behavioural responses would undermine the intervention logic?
 
-Assumptions that, if verified, would change the recommendation — name conditions
-in BOTH directions. Both upgrade and downgrade conditions are mandatory:
+Assumptions that, if verified, would materially change operational feasibility
+or confidence — name conditions in BOTH directions. Both upgrade and downgrade
+conditions are mandatory:
 
 *Upgrade conditions* — confirmed capability, baseline, or infrastructure findings
-that would improve the feasibility assessment and move the recommendation toward
-PROCEED or a stronger approval:
-- What verified finding would upgrade the governance assessment?
+that would materially increase operational feasibility or confidence:
+- What verified finding would increase operational feasibility or confidence?
 
-*Downgrade conditions* — confirmed findings that would worsen the feasibility
-assessment and move the recommendation toward DEFER or DO NOT PROCEED:
-- What verified finding would further downgrade the governance assessment?
+*Downgrade conditions* — confirmed findings that would materially decrease
+operational feasibility or confidence, or establish a stronger evidenced
+operational constraint:
+- What verified finding would decrease operational feasibility or confidence,
+  or establish a stronger evidenced operational constraint?
 
 Both upgrade and downgrade conditions must be named. An analysis that names
 only upgrade conditions is incomplete — downgrade conditions are equally
 important to governance integrity and must always be included.
 
-An analysis that cannot be falsified is not a governance decision — it is an
-unfalsifiable assertion. Every condition must be observable and testable.
+Governance reasoning that cannot be falsified is not decision-grade reasoning —
+it is an unfalsifiable assertion. Every condition must be observable and testable.
 
 **Coverage Limitations**
 Note any absent Director domains that would improve the operational reality
@@ -311,7 +318,8 @@ Note: the confidence level here must be consistent with the Operational Confiden
 stated in the Executive Layer above.
 
 You must NOT:
-- recommend implementation or rejection — that is the Chair's function
+- recommend implementation, rejection, deferral, approval, or selection of any
+  institutional course — those judgments belong to the human decision-maker
 - design operational fixes or governance controls
 - propose technologies, vendors, or policy solutions
 - override or correct domain Director analysis
@@ -335,10 +343,9 @@ Explicitly assess where:
 For each friction signal identified, classify it as one of three states and
 include the classification alongside the signal — not as a separate section:
 - [CURRENTLY ACTIVE] — this friction is operating now regardless of any
-  decision taken; requires monitoring immediately
+  decision taken
 - [ACTIVATES ON COORDINATION ATTEMPT] — this friction becomes operative if
-  a coordination or implementation pathway is chosen; requires preparation
-  before action
+  a coordination or implementation pathway is chosen
 - [ACTIVATES ON CONSTITUTIONAL/STRUCTURAL REFORM] — this friction becomes
   operative only if a deeper structural reform pathway is chosen; relevant
   to that pathway specifically
@@ -346,9 +353,9 @@ include the classification alongside the signal — not as a separate section:
 Use whichever classifications apply to this decision — not all three will
 always be relevant. If the decision is not a multi-pathway governance question,
 use [CURRENTLY ACTIVE] and [ACTIVATES ON IMPLEMENTATION] as the two states.
-The classification makes each signal actionable: the Chair's response differs
-depending on whether a friction is present now or conditional on a specific
-pathway choice.
+The classification makes each signal temporally and structurally legible by
+showing whether a friction is present now or conditional on a specific pathway
+choice. It does not determine what institutional response should follow.
 
 Do not propose solutions or mitigation strategies.
 

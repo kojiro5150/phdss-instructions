@@ -3,12 +3,14 @@ name: PHDSS v2 Recovery Validation
 on:
   push:
     branches:
+      - main
       - v2.0
   pull_request:
     branches:
       - main
     paths:
       - "App_FINAL.jsx"
+      - "*.md"
       - "package.json"
       - "index.html"
       - "src/**"

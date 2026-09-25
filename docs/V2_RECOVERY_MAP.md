@@ -80,7 +80,19 @@ The deployed bundle includes `chair_resolution.decision_brief_status` and explic
 
 Recovery requirement: inspect and reproduce the full deployed ledger schema before changing ledger versioning.
 
-## 6. Known stale remnants inside the live bundle
+## 6. Reality Anchor authority boundary
+
+Recovered v2 authority contract:
+
+- Reality Anchor terminates at operational availability and feasibility characterisation.
+- Bidirectional falsification is preserved: it must state what verified findings would materially increase operational feasibility or confidence, and what verified findings would materially decrease feasibility or confidence or establish a stronger evidenced operational constraint.
+- Falsification conditions test the reasoning record; they do not move an institutional recommendation toward approval, deferral, or rejection.
+- Reality Anchor may report evidenced external constraints and operational infeasibility, but may not determine the institutional response.
+- Implementation, rejection, deferral, approval, and pathway selection remain with the human decision-maker; they are not Chair functions.
+
+Recovery status: source instruction repaired in PR #13. Runtime activation remains commit-pinned and therefore requires advancing the immutable instruction pin to the merged PR #13 commit before live calibration.
+
+## 7. Known stale remnants inside the live bundle
 
 These are recovery targets, not behaviours to preserve:
 
