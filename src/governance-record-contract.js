@@ -256,3 +256,9 @@ export function isValidSynthesisBriefText(text,moduleLabel) {
     return false;
   }
 }
+
+export function assertBoardGovernanceRecord(value) {
+  var result=validateBoardGovernanceRecord(value);
+  if (!result.ok) throw new Error("Invalid Board Governance Record: "+result.errors.join("; "));
+  return value;
+}
