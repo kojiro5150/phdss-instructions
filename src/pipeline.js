@@ -44,9 +44,10 @@ function errorText(error) {
   return error && error.message ? error.message : String(error);
 }
 
-function stageStatusRecord(status,error) {
+function stageStatusRecord(status,error,reason) {
   var record={status:status};
   if(error) record.error=errorText(error);
+  if(reason) record.reason=String(reason);
   return record;
 }
 
@@ -144,17 +145,33 @@ function runtimeNow(runtime) {
   return runtime && runtime.nowImpl ? runtime.nowImpl() : new Date().toISOString();
 }
 
+export function authorityViolationMessage(layer,assessment,attemptCount) {
+  var clause=String((assessment&&assessment.clause)||"").replace(/\s+/g," ").trim();
+  if(clause.length>600) clause=clause.substring(0,597)+"...";
+  return layer+" authority boundary violation persisted after "+attemptCount+" repair attempt"+(attemptCount===1?"":"s")+": "+((assessment&&assessment.reason)||"UNKNOWN")+(clause?" | Offending clause: "+clause:"");
+}
+
 export async function enforceSynthesisAuthority(layer,text,systemPrompt,userPrompt,runtime) {
   if(!text) return text;
-  var assessment=assessAuthorityBoundary(layer,text);
-  if(!assessment.violates) return text;
-  var repairSystem=systemPrompt+authorityBoundaryPrompt(layer)+
-    "\n\nBOUNDARY REPAIR: The prior draft crossed the PHDSS authority boundary ("+assessment.reason+"). Rewrite only as needed to remove adjudication. Preserve source-grounded findings, signals, constraints, conditions, tensions, uncertainty, pathway descriptions, section structure, and numeric values. Do not select, rank, resolve, approve, reject, defer, or choose an institutional pathway. Legitimate external constraint reporting may remain. Preserve the original output format exactly; if the input is JSON, return valid JSON only.";
-  var raw=await runtimeApiCall(runtime)(repairSystem,userPrompt+"\n\nPRIOR OUTPUT TO REPAIR:\n"+text,false);
-  var repaired=stripCalibrationBleed(raw.text||"");
-  var after=assessAuthorityBoundary(layer,repaired);
-  if(after.violates) throw new Error(layer+" authority boundary violation persisted after repair: "+after.reason);
-  return repaired;
+  var current=stripCalibrationBleed(text);
+  var assessment=assessAuthorityBoundary(layer,current);
+  if(!assessment.violates) return current;
+
+  for(var attempt=1;attempt<=2;attempt++) {
+    var offendingClause=String(assessment.clause||"").replace(/\s+/g," ").trim();
+    var repairSystem=systemPrompt+authorityBoundaryPrompt(layer)+
+      "\n\nBOUNDARY REPAIR ATTEMPT "+attempt+" OF 2: The prior draft crossed the PHDSS authority boundary ("+assessment.reason+")."+
+      (offendingClause?" The exact offending clause is: \""+offendingClause.substring(0,800)+"\".":"")+
+      " Rewrite only as needed to remove adjudication while preserving the analytical substance. Preserve source-grounded findings, signals, constraints, conditions, tensions, uncertainty, pathway descriptions, section structure, and numeric values. Do not select, rank, resolve, approve, reject, defer, pilot, prefer, or choose an institutional pathway. Do not use retired decision vocabulary. Legitimate external constraint reporting may remain. Preserve the original output format exactly; if the input is JSON, return valid JSON only.";
+    var repairUser=userPrompt+"\n\nPRIOR OUTPUT TO REPAIR:\n"+current+
+      "\n\nREPAIR REQUIREMENT: Rewrite the offending clause into non-adjudicative analytical language. Do not merely remove a keyword while preserving the same institutional choice.";
+    var raw=await runtimeApiCall(runtime)(repairSystem,repairUser,false);
+    current=stripCalibrationBleed(raw.text||"");
+    assessment=assessAuthorityBoundary(layer,current);
+    if(!assessment.violates) return current;
+  }
+
+  throw new Error(authorityViolationMessage(layer,assessment,2));
 }
 
 export async function callGovernedSynthesis(layer,systemPrompt,userPrompt,autoContinue,useWeb,runtime) {
@@ -330,10 +347,10 @@ export async function runGovernancePipeline(config,runtime,emit) {
   emit("active-directors",{activeDir:activeDir,omittedDir:omittedDir});
   activeDir.forEach(function(d){emit("director-loading",{id:d.id,loading:true});});
 
-  function setSynthesisStageStatus(stage,status,error) {
-    var record=stageStatusRecord(status,error);
+  function setSynthesisStageStatus(stage,status,error,reason) {
+    var record=stageStatusRecord(status,error,reason);
     state.synthesisStageStatus[stage]=record;
-    emit("stage-status",{stage:stage,status:status,error:record.error||null});
+    emit("stage-status",{stage:stage,status:status,error:record.error||null,reason:record.reason||null});
     return record;
   }
 
@@ -502,7 +519,7 @@ export async function runGovernancePipeline(config,runtime,emit) {
       } catch(e){ recordStageFailure("stress","Stress",e); }
       stageEmitter(emit,"stress",false);
     } else {
-      setSynthesisStageStatus("stress","skipped");
+      setSynthesisStageStatus("stress","skipped",null,"stress trigger not met");
     }
     emit("stages-done",{value:7});
 
@@ -526,35 +543,41 @@ export async function runGovernancePipeline(config,runtime,emit) {
     } catch(e){ recordStageFailure("chair","Chair",e); }
     stageEmitter(emit,"chair",false); emit("stages-done",{value:8});
 
-    try {
-      var pCount=state.results.filter(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(PROCEED)/,1)==="PROCEED";}).length;
-      var cCount=state.results.filter(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(CAUTION)/,1)==="CAUTION";}).length;
-      var hCount=state.results.filter(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(HALT)/,1)==="HALT";}).length;
-      var killSwitchHints=(function(){
-        var hints=[];
-        var measureDir=state.results.find(function(r){return r.id==="measurement";});
-        var safetyDir=state.results.find(function(r){return r.id==="safety";});
-        var behaviourDir=state.results.find(function(r){return r.id==="behaviour";});
-        [measureDir,safetyDir,behaviourDir].forEach(function(dir){
-          if(!dir||!dir.output) return;
-          var m=dir.output.match(/(?:override rates?|accuracy|wait time|uptake|utilisation)[^.]*?(\d+%)[^.]*\./gi);
-          if(m) m.slice(0,2).forEach(function(s){hints.push(s.trim().substring(0,150));});
-        });
-        if(hints.length===0) return "";
-        return "\n\nKILL SWITCH REQUIREMENT: Each kill_switch entry must contain a measurable indicator + specific threshold + timeframe. Examples from Director analyses:\n"+hints.map(function(h){return "- "+h;}).join("\n")+"\nFormat each kill switch as: \"[indicator] exceeds/falls below [threshold] [timeframe].\"";
-      })();
-      var compRaw=await runGoverned("comparator",comparatorJsonSystem(config.decisionId,config.decisionSignal,state.results,config.analysisMode,activeDir,state.chairOut,config.instructions,pCount,cCount,hCount),"Run comparator now."+killSwitchHints,config.autoContinue);
-      var compParsed=extractFirstJsonObject(compRaw);
-      if(compParsed&&compParsed.summary&&typeof compParsed.summary.decision_signal_interpretation==="string"){
-        var interp=compParsed.summary.decision_signal_interpretation;
-        if(interp.indexOf(String(cCount))===-1||interp.indexOf(String(hCount))===-1){
-          compParsed.summary.decision_signal_interpretation="[Signal tally: "+pCount+" PROCEED / "+cCount+" CAUTION / "+hCount+" HALT] "+interp;
+    if(!state.synthesisStageStatus.chair||state.synthesisStageStatus.chair.status!=="success"){
+      state.comparatorData=null;
+      setSynthesisStageStatus("comparator","skipped",null,"required upstream stage chair failed");
+      emit("comparator-skipped",{reason:"required upstream stage chair failed"});
+    } else {
+      try {
+        var pCount=state.results.filter(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(PROCEED)/,1)==="PROCEED";}).length;
+        var cCount=state.results.filter(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(CAUTION)/,1)==="CAUTION";}).length;
+        var hCount=state.results.filter(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(HALT)/,1)==="HALT";}).length;
+        var killSwitchHints=(function(){
+          var hints=[];
+          var measureDir=state.results.find(function(r){return r.id==="measurement";});
+          var safetyDir=state.results.find(function(r){return r.id==="safety";});
+          var behaviourDir=state.results.find(function(r){return r.id==="behaviour";});
+          [measureDir,safetyDir,behaviourDir].forEach(function(dir){
+            if(!dir||!dir.output) return;
+            var m=dir.output.match(/(?:override rates?|accuracy|wait time|uptake|utilisation)[^.]*?(\d+%)[^.]*\./gi);
+            if(m) m.slice(0,2).forEach(function(s){hints.push(s.trim().substring(0,150));});
+          });
+          if(hints.length===0) return "";
+          return "\n\nKILL SWITCH REQUIREMENT: Each kill_switch entry must contain a measurable indicator + specific threshold + timeframe. Examples from Director analyses:\n"+hints.map(function(h){return "- "+h;}).join("\n")+"\nFormat each kill switch as: \"[indicator] exceeds/falls below [threshold] [timeframe].\"";
+        })();
+        var compRaw=await runGoverned("comparator",comparatorJsonSystem(config.decisionId,config.decisionSignal,state.results,config.analysisMode,activeDir,state.chairOut,config.instructions,pCount,cCount,hCount),"Run comparator now."+killSwitchHints,config.autoContinue);
+        var compParsed=extractFirstJsonObject(compRaw);
+        if(compParsed&&compParsed.summary&&typeof compParsed.summary.decision_signal_interpretation==="string"){
+          var interp=compParsed.summary.decision_signal_interpretation;
+          if(interp.indexOf(String(cCount))===-1||interp.indexOf(String(hCount))===-1){
+            compParsed.summary.decision_signal_interpretation="[Signal tally: "+pCount+" PROCEED / "+cCount+" CAUTION / "+hCount+" HALT] "+interp;
+          }
         }
-      }
-      state.comparatorData={raw:compRaw,parsed:compParsed,created_at:runtimeNow(runtime)};
-      emit("comparator",{comparatorData:state.comparatorData});
-      setSynthesisStageStatus("comparator","success");
-    } catch(e){ recordStageFailure("comparator","Comparator",e); }
+        state.comparatorData={raw:compRaw,parsed:compParsed,created_at:runtimeNow(runtime)};
+        emit("comparator",{comparatorData:state.comparatorData});
+        setSynthesisStageStatus("comparator","success");
+      } catch(e){ recordStageFailure("comparator","Comparator",e); }
+    }
 
     if(state.results.length>0){
       var record=buildLedgerRecord(makeLedgerInput(config,state,state.stressDecision),runtime);
