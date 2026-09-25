@@ -1,4 +1,4 @@
-// Prompt-builder equivalence fingerprints captured before extraction from App_FINAL.jsx.
+// Prompt-builder regression fingerprints. Most values preserve the extraction baseline; intentional contract changes update only the affected prompt fingerprints.
 // The test recomputes these over the extracted module using the same representative inputs.
 // FNV-1a + byte length is used as a compact exact-output regression fingerprint.
 
@@ -20,8 +20,8 @@ export const promptBuilderExpected = Object.freeze([
   {label:"epistemicAuditorSystem",length:926,fnv1a:"1fd7951c"},
   {label:"adversarialProbeSystem",length:969,fnv1a:"8ee64cd4"},
   {label:"directorBriefSystem",length:1509,fnv1a:"5d5ba77f"},
-  {label:"lensComparatorSystem",length:1425,fnv1a:"c3c29ff6"},
-  {label:"comparatorJsonSystem",length:1856,fnv1a:"75580f89"},
+  {label:"lensComparatorSystem",length:1887,fnv1a:"4b5d6cbf"},
+  {label:"comparatorJsonSystem",length:2452,fnv1a:"e7f00f51"},
 ]);
 
 export const promptBuilderFixture = Object.freeze({
