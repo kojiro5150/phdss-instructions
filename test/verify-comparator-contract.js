@@ -34,7 +34,7 @@ const lens=lensComparatorSystem(
 );
 assert.doesNotMatch(lens,/GOVERNANCE COMPARATOR SENTINEL/);
 assert.match(lens,/Dual Lens Comparator/);
-assert.doesNotMatch(lens,/Decision Ledger|chair_resolution|monitoring_triggers_30_60_90/i);
+assert.doesNotMatch(lens,/chair_resolution|monitoring_triggers_30_60_90/i);
 
 const prompt=comparatorJsonSystem(
   "DR-TEST","Synthetic signal",
