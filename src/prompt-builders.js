@@ -231,7 +231,7 @@ export function directorBriefSystem(director, entries, useWeb, publicWeb, sessio
 
 export function lensComparatorSystem(directorA, directorB, entries, useWeb, publicWeb, sessionEntries, ctx, instructions) {
   var base = "You are the Dual Lens Comparator for a Public Health advisory session (Australian context, AUD).\n\n"+
-    "Compare only the two advisory lenses: "+directorA.label+" and "+directorB.label+". This is not the Governance Comparator and does not use Decision Ledger, Chair, governance-record, or institutional-adjudication semantics.\n\n";
+    "Compare only the two advisory lenses: "+directorA.label+" and "+directorB.label+". This is not the Governance Comparator and does not use governance-record or institutional-adjudication semantics.\n\n";
   return base + buildEmbeddedDocs(entries) + buildSessionEvidence(sessionEntries) + buildWebNote(useWeb, publicWeb) + ctxBlocks(ctx) + "\n\nRespond in exactly this structure:\n\n**Where the Lenses Agree**\n\n**Where the Lenses Diverge**\n\n**What Each Lens Misses**\n\n**Decision Tensions**\nIdentify 3–6 structural trade-offs without ranking or selecting a course.\n\n**Combined Insight**\n\n**Advisory Signal**\nWrite exactly one of: ALIGNED / TENSION / COMPLEMENTARY\n\n**For Escalation**\nName questions or unresolved issues that may warrant governance-grade analysis; do not prescribe an institutional next act.\n\nNote: This is a dual-lens advisory briefing. It does not constitute a governance decision analysis.";
 }
 
