@@ -219,38 +219,65 @@ The Stress Test ends at **failure visibility under stress**.
 
 ## 7. Chair / Decision Brief
 
+The Chair is a deliberative interface, not a further judgment layer. Its removal
+may reduce organisation or legibility, but must not change the substantive
+governance record produced upstream.
+
 ### OBLIGATED_TO_SURFACE
-- key discoveries;
-- decision framing;
-- trade-offs;
-- Director signal distribution;
-- Probe response;
-- material conditions;
-- irreducible uncertainty;
-- residual risk;
-- available pathways where relevant;
-- Decision Brief Status;
-- reasoning transparency.
+- source-grounded key discoveries already present upstream;
+- decision framing already established upstream;
+- trade-offs without reweighting them;
+- exact Director signal distribution;
+- Probe verdict and strongest adversarial challenge;
+- source-grounded material conditions;
+- irreducible uncertainty with epistemic state preserved;
+- residual risk already identified upstream;
+- available pathways where already described;
+- Decision Brief Status as a deliberative-state field;
+- reasoning transparency showing how the brief represents the upstream record.
 
 ### PERMITTED_TO_CHARACTERISE
-- how findings fit together;
-- which findings are most decision-relevant;
-- where Director signals converge or diverge;
-- which conditions are unresolved;
-- what evidence would change the decision space;
-- what pathways remain available or externally constrained.
+- how already-established findings fit together for readability;
+- where Director and synthesis outputs converge or diverge;
+- which source-grounded conditions remain unresolved;
+- what evidence upstream modules identify as capable of changing the decision space;
+- what pathways upstream modules identify as available or externally constrained;
+- which material tension remains unresolved in the governance record.
+
+### NON-SUBSTITUTION INVARIANT
+The Chair MUST NOT:
+- change Director signal counts, Probe verdict, Stress fragility score, Epistemic
+  score, coverage state, or any other supplied structured governance value;
+- introduce a substantive condition with no upstream source;
+- promote or weaken an epistemic state;
+- treat Director convergence or repetition as confirmation;
+- resolve a tension left unresolved upstream;
+- convert an analytical proposal, question, possibility, pathway or evaluation
+  design into an institutional requirement;
+- create a new substantive governance conclusion under the guise of synthesis.
+
+Compression may improve legibility. It must not strengthen certainty, authority,
+obligation, ranking, disposition, or evidentiary status.
 
 ### PROHIBITED_FROM_ADJUDICATING
-- selecting a preferred course;
+- selecting or ranking a preferred course;
+- recommending or issuing a recommendation;
 - approving or rejecting;
 - deferring;
-- directing a pilot;
+- directing or selecting a pilot;
 - declaring that the proposal should or should not proceed;
 - resolving the final tension;
+- instructing the human decision-maker what they must weigh, choose, decide, or resolve;
 - using signal distribution as a vote.
 
+These prohibitions include nominalised and adjectival forms such as
+recommendation, resolution, selection, preference, approval, rejection,
+deferral and ranking. Descriptive uses of "Decision Brief", "decision space",
+"decision-maker", and "the decision" remain permitted when they refer to the
+institutional act retained by humans.
+
 Authority terminus:
-The Chair ends at **integrated Decision Brief for human judgment**.
+The Chair ends at **faithful, integrated Decision Brief presentation for human judgment**.
 
 ---
 

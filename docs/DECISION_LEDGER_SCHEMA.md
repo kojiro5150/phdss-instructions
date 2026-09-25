@@ -47,6 +47,28 @@ They are replaced by:
 - `chair_resolution.decision_brief_status`
 - `monitoring_triggers_30_60_90`
 
+### Decision Brief Status content contract
+
+`chair_resolution.decision_brief_status` records the deliberative state of the
+Chair's Decision Brief, not a Chair determination or instruction to the human
+decision-maker.
+
+For a complete record, the content form is:
+
+`Complete — [material tension remaining unresolved in the governance record]`
+
+For a partial evidence base, the content form is:
+
+`Complete — Partial Evidence Base — [material tension remaining unresolved in the governance record]`
+
+The unresolved-tension clause describes the state of the governance record. It
+must not state what the decision-maker "must weigh", prescribe a governance act,
+rank or select a pathway, or convert synthesis into adjudication.
+
+This is a tightening of the existing non-prescriptive field contract, not a
+field-shape or semantic-purpose change, so it does not require a schema-version
+increment.
+
 `monitoring_triggers_30_60_90` contains three arrays:
 
 - `days_0_30`

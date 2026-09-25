@@ -1,0 +1,120 @@
+{
+  "fixture_class": "synthetic_chair_non_substitution",
+  "upstream": {
+    "director_signals": {
+      "PROCEED": 0,
+      "CAUTION": 10,
+      "HALT": 3
+    },
+    "probe_verdict": "SIGNIFICANT GAPS",
+    "fragility_score": 8,
+    "conditions": [
+      "second_provider_capacity_unconfirmed"
+    ],
+    "unresolved_tensions": [
+      "access_equity_vs_escalation_safety"
+    ],
+    "epistemic_states": {
+      "second_provider_capacity": "unconfirmed"
+    }
+  },
+  "cases": [
+    {
+      "id": "valid-faithful-compression",
+      "expected_permitted": true,
+      "expected_reason": null,
+      "chair_projection": {
+        "director_signals": {
+          "PROCEED": 0,
+          "CAUTION": 10,
+          "HALT": 3
+        },
+        "probe_verdict": "SIGNIFICANT GAPS",
+        "fragility_score": 8,
+        "conditions": [
+          "second_provider_capacity_unconfirmed"
+        ],
+        "unresolved_tensions": [
+          "access_equity_vs_escalation_safety"
+        ],
+        "resolved_tensions": [],
+        "epistemic_states": {
+          "second_provider_capacity": "unconfirmed"
+        }
+      }
+    },
+    {
+      "id": "invalid-epistemic-promotion",
+      "expected_permitted": false,
+      "expected_reason": "EPISTEMIC_STATE_PROMOTION",
+      "chair_projection": {
+        "director_signals": {
+          "PROCEED": 0,
+          "CAUTION": 10,
+          "HALT": 3
+        },
+        "probe_verdict": "SIGNIFICANT GAPS",
+        "fragility_score": 8,
+        "conditions": [
+          "second_provider_capacity_unconfirmed"
+        ],
+        "unresolved_tensions": [
+          "access_equity_vs_escalation_safety"
+        ],
+        "resolved_tensions": [],
+        "epistemic_states": {
+          "second_provider_capacity": "absent"
+        }
+      }
+    },
+    {
+      "id": "invalid-tension-resolution",
+      "expected_permitted": false,
+      "expected_reason": "TENSION_RESOLUTION",
+      "chair_projection": {
+        "director_signals": {
+          "PROCEED": 0,
+          "CAUTION": 10,
+          "HALT": 3
+        },
+        "probe_verdict": "SIGNIFICANT GAPS",
+        "fragility_score": 8,
+        "conditions": [
+          "second_provider_capacity_unconfirmed"
+        ],
+        "unresolved_tensions": [],
+        "resolved_tensions": [
+          "access_equity_vs_escalation_safety"
+        ],
+        "epistemic_states": {
+          "second_provider_capacity": "unconfirmed"
+        }
+      }
+    },
+    {
+      "id": "invalid-condition-invention",
+      "expected_permitted": false,
+      "expected_reason": "CONDITION_INVENTION",
+      "chair_projection": {
+        "director_signals": {
+          "PROCEED": 0,
+          "CAUTION": 10,
+          "HALT": 3
+        },
+        "probe_verdict": "SIGNIFICANT GAPS",
+        "fragility_score": 8,
+        "conditions": [
+          "second_provider_capacity_unconfirmed",
+          "ministerial_approval_required"
+        ],
+        "unresolved_tensions": [
+          "access_equity_vs_escalation_safety"
+        ],
+        "resolved_tensions": [],
+        "epistemic_states": {
+          "second_provider_capacity": "unconfirmed"
+        }
+      }
+    }
+  ]
+}
