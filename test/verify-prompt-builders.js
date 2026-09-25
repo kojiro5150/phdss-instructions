@@ -78,7 +78,7 @@ assert.match(
   /^Partial coverage \(CORE mode\): 5 of 13 directors invoked\. Omitted:/
 );
 assert.equal(RUNTIME_CONTRACT,"2.0-recovery");
-assert.equal(LEDGER_SCHEMA,"3.0.0-alpha.1");
+assert.equal(LEDGER_SCHEMA,"3.0.0-alpha.2");
 
 const app=fs.readFileSync("App_FINAL.jsx","utf8");
 const moved=[

@@ -45,7 +45,11 @@ The fixture covers:
 - advisory Director and dual-lens prompts;
 - Comparator JSON prompt.
 
-The post-extraction verifier must reproduce every fingerprint exactly.
+The verifier preserves exact fingerprints for stable prompt builders. When an intentional constitutional or schema change modifies a prompt, only that prompt's fingerprint is advanced in the same PR with a dedicated behavioural contract explaining why the change is intentional.
+
+PR #15 intentionally advances the Dual Lens Comparator and Governance Comparator fingerprints:
+- Dual Lens Advisory no longer consumes the governance Comparator instruction file.
+- Governance Comparator emits the Decision Ledger 3.0.0-alpha.2 contract with monitoring triggers rather than sequenced institutional actions.
 
 ## Deliberately deferred
 

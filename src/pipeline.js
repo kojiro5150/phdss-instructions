@@ -220,6 +220,38 @@ export async function repairChairDecisionBoundary(text, systemPrompt, userPrompt
   return enforceSynthesisAuthority("chair",text,systemPrompt,userPrompt,runtime);
 }
 
+export function validateComparatorSchema(parsed) {
+  if(!parsed||typeof parsed!=="object"||Array.isArray(parsed)){
+    throw new Error("Comparator schema invalid: expected JSON object");
+  }
+  if(parsed.schema_version!==LEDGER_SCHEMA){
+    throw new Error("Comparator schema mismatch: expected "+LEDGER_SCHEMA+" but received "+String(parsed.schema_version||"missing"));
+  }
+  if(Object.prototype.hasOwnProperty.call(parsed,"next_actions_30_60_90")){
+    throw new Error("Comparator schema invalid: retired next_actions_30_60_90 field present");
+  }
+  var chair=parsed.chair_resolution;
+  if(!chair||typeof chair!=="object"||Array.isArray(chair)){
+    throw new Error("Comparator schema invalid: chair_resolution object missing");
+  }
+  if(Object.prototype.hasOwnProperty.call(chair,"recommendation")){
+    throw new Error("Comparator schema invalid: retired chair_resolution.recommendation field present");
+  }
+  if(typeof chair.decision_brief_status!=="string"){
+    throw new Error("Comparator schema invalid: chair_resolution.decision_brief_status missing");
+  }
+  var monitoring=parsed.monitoring_triggers_30_60_90;
+  if(!monitoring||typeof monitoring!=="object"||Array.isArray(monitoring)){
+    throw new Error("Comparator schema invalid: monitoring_triggers_30_60_90 object missing");
+  }
+  ["days_0_30","days_31_60","days_61_90"].forEach(function(key){
+    if(!Array.isArray(monitoring[key])){
+      throw new Error("Comparator schema invalid: monitoring_triggers_30_60_90."+key+" must be an array");
+    }
+  });
+  return parsed;
+}
+
 export function buildLedgerRecord(input,runtime) {
   var results=input.results||[];
   var activeDir=input.activeDir||DIRECTORS;
@@ -611,7 +643,7 @@ export async function runGovernancePipeline(config,runtime,emit) {
           return "\n\nKILL SWITCH REQUIREMENT: Each kill_switch entry must contain a measurable indicator + specific threshold + timeframe. Examples from Director analyses:\n"+hints.map(function(h){return "- "+h;}).join("\n")+"\nFormat each kill switch as: \"[indicator] exceeds/falls below [threshold] [timeframe].\"";
         })();
         var compRaw=await runGoverned("comparator",comparatorJsonSystem(config.decisionId,config.decisionSignal,state.results,config.analysisMode,activeDir,state.chairOut,config.instructions,pCount,cCount,hCount),"Run comparator now."+killSwitchHints,config.autoContinue);
-        var compParsed=extractFirstJsonObject(compRaw);
+        var compParsed=validateComparatorSchema(extractFirstJsonObject(compRaw));
         if(compParsed&&compParsed.summary&&typeof compParsed.summary.decision_signal_interpretation==="string"){
           var interp=compParsed.summary.decision_signal_interpretation;
           if(interp.indexOf(String(cCount))===-1||interp.indexOf(String(hCount))===-1){

@@ -4,11 +4,13 @@ This map records behaviours confirmed in the 29 June 2026 GitHub Pages deploymen
 
 ## 1. Instruction pin
 
-**Live deployment:** `56ad2305ca62ed7409c3e89723f9bd1ca914d935`
+**Historical 29 June live deployment:** `56ad2305ca62ed7409c3e89723f9bd1ca914d935`
 
-**Readable main source:** `eec6db99f941ceffc2b5fe055ce2313fb6ae05d6`
+**Historical readable recovery baseline:** `eec6db99f941ceffc2b5fe055ce2313fb6ae05d6`
 
-Recovery requirement: the reconstructed source must first reproduce the live 29 June pin before any release-manifest work.
+**Current recovered runtime pin:** `e79f79378a9eba6f36c8d053a896ca00b3827c7b` (advanced after PR #13 Reality Anchor repair).
+
+The runtime remains intentionally commit-pinned. Any merged instruction-source change must be activated by a dedicated pin-advance PR before it is treated as live behaviour.
 
 ## 2. Chair contract
 
@@ -74,11 +76,19 @@ Live deployment presents Technical and Governance views from the same module res
 
 Recovery requirement: preserve one underlying analysis result with two presentation layers.
 
-## 5. Ledger contract changes already present live
+## 5. Decision Ledger contract
 
-The deployed bundle includes `chair_resolution.decision_brief_status` and explicitly prohibits storing a proceed/defer/halt Chair instruction in that field.
+Current recovered Ledger schema: `3.0.0-alpha.2`.
 
-Recovery requirement: inspect and reproduce the full deployed ledger schema before changing ledger versioning.
+The Ledger records `chair_resolution.decision_brief_status` and explicitly prohibits storing a proceed/defer/halt Chair instruction in that field.
+
+Schema 3.0.0-alpha.2 makes the Comparator migration explicit:
+- the retired Chair recommendation field is no longer part of the Comparator schema;
+- the sequenced action-horizon field is replaced by `monitoring_triggers_30_60_90`;
+- monitoring horizons contain observable evidence, conditions, or thresholds rather than institutional next actions;
+- historical Ledger records are not rewritten; downstream consumers must branch on `schema_version`.
+
+Instruction provenance is recorded separately through `instruction_source` and `instruction_commit`; see `docs/DECISION_LEDGER_SCHEMA.md`.
 
 ## 6. Reality Anchor authority boundary
 
@@ -90,9 +100,24 @@ Recovered v2 authority contract:
 - Reality Anchor may report evidenced external constraints and operational infeasibility, but may not determine the institutional response.
 - Implementation, rejection, deferral, approval, and pathway selection remain with the human decision-maker; they are not Chair functions.
 
-Recovery status: source instruction repaired in PR #13. Runtime activation remains commit-pinned and therefore requires advancing the immutable instruction pin to the merged PR #13 commit before live calibration.
+Recovery status: source instruction repaired in PR #13 and activated by the dedicated PR #14 pin advance to `e79f79378a9eba6f36c8d053a896ca00b3827c7b`.
 
-## 7. Known stale remnants inside the live bundle
+
+## 7. Comparator authority and schema boundary
+
+Recovered v2 Comparator contract:
+
+- Comparator terminates at **difference visibility**. It may record agreements, dissensus, trade-offs, risks, uncertainty, coverage gaps, and measurable monitoring conditions.
+- It may not rank pathways, choose a winner, resolve institutional tensions, convert Director signal counts into a disposition, or prescribe institutional next acts.
+- `chair_resolution` remains as a legacy container name for compatibility, but its status field is `decision_brief_status`; the container name does not grant adjudication authority to the Chair.
+- `monitoring_triggers_30_60_90` preserves time-horizon value while restricting content to observable evidence, conditions, or thresholds.
+- The authoritative JSON schema is injected once by `comparatorJsonSystem()`; `comparator.md` no longer embeds a second competing schema.
+- The runtime rejects stale Comparator JSON shapes rather than silently storing them under the new schema version.
+- Dual Lens Advisory no longer consumes the governance Comparator instruction source.
+
+Activation note: after this PR merges, the immutable instruction pin must be advanced to the PR merge commit before the calibration run so the live Comparator uses the repaired source instruction.
+
+## 8. Known stale remnants inside the live bundle
 
 These are recovery targets, not behaviours to preserve:
 

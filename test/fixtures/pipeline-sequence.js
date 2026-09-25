@@ -41,7 +41,7 @@ export const pipelineSequenceContract = Object.freeze({
   ledger: {
     appendAfterComparator: true,
     appendOnFatalWhenDirectorsExist: true,
-    schemaVersion: "3.0.0-alpha.1",
+    schemaVersion: "3.0.0-alpha.2",
     runtimeContract: "2.0-recovery",
   },
 });
