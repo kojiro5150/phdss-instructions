@@ -312,7 +312,7 @@
     {
       "id": "reality-operational-comparison-pass-006",
       "layer": "reality_anchor",
-      "text": "Pathway A requires six rostered FTE at launch, while Pathway B requires ten; the record does not establish which staffing burden the institution should accept.",
+      "text": "Pathway A requires six rostered FTE at launch, while Pathway B requires ten; the acceptable staffing burden remains for human judgment.",
       "expected_classification": "PATHWAY",
       "expected_permitted": true,
       "reason_code": "NON_RANKED_OPERATIONAL_COMPARISON"
@@ -333,6 +333,15 @@
       "expected_permitted": false,
       "reason_code": "PATHWAY_RANKING",
       "expected_reason": "PATHWAY_RANKING"
+    },
+    {
+      "id": "comparator-institutional-selection-fail-005b",
+      "layer": "comparator",
+      "text": "The institution should select Trajectory B.",
+      "expected_classification": "ADJUDICATION",
+      "expected_permitted": false,
+      "reason_code": "INSTITUTIONAL_DIRECTIVE",
+      "expected_reason": "INSTITUTIONAL_DIRECTIVE"
     },
     {
       "id": "comparator-json-structural-key-pass-006",
