@@ -24,8 +24,8 @@ async function check(label,fn){
 }
 
 await check("instruction pin and manifest",async function(){
-  assert.equal(INSTRUCTION_COMMIT,"95395c63083eb45cd824cbf8cb6198387724f71c");
-  assert.equal(GITHUB_BASE,"https://cdn.jsdelivr.net/gh/kojiro5150/phdss-instructions@95395c63083eb45cd824cbf8cb6198387724f71c/");
+  assert.equal(INSTRUCTION_COMMIT,"062acd1de4665439f82dcb351770f4c4fba93421");
+  assert.equal(GITHUB_BASE,"https://cdn.jsdelivr.net/gh/kojiro5150/phdss-instructions@062acd1de4665439f82dcb351770f4c4fba93421/");
   assert.equal(Object.keys(INSTRUCTION_FILES).length,21);
   assert.equal(INSTRUCTION_FILES.systems,"systems.md");
   assert.equal(INSTRUCTION_FILES.chair,"chair.md");
