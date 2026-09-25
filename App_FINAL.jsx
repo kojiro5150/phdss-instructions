@@ -1,102 +1,47 @@
 // Strip instruction/calibration bleed from synthesis output before export.
 // Matches the CALIBRATION NOTE pattern that some instruction files reproduce verbatim.
-function stripCalibrationBleed(text) {
-  if (!text) return text;
-  // Find the earliest occurrence of any known calibration marker and truncate there.
-  var markers = [
-    "\n[ANALYTICAL CONTEXT — governance instruction only, do not reproduce in output]",
-    "\n## CALIBRATION NOTE",
-    "\n**CALIBRATION NOTE**",
-    "\nCALIBRATION NOTE",
-    "\n---\n## CALIBRATION NOTE",
-    "\n---\n**CALIBRATION NOTE**",
-    "\n---\n\n## CALIBRATION NOTE",
-    "\n---\n\n**CALIBRATION NOTE**",
-    "\n---\nAnalytical standard:",
-    "\n---\n\nAnalytical standard:",
-    "\n---\nAnalysis Mode: FULL",
-    "\n---\nAnalysis Mode: CORE",
-    "\n---\nAnalysis Mode: CHAIR_SPECIFIED",
-    "\nAnalytical standard: red-team",
-    "\nAnalytical standard: safety-critical",
-    "\nAnalytical standard: senior cross-domain",
-    "\nThis is a FULL-mode run.",
-    "\nThis is a CORE-mode run.",
-    "\nThis is a CHAIR_SPECIFIED-mode run.",
-    "\nApply full analytical depth",
-    "\nCOVERAGE: Full Board active",
-    "\nCOVERAGE: Core directors",
-    "\nAnalysis Mode: FULL coverage",
-    "\nAnalysis Mode: CORE coverage",
-    "\n## CALIBRATION NOTE\nAnalysis Mode:",
-    "\n## Coverage\nAnalysis Mode:",
-    "\nCoverage Mode:",
-  ];
-  var cutAt = -1;
-  for (var mi = 0; mi < markers.length; mi++) {
-    var idx = text.indexOf(markers[mi]);
-    if (idx !== -1 && (cutAt === -1 || idx < cutAt)) cutAt = idx;
-  }
-  return cutAt !== -1 ? text.slice(0, cutAt).trim() : text.trim();
-}
-
-
 // JSX Fix 1: Strip instruction guard phrases that may bleed into Chair output.
 // Targets known leak phrases from chair.md inline guards (Run 31 pattern).
 // Uses targeted replacement rather than truncation to avoid losing downstream content.
 // Safety net only — primary fix is chair.md moving guards into HTML comments.
-function stripInstructionArtifacts(text) {
-  if (!text) return text;
-  return text
-    .replace(/\(DO NOT REPRODUCE THIS LINE[^)]*\)/gi, "")
-    .replace(/SINGLE INSTANCE ONLY[^\n.]*/gi, "")
-    .replace(/SECTION CLOSED after[^\n.]*/gi, "")
-    .trim();
-}
-
-
 // Fix P1-4: Remove verbatim-duplicated section blocks from Director outputs.
 // Some instruction files emit a continuation block with the same heading twice
 // (e.g. "**Likely Failure Modes**" in Behaviour, "**Goodhart / Gaming Risks**" in Measurement,
 // "**Multi-Hypothesis Frame**" in Sovereignty).
 // Strategy: split on heading boundaries, fingerprint each block, drop duplicates.
-function deduplicateSections(text) {
-  if (!text) return text;
-  // Split on **Bold Heading** or ## Heading boundaries.
-  // Keep delimiter in the result so we can reconstruct.
-  var parts = text.split(/(?=\n\*\*[^*\n]{4,60}\*\*|\n##\s+[A-Za-z])/);
-  var seen = {};
-  var out = [];
-  for (var i = 0; i < parts.length; i++) {
-    var part = parts[i];
-    // Extract heading text from the start of this part
-    var hm = part.match(/^\n(\*\*([^*\n]{4,60})\*\*|##\s+([^\n]{4,60}))/);
-    if (!hm) {
-      // No heading — always keep (preamble text)
-      out.push(part);
-      continue;
-    }
-    var headingText = (hm[2] || hm[3] || "").trim().toLowerCase();
-    // Fingerprint: heading + first substantive content line after the heading
-    var bodyLines = part.split("\n").slice(2); // skip blank + heading line
-    var firstContent = "";
-    for (var j = 0; j < bodyLines.length; j++) {
-      var bl = bodyLines[j].trim();
-      if (bl.length > 5) { firstContent = bl.substring(0, 80).toLowerCase(); break; }
-    }
-    var fingerprint = headingText + "|||" + firstContent;
-    if (seen[fingerprint]) {
-      // Duplicate block — drop it
-      continue;
-    }
-    seen[fingerprint] = true;
-    out.push(part);
-  }
-  return out.join("");
-}
-
-
 import { useState, useRef, useEffect } from "react";
+import {
+  TRUSTED_DOMAINS,
+  ANALYSIS_MODES,
+  MANDATORY_DIRECTOR_IDS,
+  STRESS_KEYWORDS,
+} from "./src/constants.js";
+import {
+  DIRECTORS,
+  SYNTHESIS_ROLES,
+  ALL_ROLES,
+  STAGE_META,
+  SUGGESTED_PUSHBACKS,
+  resolveCoreDirectors,
+  resolveChairDirectors,
+  resolveActiveDirectors,
+} from "./src/registry.js";
+import {
+  safeMatch,
+  extractFirstJsonObject,
+  escRe,
+  extractBulletLines,
+  extractSection,
+  findSignal,
+  normItem,
+  dedupItems,
+} from "./src/parsers.js";
+import {
+  stripCalibrationBleed,
+  stripInstructionArtifacts,
+  deduplicateSections,
+  renderMd,
+} from "./src/text-utils.js";
 import { authorityBoundaryPrompt, assessAuthorityBoundary } from "./src/authority-contract.js";
 
 // =============================================================================
@@ -249,23 +194,6 @@ function makeDecisionId() {
 }
 
 
-function safeMatch(text, re, idx) {
-  if (!text) return null;
-  var m = text.match(re);
-  return (m && m[idx]) ? m[idx] : null;
-}
-
-
-function extractFirstJsonObject(text) {
-  if (!text) return null;
-  var fenced = text.match(/```json\s*([\s\S]*?)\s*```/i);
-  var candidate = fenced ? fenced[1].trim() : text.trim();
-  var first = candidate.indexOf("{"), last = candidate.lastIndexOf("}");
-  if (first===-1||last===-1||last<=first) return null;
-  try { return JSON.parse(candidate.slice(first,last+1)); } catch(e) { return null; }
-}
-
-
 function exportAsText(filename, content) {
   // FIX 4: always use hyphenated decisionId in filename — strip non-alphanumeric except hyphens/underscores
   var safeFilename = filename.replace(/[^\w\-_.]/g, "_");
@@ -379,123 +307,10 @@ function exportFullDashboard(d, decision, decisionId, decisionSignal, orgContext
 
 
 // --- CONSTANTS ----------------------------------------------------------------
-var TRUSTED_DOMAINS = [
-  "aihw.gov.au","health.gov.au","tga.gov.au","ahpra.gov.au","legislation.gov.au",
-  "austlii.edu.au","digitalhealth.gov.au","nhmrc.gov.au","safetyandquality.gov.au",
-  "servicesaustralia.gov.au","who.int","cochrane.org","nice.org.uk","cdc.gov",
-  "pubmed.ncbi.nlm.nih.gov","bmj.com","thelancet.com","nejm.org","hl7.org","healthit.gov"
-];
-
-
-var DIRECTORS = [
-  { id:"systems",        label:"Systems & Dynamics",                 icon:"*", color:"#06B6D4", desc:"Complex system behaviour, feedback loops, unintended consequences" },
-  { id:"economics",      label:"Health Economics",                   icon:"$", color:"#FFB347", desc:"Cost-effectiveness, resource allocation, economic equity, incentive alignment" },
-  { id:"behaviour",      label:"Behaviour & Implementation",         icon:"@", color:"#FF6B9D", desc:"Adoption engineering, behavioural failure modes, implementation realism, COM-B diagnosis" },
-  { id:"policy",         label:"Policy & Power",                     icon:"#", color:"#A78BFA", desc:"Political feasibility, stakeholder power, regulatory landscape, coalition dynamics" },
-  { id:"equity",         label:"Equity & Human Rights",              icon:"=", color:"#34D399", desc:"Global health equity, human rights and dignity - rights-based governance" },
-  { id:"lived",          label:"Lived Experience",                   icon:"o", color:"#F87171", desc:"Lived and living expertise, community legitimacy, trust and agency" },
-  { id:"digital",        label:"Digital & AI Governance",            icon:"~", color:"#60A5FA", desc:"AI safety, data governance, SaMD classification, algorithmic bias" },
-  { id:"ethics",         label:"Ethics & Influence Risk",            icon:"^", color:"#FBBF24", desc:"Ethical influence, integrity, manipulation risk, foreign interference" },
-  { id:"sovereignty",    label:"Sovereignty & Containment",          icon:"+", color:"#F472B6", desc:"Decision integrity, affective containment, reflective capacity" },
-  { id:"safety",         label:"Safety, Quality & Harm",             icon:"!", color:"#EF4444", desc:"Clinical safety, harm pathways, regulatory obligations, quality systems" },
-  { id:"physics",        label:"Capacity & Constraints",             icon:"%", color:"#A3E635", desc:"Physics-based constraints, entropy, scaling limits, finite capacity" },
-  { id:"measurement",    label:"Measurement & Evidence Integrity",   icon:"&", color:"#C084FC", desc:"Theory of change, evaluation design, indicator governance, Goodhart risks" },
-  { id:"innovation",     label:"Innovation & Improvement",           icon:"/", color:"#22D3EE", desc:"Improvement pathways, learning architecture, responsible experimentation" },
-];
-
-
 // --- FIX 1: ADAPTIVE FIFTH DIRECTOR SELECTION --------------------------------
 // AI/SaMD/algorithm procurement carve-out: when decision text contains explicit AI
 // or clinical decision support keywords, Digital & AI Governance always wins as
 // adaptive fifth regardless of economics keyword co-occurrence.
-var AI_PROCUREMENT_KEYWORDS = [
-  "artificial intelligence","machine learning","clinical decision support","samd",
-  "software as a medical device","algorithmic","ai-powered","ai powered",
-  "ai platform","ai system","ai tool","ai solution","ai governance",
-  "ai procurement","ai clinical","deep learning","neural network",
-  "predictive model","decision support system","clinical ai"
-];
-
-
-var DIGITAL_KEYWORDS = [
-  "ai","artificial intelligence","machine learning","algorithm","automation",
-  "automated","software","platform","app","technology","data","model",
-  "clinical decision support","analytics","electronic","online","virtual","robot",
-  "emr","integration","digital workflow","digital"
-];
-var POLICY_KEYWORDS = [
-  "minister","ministerial","government","legislation","regulation","statutory",
-  "compliance","public accountability","parliament","parliamentary",
-  "mandated change","policy reform","governance obligation"
-];
-var ECONOMICS_KEYWORDS = [
-  "budget","cost","savings","affordability","efficiency","return on investment",
-  "roi","value for money","funding","expenditure","allocation","business case",
-  "financial pressure","procurement","investment"
-];
-
-
-function detectAdaptiveFifth(decisionText) {
-  var lower = (decisionText||"").toLowerCase();
-  // FIX 1: AI procurement carve-out — check for explicit AI/SaMD keywords first.
-  // If present, Digital & AI Governance wins regardless of economics co-occurrence.
-  var hasAIProcurement = AI_PROCUREMENT_KEYWORDS.some(function(kw){ return lower.indexOf(kw)!==-1; });
-  if (hasAIProcurement) return "digital";
-  var hasDigital = DIGITAL_KEYWORDS.some(function(kw){ return lower.indexOf(kw)!==-1; });
-  var hasEconomics = ECONOMICS_KEYWORDS.some(function(kw){ return lower.indexOf(kw)!==-1; });
-  // Original override retained for non-AI digital+economics decisions
-  if (hasDigital && hasEconomics) return "economics";
-  if (hasDigital) return "digital";
-  if (POLICY_KEYWORDS.some(function(kw){ return lower.indexOf(kw)!==-1; })) return "policy";
-  if (hasEconomics) return "economics";
-  return "behaviour";
-}
-
-
-var ANALYSIS_MODES = ["CORE","FULL","CHAIR_SPECIFIED"];
-
-
-function resolveCoreDirectors(decisionText) {
-  // C3 FIX: CORE mode requires 5 directors — systems, safety, equity, lived
-  // plus the adaptive fifth. Prior version had only 3 required (missing lived),
-  // producing 4-director CORE runs instead of the specified 5.
-  var required = ["systems","safety","equity","lived"];
-  var fifth = detectAdaptiveFifth(decisionText);
-  // Guard: if adaptive fifth duplicates a required director, the filter
-  // deduplicates naturally via indexOf check — no double-counting.
-  var ids = required.concat([fifth]);
-  return DIRECTORS.filter(function(d){ return ids.indexOf(d.id)!==-1; });
-}
-
-
-var MANDATORY_DIRECTOR_IDS = ["systems","safety"];
-
-
-function resolveChairDirectors(selectedIds) {
-  var ids = MANDATORY_DIRECTOR_IDS.slice();
-  selectedIds.forEach(function(id){ if(ids.indexOf(id)===-1) ids.push(id); });
-  return DIRECTORS.filter(function(d){ return ids.indexOf(d.id)!==-1; });
-}
-
-
-function resolveActiveDirectors(mode, decisionText, chairSelectedIds) {
-  if (mode==="FULL") return DIRECTORS.slice();
-  if (mode==="CORE") return resolveCoreDirectors(decisionText);
-  if (mode==="CHAIR_SPECIFIED") return resolveChairDirectors(chairSelectedIds||[]);
-  return DIRECTORS.slice();
-}
-
-
-var STRESS_KEYWORDS = [
-  "patient safety","patient harm","clinical","vulnerable","children","aged care",
-  "disability","indigenous","mental health","workforce","staff","workforce role",
-  "redundan","job","redeployment","clinical workflow","irreversible","difficult to reverse",
-  "cannot be undone","permanent","minister","ministerial","media","public confidence",
-  "reputational","political","parliament","scrutiny","community","automation","ai system",
-  "algorithm","emergency","critical care","surgical","medication","prescrib"
-];
-
-
 function shouldRunStressTest(mode, decisionText, activeDirectorOutputs, surfaceMapOut, epistemicOut, probeVerdict, realityAnchorOut) {
   if (mode === "FULL") return { run: true, reason: "FULL mode — stress test always runs" };
   var lower = (decisionText||"").toLowerCase();
@@ -545,43 +360,6 @@ function buildCoverageNote(mode, activeDirectors, allDirectors) {
   if (mode==="CHAIR_SPECIFIED") return "Custom coverage (CHAIR_SPECIFIED): "+active.length+" of "+allDirectors.length+" directors invoked. Omitted: "+(omitted.length?omitted.join(", "):"none")+".";
   return "";
 }
-
-
-var SYNTHESIS_ROLES = [
-  { id:"surfacemap",  label:"Decision Surface Map",      icon:"⊕", color:"#0891B2" },
-  { id:"epistemic",   label:"Epistemic Confidence Audit",icon:"E", color:"#DC2626" },
-  { id:"meta",        label:"Cross-Domain Tension Analysis", icon:"M", color:"#A78BFA" },
-  { id:"reality",     label:"Reality Anchor",            icon:"A", color:"#0369A1" },
-  { id:"probe",       label:"Adversarial Bias Probe",    icon:"P", color:"#7C3AED" },
-  { id:"stress",      label:"Decision Stress Test",      icon:"S", color:"#F87171" },
-  { id:"chair",       label:"Decision Brief",                   icon:"C", color:"#0369A1" },
-  { id:"comparator",  label:"Governance Comparator",     icon:"G", color:"#64748B" },
-];
-
-
-var ALL_ROLES = DIRECTORS.concat(SYNTHESIS_ROLES);
-
-
-var STAGE_META = [
-  {id:"directors",  short:"Directors"},
-  {id:"surfacemap", short:"Surface Map"},
-  {id:"epistemic",  short:"Epistemic"},
-  {id:"meta",       short:"META"},
-  {id:"reality",    short:"Reality"},
-  {id:"probe",      short:"Probe"},
-  {id:"stress",     short:"Stress"},
-  {id:"chair",      short:"Chair"},
-];
-
-
-var SUGGESTED_PUSHBACKS = [
-  "Which unresolved tension is most decision-consequential, and why?",
-  "What evidence would materially change the decision space?",
-  "If we phased the rollout over 3 years, which risks reduce and which remain?",
-  "The Equity Director said HALT but Economics said PROCEED — help me understand the tension without resolving it for me.",
-  "Which assumptions are doing the most work in the current analysis?",
-  "Who bears the most risk under each available pathway, and what safeguards are non-negotiable?",
-];
 
 
 function makeDocEntry() {
@@ -1099,66 +877,7 @@ function comparatorJsonSystem(decisionId, decisionSignal, directorOutputs, analy
 }
 
 // --- PARSING ------------------------------------------------------------------
-function escRe(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"); }
-
-
-function extractBulletLines(text, heading) {
-  if (!text) return [];
-  var re = new RegExp("\\*\\*"+escRe(heading)+"\\*\\*[^\\n]*\\n([\\s\\S]*?)(?=\\n\\*\\*[A-Za-z][^*\\n]{2,}(?<!:)\\*\\*\\s*\\n|$)","i");
-  var m = text.match(re);
-  if (!m) return [];
-  return m[1].split("\n").map(function(l){
-    var s=l.trim();
-    s=s.replace(/^[\s]*(?:[-•]|\*(?!\*)|\d+[.):])[\s]+/,"");
-    s=s.replace(/^\*\*([^*]{1,80})\*\*:?\s*/,"$1 - ");
-    s=s.replace(/^\*+\s*/,"").trim();
-    return s;
-  }).filter(function(l){return l.length>5;});
-}
-
-
-function extractSection(text, heading) {
-  if (!text) return "";
-  var re = new RegExp("\\*\\*"+escRe(heading)+"\\*\\*:?\\s*([^\\n]*)(?:\\n([\\s\\S]*?))?(?=\\n\\*\\*[A-Za-z][^*\\n]{2,}(?<!:)\\*\\*\\s*\\n|$)","i");
-  var m = text.match(re);
-  if (!m) return "";
-  var inline=(m[1]||"").replace(/^\[.*?\]\s*[-]?\s*/,"").trim();
-  var block=(m[2]||"").trim();
-  return [inline,block].filter(Boolean).join("\n").trim();
-}
-
-
-function findSignal(text, signals) {
-  if (!text) return null;
-  for (var i=0;i<signals.length;i++){ if(text.indexOf(signals[i])!==-1) return signals[i]; }
-  return null;
-}
-
-
 // FIX 2: tightened normItem strips separator variants before comparison
-function normItem(s){
-  return s
-    .replace(/^\d+\.\s*/,"")
-    .replace(/\*\*([^*]+)\*\*/g,"$1")
-    .replace(/^[-:—]\s*/,"")
-    .replace(/\s+[-:—]\s+/g," ")   // collapse " - " and " : " separators
-    .replace(/["'""'']/g,"")        // strip quotes
-    .trim()
-    .toLowerCase();
-}
-
-
-function dedupItems(arr) {
-  var seen=[];
-  return arr.filter(function(v){
-    if(!v) return false;
-    var n=normItem(v);
-    if(seen.indexOf(n)!==-1) return false;
-    seen.push(n); return true;
-  });
-}
-
-
 function parseDashboard(decision, dirOutputs, meta, stress, chair, dialogueHistory, totalLoadedDocs, webSearch, epistemic, probe, analysisMode, activeDirectors, omittedDirectors) {
   var active = activeDirectors || DIRECTORS;
   var signals = active.map(function(d){
@@ -1692,97 +1411,6 @@ function parseDashboard(decision, dirOutputs, meta, stress, chair, dialogueHisto
 // inline mid-paragraph in the Executive Layer out as a standalone styled block.
 // Matches the pattern "... CAUTION — this funding model can proceed only with..."
 // and renders it as a separate highlighted paragraph below the executive summary.
-function extractSignalSentence(text) {
-  if (!text) return text;
-
-  // Find the Executive Layer block only — between ## EXECUTIVE LAYER and --- or ## DIRECTOR ANALYSIS
-  // Signal extraction only applies within this block to avoid touching Director Analysis content.
-  var execMatch = text.match(/([\s\S]*?## EXECUTIVE LAYER\s*)([\s\S]*?)(\n---|\n## DIRECTOR ANALYSIS)([\s\S]*)/i);
-  if (!execMatch) {
-    // No Executive Layer found — apply inline signal extraction to whole text as fallback
-    return applySignalExtraction(text);
-  }
-
-  var pre      = execMatch[1]; // everything up to and including ## EXECUTIVE LAYER
-  var execBody = execMatch[2]; // the executive layer content
-  var divider  = execMatch[3]; // --- or ## DIRECTOR ANALYSIS
-  var post     = execMatch[4]; // everything after
-
-  // Find all signal lines in exec body — format variants:
-  // **Recommendation Signal**: CAUTION — ...
-  // CAUTION — ...  (inline, mid-paragraph)
-  // **CAUTION** — ...
-  var sigPattern = /\*{0,2}(?:Recommendation Signal\*{0,2}:?\s*)?\*{0,2}(PROCEED|CAUTION|HALT)\*{0,2}\s*[—\u2013\-]+\s*([^\n]{5,})/gi;
-  var sigMatches = [];
-  var m;
-  while ((m = sigPattern.exec(execBody)) !== null) {
-    sigMatches.push({ full: m[0], token: m[1].toUpperCase(), clause: m[2].trim(), index: m.index });
-  }
-
-  if (!sigMatches.length) {
-    // No signal found in exec body — return unchanged
-    return pre + execBody + divider + post;
-  }
-
-  // Use the FIRST signal match only — remove all signal lines from exec body prose
-  var primary = sigMatches[0];
-  var cleanedExec = execBody;
-  // Remove all signal occurrences from prose (reverse order to preserve indices)
-  var allMatches = [];
-  var sigPattern2 = /\*{0,2}(?:Recommendation Signal\*{0,2}:?\s*)?\*{0,2}(PROCEED|CAUTION|HALT)\*{0,2}\s*[—\u2013\-]+\s*[^\n]{5,}/gi;
-  while ((m = sigPattern2.exec(execBody)) !== null) { allMatches.push({start:m.index, end:m.index+m[0].length}); }
-  // Remove from end to start
-  for (var i = allMatches.length - 1; i >= 0; i--) {
-    cleanedExec = cleanedExec.slice(0, allMatches[i].start) + cleanedExec.slice(allMatches[i].end);
-  }
-  cleanedExec = cleanedExec.replace(/\n{3,}/g, "\n\n").trim();
-
-  // Build styled signal block
-  var col = primary.token === "HALT" ? "#DC2626" : primary.token === "CAUTION" ? "#D97706" : "#059669";
-  var bg  = primary.token === "HALT" ? "#FEF2F2" : primary.token === "CAUTION" ? "#FFFBEB" : "#F0FDF4";
-  var bdr = primary.token === "HALT" ? "#FECACA" : primary.token === "CAUTION" ? "#FDE68A" : "#BBF7D0";
-  var sigBlock = "\n\n<div style=\"margin-top:10px;padding:9px 13px;border-radius:8px;background:"+bg+";border:1px solid "+bdr+";border-left:3px solid "+col+";font-size:12px;font-weight:600;color:"+col+";line-height:1.6\"><strong>Recommendation Signal: "+primary.token+"</strong> — "+primary.clause+"</div>";
-
-  return pre + cleanedExec + sigBlock + "\n" + divider + post;
-}
-
-function applySignalExtraction(text) {
-  // Fallback: inline signal extraction for text without Executive Layer markers
-  return text.replace(
-    /([^\n]+?)\s(\*{0,2}(?:Recommendation Signal\*{0,2}:?\s*)?\*{0,2}(CAUTION|HALT|PROCEED)\*{0,2}\s*[—\u2013-]+\s*[^\n]{10,})/g,
-    function(match, before, signalPart, token) {
-      var col = token === "HALT" ? "#DC2626" : token === "CAUTION" ? "#D97706" : "#059669";
-      var bg  = token === "HALT" ? "#FEF2F2" : token === "CAUTION" ? "#FFFBEB" : "#F0FDF4";
-      var bdr = token === "HALT" ? "#FECACA" : token === "CAUTION" ? "#FDE68A" : "#BBF7D0";
-      return before + "\n<div style=\"margin-top:10px;padding:9px 13px;border-radius:8px;background:"+bg+";border:1px solid "+bdr+";border-left:3px solid "+col+";font-size:12px;font-weight:600;color:"+col+";line-height:1.6\">"+signalPart.replace(/^\*{0,2}|\*{0,2}$/g,"").trim()+"</div>";
-    }
-  );
-}
-
-function renderMd(text, accent) {
-  if (!text) return "";
-  var ac = accent || "#0369A1";
-  var t = extractSignalSentence(text);
-  return t
-    // ## headings — section labels (small caps grey)
-    .replace(/^## ([^\n]+)/gm, "<div style=\"font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#64748B;margin:10px 0 2px\">$1</div>")
-    // ### subheadings — director section titles (accent colour)
-    .replace(/^### ([^\n]+)/gm, "<div style=\"font-size:12px;font-weight:700;color:"+ac+";margin:8px 0 2px\">$1</div>")
-    // Horizontal rules
-    .replace(/^---$/gm, "<hr style=\"border:none;border-top:1px solid #E2E8F0;margin:8px 0\"/>")
-    // Bold
-    .replace(/\*\*(.*?)\*\*/g, "<strong style=\"color:"+ac+";font-weight:700\">$1</strong>")
-    // Links (markdown style)
-    .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, "<a href=\"$2\" target=\"_blank\" style=\"color:"+ac+";text-decoration:underline\">$1</a>")
-    // Bare URLs
-    .replace(/(https?:\/\/[^\s<>"]+)/g, "<a href=\"$1\" target=\"_blank\" style=\"color:"+ac+";text-decoration:underline;word-break:break-all\">$1</a>")
-    // Paragraph breaks — double newlines become small spacing
-    .replace(/\n\n/g, "<br/>")
-    // Single newlines become line breaks
-    .replace(/\n/g, "<br/>");
-}
-
-
 // --- SMALL COMPONENTS ---------------------------------------------------------
 function Spinner({color="#0EA5E9", size=12}) {
   return (

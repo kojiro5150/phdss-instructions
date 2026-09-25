@@ -18,6 +18,7 @@ on:
       - "docs/AUTHORITY_*.md"
       - "docs/FIXTURE_SCHEMA.md"
       - "tests/fixtures/**"
+      - "test/**"
 
 jobs:
   validate-recovery-contract:
