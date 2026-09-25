@@ -177,7 +177,9 @@ function ApiKeyGate({ onUnlock }) {
 
 
 // --- GITHUB INSTRUCTION FILE FETCH LAYER -------------------------------------
-const GITHUB_BASE = "https://cdn.jsdelivr.net/gh/kojiro5150/phdss-instructions@eec6db99f941ceffc2b5fe055ce2313fb6ae05d6/";
+const INSTRUCTION_COMMIT = "56ad2305ca62ed7409c3e89723f9bd1ca914d935";
+const RUNTIME_CONTRACT = "2.0-recovery";
+const GITHUB_BASE = "https://cdn.jsdelivr.net/gh/kojiro5150/phdss-instructions@"+INSTRUCTION_COMMIT+"/";
 
 
 const INSTRUCTION_FILES = {
@@ -594,12 +596,12 @@ var STAGE_META = [
 
 
 var SUGGESTED_PUSHBACKS = [
-  "The cost of disparate systems, clinical risk, and workforce dissatisfaction make me want to still proceed - what conditions would make that defensible?",
-  "The equity concerns are serious but we have mitigation plans - does that change your recommendation?",
-  "What if we phased the rollout over 3 years instead of the proposed timeline?",
-  "The Equity Director said HALT but Economics said PROCEED - help me resolve that tension.",
-  "What additional evidence would shift your recommendation to PROCEED?",
-  "Who bears the most risk if we proceed, and what safeguards are non-negotiable?",
+  "Which unresolved tension is most decision-consequential, and why?",
+  "What evidence would materially change the decision space?",
+  "If we phased the rollout over 3 years, which risks reduce and which remain?",
+  "The Equity Director said HALT but Economics said PROCEED — help me understand the tension without resolving it for me.",
+  "Which assumptions are doing the most work in the current analysis?",
+  "Who bears the most risk under each available pathway, and what safeguards are non-negotiable?",
 ];
 
 
