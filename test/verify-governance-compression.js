@@ -56,7 +56,7 @@ await check("Deterministic Director fallback preserves extraction",async functio
     "",
     "**Recommendation Signal**: CAUTION — unresolved evidence remains.",
     "",
-    "**Confidence**: MEDIUM",
+    "Confidence: MEDIUM",
     "",
     "**Non-Negotiable Conditions**",
     "- Validate locally",
