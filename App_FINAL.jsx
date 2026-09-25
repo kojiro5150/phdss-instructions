@@ -1948,7 +1948,9 @@ function PHDSS() {
     setDirOutputs({});setDirBriefsState({});setSynthesisBriefs({});setDirGovViews({});setSynthesisGovViews({});
     setMeta("");setSurfaceMap("");setRealityAnchor("");setStress("");setChair("");
     setEpistemic("");setProbe("");setComparator(null);
-    setStagesDone(0);setError("");setDialogueHistory([]);setDirectorResultsRef([]);setStressTestResult(null);setSessionEvidenceOpen(false);
+    setStagesDone(0);setStageStatuses({});setSessionGovernanceStatus(null);
+    setFailedSynthesisStages([]);setFailedMandatorySynthesisStages([]);
+    setError("");setDialogueHistory([]);setDirectorResultsRef([]);setStressTestResult(null);setSessionEvidenceOpen(false);
     setActiveDirectorsRef(DIRECTORS);setOmittedDirectorsRef([]);
     setExpandedDirs({}); setDecisionId(makeDecisionId());
   }
@@ -1958,6 +1960,23 @@ function PHDSS() {
   var advisoryStarted=(running||advisoryDone||Object.keys(dirOutputs).length>0)&&modeFamily==="ADVISORY";
   var chairResolvedIds=resolveChairDirectors(chairSelectedIds).map(function(d){return d.id;});
   var chairAutoAdded=MANDATORY_DIRECTOR_IDS.filter(function(id){return chairSelectedIds.indexOf(id)===-1;});
+
+  var resolvedSessionStatus=sessionGovernanceStatus||(done&&error?"INCOMPLETE":done?"COMPLETE":null);
+  var sessionStatusPresentation=(function(){
+    if(running) return {label:chair?"FINALISING...":"IN SESSION",bg:"#FFF7ED",border:"#FED7AA",dot:"#F97316",fg:"#C2410C"};
+    if(!done) return {label:"READY",bg:"#F8FAFC",border:"#E2E8F0",dot:"#334155",fg:"#94A3B8"};
+    if(resolvedSessionStatus==="INCOMPLETE_MANDATORY_SYNTHESIS_FAILURE"||resolvedSessionStatus==="INCOMPLETE") return {label:"INCOMPLETE",bg:"#FEF2F2",border:"#FECACA",dot:"#DC2626",fg:"#B91C1C"};
+    if(resolvedSessionStatus==="COMPLETE_DEGRADED") return {label:"DEGRADED",bg:"#FFFBEB",border:"#FDE68A",dot:"#D97706",fg:"#92400E"};
+    if(resolvedSessionStatus==="COMPLETE_PARTIAL_EVIDENCE") return {label:"PARTIAL",bg:"#FFFBEB",border:"#FDE68A",dot:"#D97706",fg:"#92400E"};
+    return {label:"COMPLETE",bg:"#F0FDF4",border:"#BBF7D0",dot:"#22C55E",fg:"#15803D"};
+  })();
+  var stageStatusKeyByUiId={surfacemap:"surface_map",epistemic:"epistemic_audit",meta:"meta",reality:"reality_anchor",probe:"probe",stress:"stress",chair:"chair"};
+  var synthesisStageLabels={surface_map:"Surface Map",epistemic_audit:"Epistemic Audit",meta:"META",reality_anchor:"Reality Anchor",probe:"Adversarial Probe",stress:"Stress Test",chair:"Chair",comparator:"Comparator"};
+  var chairPanelBadge=failedMandatorySynthesisStages.length>0
+    ? <span style={{fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:8,background:"#FEE2E2",color:"#DC2626",flexShrink:0}}>INCOMPLETE ✕</span>
+    : resolvedSessionStatus==="COMPLETE_DEGRADED"
+      ? <span style={{fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:8,background:"#FEF3C7",color:"#D97706",flexShrink:0}}>DEGRADED ⚠</span>
+      : extractStatusBadge(chair,"chair");
 
 
   // Instruction file status banner
@@ -2019,9 +2038,9 @@ function PHDSS() {
         <div style={{display:"flex",alignItems:"center",gap:8}}>
           {hasStarted&&modeFamily==="GOVERNANCE"&&<ModeBadge mode={analysisMode}/>}
           <span style={{fontSize:9,color:"#94A3B8",fontFamily:"monospace"}}>{decisionId}</span>
-          <div style={{display:"flex",alignItems:"center",gap:5,padding:"4px 10px",borderRadius:20,background:running?"#FFF7ED":done?"#F0FDF4":"#F8FAFC",border:"1px solid "+(running?"#FED7AA":done?"#BBF7D0":"#E2E8F0")}}>
-            <div style={{width:6,height:6,borderRadius:"50%",background:running?"#F97316":done?"#22C55E":"#334155",animation:running?"pulse 1.2s infinite":"none"}}/>
-            <span style={{fontSize:9,fontWeight:600,color:running?"#C2410C":done?"#15803D":"#94A3B8",letterSpacing:0.8}}>{running?(chair?"FINALISING...":"IN SESSION"):done?"COMPLETE":"READY"}</span>
+          <div style={{display:"flex",alignItems:"center",gap:5,padding:"4px 10px",borderRadius:20,background:sessionStatusPresentation.bg,border:"1px solid "+sessionStatusPresentation.border}}>
+            <div style={{width:6,height:6,borderRadius:"50%",background:sessionStatusPresentation.dot,animation:running?"pulse 1.2s infinite":"none"}}/>
+            <span style={{fontSize:9,fontWeight:600,color:sessionStatusPresentation.fg,letterSpacing:0.8}}>{sessionStatusPresentation.label}</span>
           </div>
         </div>
       </div>
@@ -2124,7 +2143,14 @@ function PHDSS() {
           <div style={{animation:"fadeIn 0.3s ease"}}>
             {instrBanner}
             {hasStarted&&<div style={{display:"flex",gap:6,marginBottom:20}}>
-              {STAGE_META.map(function(s,i){return <div key={s.id} style={{flex:1}}><div style={{height:4,borderRadius:4,transition:"background 0.6s",background:i<stagesDone?"#0EA5E9":i===stagesDone?(done?"#0EA5E9":"#F59E0B"):"#E2E8F0"}}/><div style={{fontSize:9,fontWeight:600,color:i<=stagesDone?"#0369A1":"#94A3B8",marginTop:4,textAlign:"center"}}>{s.short}</div></div>;})}
+              {STAGE_META.map(function(stage,i){
+                var key=stageStatusKeyByUiId[stage.id];
+                var status=key&&stageStatuses[key]?stageStatuses[key].status:null;
+                var bg=status==="failed"?"#DC2626":status==="skipped"?"#CBD5E1":status==="success"?"#0EA5E9":i<stagesDone?"#0EA5E9":i===stagesDone&&!done?"#F59E0B":"#E2E8F0";
+                var fg=status==="failed"?"#B91C1C":status==="skipped"?"#64748B":status==="success"||i<=stagesDone?"#0369A1":"#94A3B8";
+                var suffix=status==="failed"?" ✕":status==="skipped"?" —":"";
+                return <div key={stage.id} style={{flex:1}}><div style={{height:4,borderRadius:4,transition:"background 0.6s",background:bg}}/><div style={{fontSize:9,fontWeight:600,color:fg,marginTop:4,textAlign:"center"}}>{stage.short}{suffix}</div></div>;
+              })}
             </div>}
 
 
@@ -2360,7 +2386,7 @@ function PHDSS() {
                 {(function(){
                   var view=synthesisGovViews.chair||"governance";
                   var rec=synthesisBriefs.chair?synthesisBriefToGovernanceRecord(synthesisBriefs.chair):null;
-                  return <Panel title="Decision Brief" icon="C" color="#0369A1" tooltip="Integrates tensions, conditions, uncertainties and adversarial challenge without selecting a preferred course of action. Decision authority remains with human governance leaders." content={view==="technical"?chair:""} loading={chairLoading} badge={extractStatusBadge(chair,"chair")} onExport={chair?function(){exportPanel("Chair_Decision",chairRef.current||chair,decisionId,decision,decisionSignal,orgContext,view,rec);}:null}>
+                  return <Panel title="Decision Brief" icon="C" color="#0369A1" tooltip="Integrates tensions, conditions, uncertainties and adversarial challenge without selecting a preferred course of action. Decision authority remains with human governance leaders." content={view==="technical"?chair:""} loading={chairLoading} badge={chairPanelBadge} onExport={chair?function(){exportPanel("Chair_Decision",chairRef.current||chair,decisionId,decision,decisionSignal,orgContext,view,rec);}:null}>
                     {chair&&!chairLoading&&<GovToggle view={view} setView={function(v){setSynthesisGovViews(function(prev){var n=Object.assign({},prev);n.chair=v;return n;});}} hasContent={!!chair}/>}
                     {chair&&!chairLoading&&view==="governance"&&<GovernanceRecord record={rec}/>}
                     {chair&&!chairLoading&&<ChairDialogue dialogueSystem={dialogueSystem} dialogueHistory={dialogueHistory} onDialogueHistory={setDialogueHistory}/>}
