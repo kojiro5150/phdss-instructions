@@ -9,6 +9,7 @@ import {
   chairDecisionBoundaryLeak,
   repairChairDecisionBoundary,
   buildLedgerRecord,
+  validateComparatorSchema,
   classifySessionGovernanceStatus,
   runGovernancePipeline,
 } from "../src/pipeline.js";
@@ -62,6 +63,33 @@ function directorOutput(signal){
   ].join("\n");
 }
 
+function comparatorOutput(interp){
+  return JSON.stringify({
+    decision_id:"DR-TEST-001",
+    schema_version:"3.0.0-alpha.2",
+    analysis_mode:"CORE",
+    coverage_ratio:"3/13",
+    summary:{one_paragraph:"Synthetic summary.",dominant_frame:"Synthetic frame.",decision_signal_interpretation:interp||"Synthetic interpretation."},
+    consensus:[],
+    dissensus:[],
+    tradeoffs:[],
+    key_risks:[],
+    chair_resolution:{
+      decision_brief_status:"Complete — synthetic unresolved tension",
+      conditions:[],
+      irreducible_uncertainties:[],
+      kill_switches:[],
+      success_metrics:[]
+    },
+    monitoring_triggers_30_60_90:{
+      days_0_30:[],
+      days_31_60:[],
+      days_61_90:[]
+    },
+    coverage_limitations:""
+  });
+}
+
 function stageOutput(layer,probeVerdict){
   if(layer==="surface_map") return "**Dominant Signal**\nCAUTION\nSynthetic surface.";
   if(layer==="epistemic_audit") return "**Epistemic Health Score**: ADEQUATE\n"+("E".repeat(2100));
@@ -70,7 +98,7 @@ function stageOutput(layer,probeVerdict){
   if(layer==="adversarial_probe") return "**The Strongest Counter-Argument**\nSynthetic counter-argument.\n\n**Probe Verdict**: "+(probeVerdict||"SIGNIFICANT GAPS");
   if(layer==="stress_test") return "**Fragility Score**: 7/10 — synthetic stress.";
   if(layer==="chair") return "**Decision Brief Status**: Complete — synthetic unresolved tension\nSynthetic Chair reasoning long enough to establish a complete decision brief.";
-  if(layer==="comparator") return JSON.stringify({summary:{decision_signal_interpretation:"Synthetic interpretation."}});
+  if(layer==="comparator") return comparatorOutput("Synthetic interpretation.");
   return "Synthetic output";
 }
 
@@ -282,6 +310,28 @@ await check("governed synthesis appends authority contract then repairs",async f
   );
 });
 
+await check("Comparator schema rejects stale and incomplete shapes",async function(){
+  const valid=JSON.parse(comparatorOutput("3 PROCEED / 0 CAUTION / 0 HALT"));
+  assert.equal(validateComparatorSchema(valid),valid);
+
+  assert.throws(function(){
+    validateComparatorSchema({...valid,schema_version:"3.0.0-alpha.1"});
+  },/schema mismatch/);
+
+  assert.throws(function(){
+    validateComparatorSchema({...valid,next_actions_30_60_90:{days_0_30:[],days_31_60:[],days_61_90:[]}});
+  },/retired next_actions_30_60_90/);
+
+  assert.throws(function(){
+    validateComparatorSchema({...valid,chair_resolution:{...valid.chair_resolution,recommendation:"Proceed"}});
+  },/retired chair_resolution\.recommendation/);
+
+  assert.throws(function(){
+    const {monitoring_triggers_30_60_90,...rest}=valid;
+    validateComparatorSchema(rest);
+  },/monitoring_triggers_30_60_90 object missing/);
+});
+
 await check("ledger assembly preserves recovered schema",async function(){
   const active=[DIRECTORS.find(d=>d.id==="systems"),DIRECTORS.find(d=>d.id==="equity"),DIRECTORS.find(d=>d.id==="safety")];
   const results=[
@@ -429,7 +479,7 @@ await check("pipeline preserves non-Error and Error stage exceptions",async func
       if(layer==="cross_domain_tension_analysis") return "**Integration Signal**: MEDIUM";
       if(layer==="adversarial_probe") return "**Probe Verdict**: BOARD REASONING SOUND";
       if(layer==="chair") return stageOutput("chair");
-      if(layer==="comparator") return JSON.stringify({summary:{decision_signal_interpretation:"3 PROCEED / 0 CAUTION / 0 HALT"}});
+      if(layer==="comparator") return comparatorOutput("3 PROCEED / 0 CAUTION / 0 HALT");
       return "Synthetic stage output";
     },
     repairChairDecisionBoundaryImpl:async function(text){return text;},
@@ -536,7 +586,7 @@ await check("pipeline skips stress when no trigger exists",async function(){
       if(layer==="reality_anchor") return "**Operational Confidence**: HIGH\nReady.";
       if(layer==="adversarial_probe") return "**The Strongest Counter-Argument**\nSynthetic counter.\n\n**Probe Verdict**: BOARD REASONING SOUND";
       if(layer==="chair") return stageOutput("chair");
-      if(layer==="comparator") return JSON.stringify({summary:{decision_signal_interpretation:"3 PROCEED / 0 CAUTION / 0 HALT"}});
+      if(layer==="comparator") return comparatorOutput("3 PROCEED / 0 CAUTION / 0 HALT");
       throw new Error("unexpected layer "+layer);
     },
     repairChairDecisionBoundaryImpl:async function(text){return text;},
@@ -566,7 +616,7 @@ await check("Director server-error retries preserve 10s and 15s backoff",async f
       if(layer==="epistemic_audit") return "**Epistemic Health Score**: ADEQUATE\n"+("E".repeat(2100));
       if(layer==="adversarial_probe") return "**Probe Verdict**: BOARD REASONING SOUND";
       if(layer==="chair") return stageOutput("chair");
-      if(layer==="comparator") return JSON.stringify({summary:{decision_signal_interpretation:"3 PROCEED / 0 CAUTION / 0 HALT"}});
+      if(layer==="comparator") return comparatorOutput("3 PROCEED / 0 CAUTION / 0 HALT");
       return "Synthetic stage output";
     },
     repairChairDecisionBoundaryImpl:async function(text){return text;},
@@ -602,7 +652,7 @@ assert.ok(/async function\s+runAdvisory\s*\(/.test(app));
 for(const name of ["shouldRunStressTest","enforceSynthesisAuthority","callGovernedSynthesis","repairChairDecisionBoundary","commitToLedger","storeSynthesisBrief"]){
   if(new RegExp("(?:async\\s+)?function\\s+"+name+"\\s*\\(").test(app)) failures.push(name+" remains duplicated in App_FINAL.jsx");
 }
-for(const name of ["shouldRunStressTest","authorityViolationMessage","enforceSynthesisAuthority","callGovernedSynthesis","repairChairDecisionBoundary","buildLedgerRecord","runGovernancePipeline"]){
+for(const name of ["shouldRunStressTest","authorityViolationMessage","enforceSynthesisAuthority","callGovernedSynthesis","repairChairDecisionBoundary","validateComparatorSchema","buildLedgerRecord","runGovernancePipeline"]){
   if(!new RegExp("(?:export\\s+)?(?:async\\s+)?function\\s+"+name+"\\s*\\(").test(pipeline)) failures.push(name+" missing from src/pipeline.js");
 }
 
@@ -620,6 +670,7 @@ console.log("Authority offending-clause diagnostics: PASS");
 console.log("Authority repair telemetry: PASS");
 console.log("Surface Map authority-act repair: PASS");
 console.log("External constraint reporting exception: PASS");
+console.log("Comparator schema validation: PASS");
 console.log("Ledger assembly: PASS");
 console.log("Stage sequence 1-8: PASS");
 console.log("Conditional stress on/off: PASS");
