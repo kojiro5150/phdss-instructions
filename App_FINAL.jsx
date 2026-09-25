@@ -51,27 +51,20 @@ import {
   assertBoardGovernanceRecord,
 } from "./src/governance-record-contract.js";
 import { authorityBoundaryPrompt, assessAuthorityBoundary } from "./src/authority-contract.js";
+import {
+  INSTRUCTION_COMMIT,
+  loadAllInstructions,
+} from "./src/runtime/instruction-loader.js";
+import {
+  installApiKeyInterceptor,
+  apiCall,
+  callClaude_synthesis,
+  callClaudeChat,
+} from "./src/runtime/anthropic-client.js";
 
 // =============================================================================
 // API KEY GATE
 // =============================================================================
-
-function installApiKeyInterceptor(apiKey) {
-  if (window.__phdssApiKeyInterceptorInstalled) return;
-  const _originalFetch = window.fetch.bind(window);
-  window.fetch = async function(url, options = {}) {
-    if (typeof url === "string" && url.startsWith("https://api.anthropic.com/")) {
-      const headers = Object.assign({}, options.headers || {}, {
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true",
-      });
-      return _originalFetch(url, Object.assign({}, options, { headers }));
-    }
-    return _originalFetch(url, options);
-  };
-  window.__phdssApiKeyInterceptorInstalled = true;
-}
 
 function ApiKeyGate({ onUnlock }) {
   const [key, setKey] = useState("");
@@ -130,63 +123,9 @@ function ApiKeyGate({ onUnlock }) {
 
 
 
-// --- GITHUB INSTRUCTION FILE FETCH LAYER -------------------------------------
-const INSTRUCTION_COMMIT = "56ad2305ca62ed7409c3e89723f9bd1ca914d935";
+// --- RUNTIME / LEDGER CONTRACT ------------------------------------------------
 const RUNTIME_CONTRACT = "2.0-recovery";
 const LEDGER_SCHEMA = "3.0.0-alpha.1";
-const GITHUB_BASE = "https://cdn.jsdelivr.net/gh/kojiro5150/phdss-instructions@"+INSTRUCTION_COMMIT+"/";
-
-
-const INSTRUCTION_FILES = {
-  // Directors
-  systems:        "systems.md",
-  economics:      "economics.md",
-  behaviour:      "behaviour.md",
-  policy:         "policy.md",
-  equity:         "equity.md",
-  lived:          "lived.md",
-  digital:        "digital.md",
-  ethics:         "ethics.md",
-  sovereignty:    "sovereignty.md",
-  safety:         "safety.md",
-  physics:        "physics.md",
-  measurement:    "measurement.md",
-  innovation:     "innovation.md",
-  // Synthesis
-  surfacemap:     "surfacemap.md",
-  epistemic:      "epistemic.md",
-  meta:           "meta.md",
-  reality:        "reality.md",
-  probe:          "probe.md",
-  stress:         "stress.md",
-  chair:          "chair.md",
-  comparator:     "comparator.md",
-};
-
-
-async function fetchInstructionFile(key) {
-  var url = GITHUB_BASE + INSTRUCTION_FILES[key];
-  try {
-    var res = await fetch(url);
-    if (!res.ok) return null;
-    var text = await res.text();
-    return text && text.trim() ? text.trim() : null;
-  } catch(e) { return null; }
-}
-
-
-async function loadAllInstructions(onProgress) {
-  var keys = Object.keys(INSTRUCTION_FILES);
-  var loaded = {};
-  var failed = [];
-  await Promise.all(keys.map(async function(key) {
-    var content = await fetchInstructionFile(key);
-    if (content) { loaded[key] = content; }
-    else { failed.push(key); }
-    if (onProgress) onProgress(Object.keys(loaded).length + failed.length, keys.length);
-  }));
-  return { loaded, failed };
-}
 
 
 // --- HELPERS ------------------------------------------------------------------
@@ -390,81 +329,6 @@ async function fetchGoogleDoc(url) {
     if (!res.ok) return null;
     return await res.text();
   } catch(e){ return null; }
-}
-
-
-async function apiCall(systemPrompt, userMessage, useWebSearch) {
-  var body = { model:"claude-sonnet-4-6", max_tokens:16000, temperature:0.8, system:systemPrompt, messages:[{role:"user", content:userMessage}] };
-  if (useWebSearch) body.tools = [{type:"web_search_20250305", name:"web_search"}];
-  var response = await fetch("https://api.anthropic.com/v1/messages", {
-    method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)
-  });
-  var data = await response.json();
-  if (data.error) throw new Error(data.error.message||JSON.stringify(data.error));
-  if (!data.content) throw new Error("No content. Keys: "+Object.keys(data).join(","));
-  return { text: data.content.map(function(b){return b.text||"";}).join("\n").trim(), stopReason: data.stop_reason||"end_turn" };
-}
-
-
-async function callClaude_synthesis(systemPrompt, userMessage, autoContinue, useWebSearch) {
-  // Retry up to 2 times on transient errors (overload, timeout, network)
-  // with exponential backoff: 3s then 8s delay between attempts.
-  var lastError;
-  for (var attempt = 0; attempt < 3; attempt++) {
-    if (attempt > 0) {
-      var delay = attempt === 1 ? 3000 : 8000;
-      await new Promise(function(r){setTimeout(r, delay);});
-    }
-    try {
-      var result = await apiCall(systemPrompt, userMessage, !!useWebSearch);
-      var passCount = 0;
-      while (result.stopReason==="max_tokens" && autoContinue && passCount < 2) {
-        passCount++;
-        var contBody = {
-          model:"claude-sonnet-4-6", max_tokens:16000, temperature:0.8,
-          system: systemPrompt,
-          messages: [
-            {role:"user",      content: userMessage},
-            {role:"assistant", content: result.text},
-            {role:"user",      content: "Continue your analysis from exactly where you stopped. Do not restate or summarise what you have already written — continue the document directly."}
-          ]
-        };
-        if (useWebSearch) contBody.tools = [{type:"web_search_20250305", name:"web_search"}];
-        var contResponse = await fetch("https://api.anthropic.com/v1/messages", {
-          method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(contBody)
-        });
-        var contRaw = await contResponse.text();
-        if (!contRaw||!contRaw.trim().startsWith("{")) throw new Error("Continuation non-JSON: "+contRaw.substring(0,200));
-        var contData = JSON.parse(contRaw);
-        if (contData.error) throw new Error(contData.error.message||JSON.stringify(contData.error));
-        var contText = (contData.content||[]).map(function(b){return b.text||"";}).join("\n").trim();
-        result = { text: result.text+"\n"+contText, stopReason: contData.stop_reason||"end_turn" };
-      }
-      if (result.stopReason==="max_tokens") return result.text+"\n\n⚠ PARTIAL - token limit reached after "+passCount+" continuation pass"+(passCount===1?"":"es")+".";
-      return result.text;
-    } catch(e) {
-      lastError = e;
-      // Don't retry on definitive errors (bad request, auth failure)
-      var msg = (e&&e.message)||"";
-      if (msg.indexOf("invalid_api_key")!==-1 || msg.indexOf("400")!==-1) throw e;
-      // Retry on overload, timeout, network errors
-    }
-  }
-  throw lastError;
-}
-
-
-async function callClaudeChat(systemPrompt, messages) {
-  var body = {model:"claude-sonnet-4-6", max_tokens:2000, temperature:0.8, system:systemPrompt, messages:messages};
-  var response = await fetch("https://api.anthropic.com/v1/messages", {
-    method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)
-  });
-  var rawText = await response.text();
-  if (!rawText||!rawText.trim().startsWith("{")) throw new Error("Non-JSON (HTTP "+response.status+"): "+rawText.substring(0,200));
-  var data = JSON.parse(rawText);
-  if (data.error) throw new Error(data.error.message||JSON.stringify(data.error));
-  if (!data.content) throw new Error("No content in response");
-  return data.content.map(function(b){return b.text||"";}).join("\n").trim();
 }
 
 
