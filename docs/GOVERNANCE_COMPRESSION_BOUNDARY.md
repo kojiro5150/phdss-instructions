@@ -28,6 +28,8 @@ The semantic authority rules are **not reimplemented** here. The compression run
 
 This preserves an important existing behavior: if a synthesis Governance Brief is structurally valid but crosses the authority boundary, that attempt is rejected inside the same two-attempt extraction loop. A second violation leads to the same deterministic fallback path as before.
 
+Epistemic provenance is enforced as a separate compression invariant, not as an authority-detector concern. A Governance Brief may preserve or lower confidence when warranted, but must not strengthen a source claim's evidentiary status merely through paraphrase, repetition, convergence, or compression. Provenance violations consume the same extraction retry budget before deterministic fallback.
+
 The main synthesis authority path now lives in `src/pipeline.js`:
 
 - `enforceSynthesisAuthority`;
@@ -42,6 +44,10 @@ The main synthesis authority path now lives in `src/pipeline.js`:
 
 Regression tests preserve:
 
+- epistemic provenance monotonicity across Director and synthesis compression;
+- permitted downward confidence movement when new analysis warrants it;
+- prohibition on unverified → verified, unconfirmed → confirmed, not demonstrated → absent/does not exist, and inferred → established promotion without stronger source evidence;
+- convergence ≠ corroboration and repetition ≠ verification during board-readable extraction;
 - two extraction attempts for Director briefs;
 - two extraction attempts for synthesis briefs;
 - the second-attempt corrective suffix;
