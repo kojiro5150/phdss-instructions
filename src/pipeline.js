@@ -26,6 +26,60 @@ import {
   formatBriefForSynthesis,
 } from "./runtime/governance-compression.js";
 
+export const MANDATORY_SYNTHESIS_STAGES = Object.freeze([
+  "surface_map",
+  "epistemic_audit",
+  "meta",
+  "probe",
+  "chair",
+]);
+
+export const DEGRADABLE_SYNTHESIS_STAGES = Object.freeze([
+  "reality_anchor",
+  "stress",
+  "comparator",
+]);
+
+function errorText(error) {
+  return error && error.message ? error.message : String(error);
+}
+
+function stageStatusRecord(status,error) {
+  var record={status:status};
+  if(error) record.error=errorText(error);
+  return record;
+}
+
+function inferSynthesisStageStatus(input,hasChair) {
+  if(input.synthesisStageStatus) return input.synthesisStageStatus;
+  return {
+    surface_map:stageStatusRecord(input.surfaceMapOut?"success":"failed"),
+    epistemic_audit:stageStatusRecord(input.epistemicOut?"success":"failed"),
+    meta:stageStatusRecord(input.metaOut?"success":"failed"),
+    reality_anchor:stageStatusRecord(input.realityAnchorOut?"success":"failed"),
+    probe:stageStatusRecord(input.probeOut?"success":"failed"),
+    stress:stageStatusRecord(input.stressResult&&input.stressResult.run?(input.stressOut?"success":"failed"):"skipped"),
+    chair:stageStatusRecord(hasChair?"success":"failed"),
+    comparator:stageStatusRecord(input.comparatorData?"success":"failed"),
+  };
+}
+
+export function classifySessionGovernanceStatus(input) {
+  var hasChair=input.hasChair===true;
+  var stageStatus=inferSynthesisStageStatus(input,hasChair);
+  var failedMandatory=MANDATORY_SYNTHESIS_STAGES.filter(function(stage){
+    return !stageStatus[stage]||stageStatus[stage].status!=="success";
+  });
+  var failedDegradable=DEGRADABLE_SYNTHESIS_STAGES.filter(function(stage){
+    return stageStatus[stage]&&stageStatus[stage].status==="failed";
+  });
+  if(failedMandatory.length>0) return "INCOMPLETE_MANDATORY_SYNTHESIS_FAILURE";
+  if(!hasChair) return "INCOMPLETE";
+  if(failedDegradable.length>0) return "COMPLETE_DEGRADED";
+  if((input.failedDirectorCount||0)>0) return "COMPLETE_PARTIAL_EVIDENCE";
+  return "COMPLETE";
+}
+
 export function shouldRunStressTest(mode, decisionText, activeDirectorOutputs, surfaceMapOut, epistemicOut, probeVerdict, realityAnchorOut) {
   if (mode === "FULL") return { run: true, reason: "FULL mode — stress test always runs" };
   var lower = (decisionText||"").toLowerCase();
@@ -123,7 +177,19 @@ export function buildLedgerRecord(input,runtime) {
   var omittedDir=input.omittedDir||[];
   var mode=input.mode||"FULL";
   var failedDirs=results.filter(function(r){return /^\[Director failed:/i.test((r.output||"").trim());});
-  var hasChair=input.chairOut&&input.chairOut.length>50&&!/Chair failed|Director failed/i.test(input.chairOut);
+  var hasChair=!!(input.chairOut&&input.chairOut.length>50&&!/Chair failed|Director failed/i.test(input.chairOut));
+  var synthesisStageStatus=inferSynthesisStageStatus(input,hasChair);
+  var failedSynthesisStages=Object.keys(synthesisStageStatus).filter(function(stage){
+    return synthesisStageStatus[stage]&&synthesisStageStatus[stage].status==="failed";
+  });
+  var failedMandatorySynthesisStages=MANDATORY_SYNTHESIS_STAGES.filter(function(stage){
+    return failedSynthesisStages.indexOf(stage)!==-1||!synthesisStageStatus[stage]||synthesisStageStatus[stage].status!=="success";
+  });
+  var sessionGovernanceStatus=classifySessionGovernanceStatus({
+    hasChair:hasChair,
+    synthesisStageStatus:synthesisStageStatus,
+    failedDirectorCount:failedDirs.length,
+  });
   var briefMatch=(input.chairOut||"").match(/\*\*Decision Brief Status\*\*:?\s*\*{0,2}(Complete(?:\s*[—–-]\s*Partial Evidence Base)?\s*[—–-]\s*[^\n*]+)/i);
   var decisionBriefStatus=briefMatch?briefMatch[1].trim():null;
   var directorOutputs={};
@@ -131,7 +197,11 @@ export function buildLedgerRecord(input,runtime) {
   return {
     decision_id:input.decisionId, schema_version:LEDGER_SCHEMA, created_at:runtimeNow(runtime),
     governance_family:"GOVERNANCE",
-    session_governance_status:hasChair?(failedDirs.length===0?"COMPLETE":"COMPLETE_PARTIAL_EVIDENCE"):"INCOMPLETE",
+    session_governance_status:sessionGovernanceStatus,
+    synthesis_stage_status:synthesisStageStatus,
+    failed_synthesis_stages:failedSynthesisStages,
+    failed_mandatory_synthesis_stages:failedMandatorySynthesisStages,
+    stage_errors:(input.stageErrors||[]).slice(),
     run_intensity:mode==="FULL"?"MAXIMUM":mode==="CORE"?"MINIMUM_VIABLE":"CUSTOM",
     analysis_mode:mode,
     coverage_ratio:activeDir.length+"/"+DIRECTORS.length,
@@ -227,6 +297,8 @@ function makeLedgerInput(config,state,stressResult) {
     realityAnchorOut:state.realityAnchorOut,
     dirBriefs:state.dirBriefs,
     synthesisBriefs:state.synthesisBriefs,
+    synthesisStageStatus:state.synthesisStageStatus,
+    stageErrors:state.stageErrors,
   };
 }
 
@@ -251,11 +323,26 @@ export async function runGovernancePipeline(config,runtime,emit) {
   var state={
     activeDir:activeDir,omittedDir:omittedDir,results:[],dirBriefs:{},synthesisBriefs:{},
     metaOut:"",surfaceMapOut:"",realityAnchorOut:"",stressOut:"",chairOut:"",
-    epistemicOut:"",probeOut:"",comparatorData:null,stageErrors:[],stressDecision:null
+    epistemicOut:"",probeOut:"",comparatorData:null,stageErrors:[],stressDecision:null,
+    synthesisStageStatus:{}
   };
 
   emit("active-directors",{activeDir:activeDir,omittedDir:omittedDir});
   activeDir.forEach(function(d){emit("director-loading",{id:d.id,loading:true});});
+
+  function setSynthesisStageStatus(stage,status,error) {
+    var record=stageStatusRecord(status,error);
+    state.synthesisStageStatus[stage]=record;
+    emit("stage-status",{stage:stage,status:status,error:record.error||null});
+    return record;
+  }
+
+  function recordStageFailure(stage,label,error) {
+    var message=label+" failed: "+errorText(error);
+    state.stageErrors.push(message);
+    setSynthesisStageStatus(stage,"failed",error);
+    return message;
+  }
 
   async function storeSynthesisBrief(key,moduleLabel,output) {
     var brief;
@@ -336,7 +423,8 @@ export async function runGovernancePipeline(config,runtime,emit) {
       state.surfaceMapOut=await runGoverned("surface_map",surfaceMapperSystem(config.analysisMode,activeDir,config.instructions),"Decision: "+config.decision+"\n\nAll Director Governance Briefs:\n"+briefSummary+signalCountNote,config.autoContinue);
       emit("stage-output",{stage:"surface_map",output:state.surfaceMapOut});
       await storeSynthesisBrief("surfacemap","Decision Surface Map",state.surfaceMapOut);
-    } catch(e){ state.stageErrors.push("Surface Mapper failed"); }
+      setSynthesisStageStatus("surface_map","success");
+    } catch(e){ recordStageFailure("surface_map","Surface Mapper",e); }
     stageEmitter(emit,"surface_map",false); emit("stages-done",{value:2});
 
     var fullDirSummary=state.results.map(function(d){return "### "+d.label+"\n"+d.output;}).join("\n\n");
@@ -367,7 +455,8 @@ export async function runGovernancePipeline(config,runtime,emit) {
       state.epistemicOut=state.epistemicOut?stripCalibrationBleed(state.epistemicOut):state.epistemicOut;
       emit("stage-output",{stage:"epistemic_audit",output:state.epistemicOut});
       await storeSynthesisBrief("epistemic","Epistemic Confidence Audit",state.epistemicOut);
-    } catch(e){ state.stageErrors.push("Epistemic failed"); }
+      setSynthesisStageStatus("epistemic_audit","success");
+    } catch(e){ recordStageFailure("epistemic_audit","Epistemic",e); }
     stageEmitter(emit,"epistemic_audit",false); emit("stages-done",{value:3});
 
     try {
@@ -375,7 +464,8 @@ export async function runGovernancePipeline(config,runtime,emit) {
       state.metaOut=await runGoverned("cross_domain_tension_analysis",metaSystem((config.docs&&config.docs.meta)||[],config.webSearch,config.publicWebSearch,config.sessionEvidence,config.analysisMode,activeDir,config.instructions),"Decision: "+config.decision+"\n\nDecision Surface Map:\n"+state.surfaceMapOut+"\n\nDirector Governance Briefs:\n"+briefSummary+(state.epistemicOut?"\n\nEpistemic Audit:\n"+state.epistemicOut:""),config.autoContinue,config.webSearch||config.publicWebSearch);
       emit("stage-output",{stage:"meta",output:state.metaOut});
       await storeSynthesisBrief("meta","Cross-Domain Tension Analysis",state.metaOut);
-    } catch(e){ state.stageErrors.push("META failed"); }
+      setSynthesisStageStatus("meta","success");
+    } catch(e){ recordStageFailure("meta","META",e); }
     stageEmitter(emit,"meta",false); emit("stages-done",{value:4});
 
     try {
@@ -383,7 +473,8 @@ export async function runGovernancePipeline(config,runtime,emit) {
       state.realityAnchorOut=await runGoverned("reality_anchor",realityAnchorSystem(config.analysisMode,activeDir,config.instructions),"Decision: "+config.decision+"\n\nDirector Governance Briefs:\n"+briefSummary+"\n\nDecision Surface Map:\n"+state.surfaceMapOut+"\n\nMETA Synthesis:\n"+state.metaOut,config.autoContinue);
       emit("stage-output",{stage:"reality_anchor",output:state.realityAnchorOut});
       await storeSynthesisBrief("reality","Reality Anchor",state.realityAnchorOut);
-    } catch(e){ state.stageErrors.push("Reality Anchor failed"); }
+      setSynthesisStageStatus("reality_anchor","success");
+    } catch(e){ recordStageFailure("reality_anchor","Reality Anchor",e); }
     stageEmitter(emit,"reality_anchor",false); emit("stages-done",{value:5});
 
     try {
@@ -394,7 +485,8 @@ export async function runGovernancePipeline(config,runtime,emit) {
       state.probeOut=await runGoverned("adversarial_probe",adversarialProbeSystem(dominantSignal,config.analysisMode,activeDir,config.instructions),"Decision: "+config.decision+"\n\nAll Director Governance Briefs:\n"+briefSummary+"\n\nMETA-AUTHOR Synthesis:\n"+state.metaOut+"\n\nReality Anchor:\n"+state.realityAnchorOut,config.autoContinue);
       emit("stage-output",{stage:"probe",output:state.probeOut});
       await storeSynthesisBrief("probe","Adversarial Probe",state.probeOut);
-    } catch(e){ state.stageErrors.push("Probe failed"); }
+      setSynthesisStageStatus("probe","success");
+    } catch(e){ recordStageFailure("probe","Probe",e); }
     stageEmitter(emit,"probe",false); emit("stages-done",{value:6});
 
     var probeVerdict=findSignal(state.probeOut,["BOARD REASONING SOUND","SIGNIFICANT GAPS","CONCLUSION CHALLENGED"]);
@@ -406,8 +498,11 @@ export async function runGovernancePipeline(config,runtime,emit) {
         state.stressOut=await runGoverned("stress_test",stressSystem((config.docs&&config.docs.stress)||[],config.webSearch,config.publicWebSearch,config.sessionEvidence,config.analysisMode,activeDir,config.instructions),"Decision: "+config.decision+"\n\nDecision Surface Map:\n"+state.surfaceMapOut+"\n\nMETA-AUTHOR:\n"+state.metaOut+"\n\nReality Anchor:\n"+state.realityAnchorOut,config.autoContinue,config.webSearch||config.publicWebSearch);
         emit("stage-output",{stage:"stress",output:state.stressOut});
         await storeSynthesisBrief("stress","Decision Stress Test",state.stressOut);
-      } catch(e){ state.stageErrors.push("Stress failed"); }
+        setSynthesisStageStatus("stress","success");
+      } catch(e){ recordStageFailure("stress","Stress",e); }
       stageEmitter(emit,"stress",false);
+    } else {
+      setSynthesisStageStatus("stress","skipped");
     }
     emit("stages-done",{value:7});
 
@@ -427,7 +522,8 @@ export async function runGovernancePipeline(config,runtime,emit) {
       state.chairOut=await repairChair(state.chairOut,chairPrompt,chairUser);
       emit("stage-output",{stage:"chair",output:state.chairOut});
       await storeSynthesisBrief("chair","Chair Decision",state.chairOut);
-    } catch(e){ state.stageErrors.push("Chair failed: "+e.message); }
+      setSynthesisStageStatus("chair","success");
+    } catch(e){ recordStageFailure("chair","Chair",e); }
     stageEmitter(emit,"chair",false); emit("stages-done",{value:8});
 
     try {
@@ -457,7 +553,8 @@ export async function runGovernancePipeline(config,runtime,emit) {
       }
       state.comparatorData={raw:compRaw,parsed:compParsed,created_at:runtimeNow(runtime)};
       emit("comparator",{comparatorData:state.comparatorData});
-    } catch(e){ state.stageErrors.push("Comparator failed"); }
+      setSynthesisStageStatus("comparator","success");
+    } catch(e){ recordStageFailure("comparator","Comparator",e); }
 
     if(state.results.length>0){
       var record=buildLedgerRecord(makeLedgerInput(config,state,state.stressDecision),runtime);

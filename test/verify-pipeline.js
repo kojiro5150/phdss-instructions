@@ -9,9 +9,11 @@ import {
   chairDecisionBoundaryLeak,
   repairChairDecisionBoundary,
   buildLedgerRecord,
+  classifySessionGovernanceStatus,
   runGovernancePipeline,
 } from "../src/pipeline.js";
 import { pipelineSequenceContract } from "./fixtures/pipeline-sequence.js";
+import { livePartialSynthesis20260925 } from "./fixtures/live-partial-synthesis-2026-09-25.js";
 
 const failures=[];
 async function check(label,fn){
@@ -224,6 +226,113 @@ await check("ledger assembly preserves recovered schema",async function(){
   assert.deepStrictEqual(record.structured_records.synthesis,{chair:"chair brief"});
 });
 
+await check("live partial-synthesis fixture fails closed",async function(){
+  const active=[DIRECTORS.find(d=>d.id==="systems"),DIRECTORS.find(d=>d.id==="equity"),DIRECTORS.find(d=>d.id==="safety")];
+  const results=[
+    {...active[0],output:directorOutput("CAUTION")},
+    {...active[1],output:directorOutput("CAUTION")},
+    {...active[2],output:directorOutput("HALT")},
+  ];
+  const fx=livePartialSynthesis20260925;
+  const record=buildLedgerRecord({
+    decisionId:fx.decisionId,
+    decision:"Synthetic national deployment decision",
+    decisionSignal:"",
+    orgContext:"",
+    webSearch:false,
+    totalLoadedDocs:0,
+    sessionEvidence:[],
+    instrLoadState:"ready",
+    results,
+    metaOut:fx.outputs.metaOut,
+    stressOut:fx.outputs.stressOut,
+    chairOut:fx.outputs.chairOut,
+    epistemicOut:fx.outputs.epistemicOut,
+    probeOut:fx.outputs.probeOut,
+    comparatorData:{parsed:{ok:true}},
+    activeDir:active,
+    omittedDir:DIRECTORS.filter(d=>!active.some(a=>a.id===d.id)),
+    mode:"CORE",
+    stressResult:{run:true,reason:"Decision text contains stress trigger: 'emergency'"},
+    surfaceMapOut:fx.outputs.surfaceMapOut,
+    realityAnchorOut:fx.outputs.realityAnchorOut,
+    dirBriefs:{},
+    synthesisBriefs:{},
+    synthesisStageStatus:fx.synthesisStageStatus,
+    stageErrors:[
+      "Surface Mapper failed: live run Surface Mapper failure",
+      "Reality Anchor failed: live run Reality Anchor failure"
+    ],
+  },{nowImpl:function(){return "2026-09-25T06:31:57.796Z";}});
+
+  assert.equal(record.session_governance_status,fx.expected.sessionGovernanceStatus);
+  assert.deepStrictEqual(record.failed_synthesis_stages,fx.expected.failedSynthesisStages);
+  assert.deepStrictEqual(record.failed_mandatory_synthesis_stages,fx.expected.failedMandatorySynthesisStages);
+  assert.equal(record.synthesis_stage_status.surface_map.status,"failed");
+  assert.equal(record.synthesis_stage_status.reality_anchor.status,"failed");
+  assert.equal(record.synthesis_stage_status.chair.status,"success");
+  assert.equal(record.stage_errors.length,2);
+});
+
+await check("session status distinguishes complete degraded and mandatory failure",async function(){
+  const base={
+    hasChair:true,
+    failedDirectorCount:0,
+    synthesisStageStatus:{
+      surface_map:{status:"success"},
+      epistemic_audit:{status:"success"},
+      meta:{status:"success"},
+      reality_anchor:{status:"success"},
+      probe:{status:"success"},
+      stress:{status:"skipped"},
+      chair:{status:"success"},
+      comparator:{status:"success"},
+    }
+  };
+  assert.equal(classifySessionGovernanceStatus(base),"COMPLETE");
+  assert.equal(classifySessionGovernanceStatus({
+    ...base,
+    synthesisStageStatus:{...base.synthesisStageStatus,reality_anchor:{status:"failed"}}
+  }),"COMPLETE_DEGRADED");
+  assert.equal(classifySessionGovernanceStatus({
+    ...base,
+    synthesisStageStatus:{...base.synthesisStageStatus,surface_map:{status:"failed"}}
+  }),"INCOMPLETE_MANDATORY_SYNTHESIS_FAILURE");
+});
+
+await check("pipeline preserves non-Error and Error stage exceptions",async function(){
+  const events=[];
+  const config=baseConfig();
+  const runtime={
+    ...fakeCompression("PROCEED"),
+    sleepImpl:async function(){},
+    callClaudeImpl:async function(){return directorOutput("PROCEED");},
+    callGovernedSynthesisImpl:async function(layer){
+      if(layer==="surface_map") throw "surface string failure";
+      if(layer==="reality_anchor") throw new Error("reality error failure");
+      if(layer==="epistemic_audit") return "**Epistemic Health Score**: ADEQUATE\n"+("E".repeat(2100));
+      if(layer==="cross_domain_tension_analysis") return "**Integration Signal**: MEDIUM";
+      if(layer==="adversarial_probe") return "**Probe Verdict**: BOARD REASONING SOUND";
+      if(layer==="chair") return stageOutput("chair");
+      if(layer==="comparator") return JSON.stringify({summary:{decision_signal_interpretation:"3 PROCEED / 0 CAUTION / 0 HALT"}});
+      return "Synthetic stage output";
+    },
+    repairChairDecisionBoundaryImpl:async function(text){return text;},
+    nowImpl:function(){return "2026-09-25T00:00:00.000Z";},
+  };
+  const state=await runGovernancePipeline(config,runtime,function(type,payload){events.push({type,payload});});
+  assert.ok(state.stageErrors.includes("Surface Mapper failed: surface string failure"));
+  assert.ok(state.stageErrors.includes("Reality Anchor failed: reality error failure"));
+  assert.equal(state.synthesisStageStatus.surface_map.status,"failed");
+  assert.equal(state.synthesisStageStatus.reality_anchor.status,"failed");
+  assert.equal(state.synthesisStageStatus.chair.status,"success");
+  assert.equal(state.ledgerRecord.session_governance_status,"INCOMPLETE_MANDATORY_SYNTHESIS_FAILURE");
+  assert.deepStrictEqual(state.ledgerRecord.failed_mandatory_synthesis_stages,["surface_map"]);
+  assert.deepStrictEqual(state.ledgerRecord.failed_synthesis_stages,["surface_map","reality_anchor"]);
+  assert.equal(events.some(e=>e.type==="stage-status"&&e.payload.stage==="surface_map"&&e.payload.status==="failed"),true);
+  assert.equal(events.some(e=>e.type==="stage-status"&&e.payload.stage==="reality_anchor"&&e.payload.status==="failed"),true);
+});
+
 await check("pipeline executes recovered stage order with stress",async function(){
   const events=[];
   const layers=[];
@@ -250,6 +359,11 @@ await check("pipeline executes recovered stage order with stress",async function
   assert.deepStrictEqual(events.filter(e=>e.type==="stages-done").map(e=>e.payload.value),[1,2,3,4,5,6,7,8]);
   assert.equal(state.stressDecision.run,true);
   assert.equal(state.stageErrors.length,0);
+  assert.equal(state.ledgerRecord.session_governance_status,"COMPLETE");
+  assert.equal(state.synthesisStageStatus.surface_map.status,"success");
+  assert.equal(state.synthesisStageStatus.reality_anchor.status,"success");
+  assert.equal(state.synthesisStageStatus.stress.status,"success");
+  assert.equal(state.synthesisStageStatus.chair.status,"success");
   assert.equal(Object.keys(state.dirBriefs).length,3);
   assert.equal(Object.keys(state.synthesisBriefs).length,7);
   assert.ok(state.ledgerRecord);
@@ -283,7 +397,9 @@ await check("pipeline skips stress when no trigger exists",async function(){
   const state=await runGovernancePipeline(config,runtime,function(){});
   assert.equal(state.stressDecision.run,false);
   assert.equal(layers.includes("stress_test"),false);
+  assert.equal(state.synthesisStageStatus.stress.status,"skipped");
   assert.equal(state.ledgerRecord.stress_test_ran,false);
+  assert.equal(state.ledgerRecord.session_governance_status,"COMPLETE");
 });
 
 await check("Director server-error retries preserve 10s and 15s backoff",async function(){
@@ -327,6 +443,9 @@ const pipeline=fs.readFileSync("src/pipeline.js","utf8");
 assert.ok(app.includes("./src/pipeline.js"));
 assert.ok(/async function\s+runBoard\s*\(/.test(app));
 assert.ok(/function\s+parseDashboard\s*\(/.test(app));
+assert.ok(app.includes("INCOMPLETE REASONING CHAIN"));
+assert.ok(app.includes("stage-status"));
+assert.ok(app.includes("INCOMPLETE_MANDATORY_SYNTHESIS_FAILURE"));
 assert.ok(/async function\s+runAdvisory\s*\(/.test(app));
 for(const name of ["shouldRunStressTest","enforceSynthesisAuthority","callGovernedSynthesis","repairChairDecisionBoundary","commitToLedger","storeSynthesisBrief"]){
   if(new RegExp("(?:async\\s+)?function\\s+"+name+"\\s*\\(").test(app)) failures.push(name+" remains duplicated in App_FINAL.jsx");
@@ -348,4 +467,7 @@ console.log("Ledger assembly: PASS");
 console.log("Stage sequence 1-8: PASS");
 console.log("Conditional stress on/off: PASS");
 console.log("Director 500-retry backoff: PASS");
+console.log("Live partial-synthesis fail-closed fixture: PASS");
+console.log("Stage exception preservation: PASS");
+console.log("Session completion classification: PASS");
 console.log("Pipeline scope guards: PASS");
