@@ -179,6 +179,7 @@ function ApiKeyGate({ onUnlock }) {
 // --- GITHUB INSTRUCTION FILE FETCH LAYER -------------------------------------
 const INSTRUCTION_COMMIT = "56ad2305ca62ed7409c3e89723f9bd1ca914d935";
 const RUNTIME_CONTRACT = "2.0-recovery";
+const LEDGER_SCHEMA = "3.0.0-alpha.1";
 const GITHUB_BASE = "https://cdn.jsdelivr.net/gh/kojiro5150/phdss-instructions@"+INSTRUCTION_COMMIT+"/";
 
 
@@ -2476,17 +2477,13 @@ function extractStatusBadge(content, type) {
     var m3 = text.match(/Fragility Score[^0-9]*(\d+(?:\.\d+)?)(?:\s*\/\s*10)?/);
     if (m3) { label = "FRAGILITY "+m3[1]+"/10"; }
   } else if (type === "chair") {
-    if (/CONDITIONAL APPROVAL/i.test(text)) label = "CONDITIONAL ✓";
-    else if (/PROCEED WITH CONDITIONS/i.test(text)) label = "PROCEED ✓";
-    else if (/PROCEED WITH CAUTION/i.test(text)) label = "CAUTION ⚠";
-    else if (/DO NOT PROCEED/i.test(text)) label = "HALT ✗";
-    else if (/\bPILOT\b/i.test(text)) label = "PILOT →";
-    else if (/\bDEFER\b/i.test(text)) label = "DEFER ⏸";
+    if (/Decision Brief Status[^\n]*Partial Evidence Base/i.test(text)) label = "PARTIAL ⚠";
+    else if (/Decision Brief Status[^\n]*Complete/i.test(text)) label = "COMPLETE ✓";
   }
   if (!label) return null;
-  if (label === "STRONG" || label === "SOUND" || label === "PROCEED ✓" || label === "LOW TENSION" || label === "GROUNDED") { col="#059669"; bg="#D1FAE5"; }
+  if (label === "STRONG" || label === "SOUND" || label === "COMPLETE ✓" || label === "LOW TENSION" || label === "GROUNDED") { col="#059669"; bg="#D1FAE5"; }
   else if (label === "CONDITIONAL ✓") { col="#0891B2"; bg="#ECFEFF"; }
-  else if (label === "ADEQUATE" || label === "CAUTION ⚠" || label === "PILOT →" || label === "CAUTION" || label === "MIXED" || label === "FRICTION ⚠") { col="#D97706"; bg="#FEF3C7"; }
+  else if (label === "ADEQUATE" || label === "PARTIAL ⚠" || label === "CAUTION" || label === "MIXED" || label === "FRICTION ⚠") { col="#D97706"; bg="#FEF3C7"; }
   else if (label === "WEAK" || label === "REASONING GAPS" || label === "DEFER ⏸") { col="#DC2626"; bg="#FEE2E2"; }
   else if (label === "COMPROMISED" || label === "CHALLENGED" || label === "HALT ✗" || label === "HIGH TENSION" || label === "HALT") { col="#7C3AED"; bg="#EDE9FE"; }
   else if (/FRAGILITY/.test(label)) { var fnum=parseInt(label); col=fnum>=7?"#DC2626":fnum>=4?"#D97706":"#059669"; bg=fnum>=7?"#FEE2E2":fnum>=4?"#FEF3C7":"#D1FAE5"; }
@@ -2663,8 +2660,6 @@ function PHDSS() {
   },[]);
 
 
-  var chairSignal=safeMatch(chair,/\*\*Chair Recommendation[^*]*\*\*:?\s*\*?\*?\s*(DO NOT PROCEED|CONDITIONAL APPROVAL|PROCEED WITH CONDITIONS|PROCEED WITH CAUTION|PILOT|DEFER|HALT)/i,1)
-    ||safeMatch(chair,/Chair Recommendation[:\s]+\*{0,2}(CONDITIONAL APPROVAL[^.\n*]*|DO NOT PROCEED|PROCEED WITH CONDITIONS|PROCEED WITH CAUTION|PILOT|DEFER|HALT)\*{0,2}/i,1);
   var totalLoadedDocs=Object.values(docs).reduce(function(acc,arr){return acc+arr.filter(function(e){return e.content;}).length;},0);
   var hasAnyDocs=totalLoadedDocs>0;
   var dialogueSystem=done?chairDialogueSystem(docs.chair||[],decision,directorResultsRef.map(function(d){return "### "+d.label+"\n"+d.output;}).join("\n\n"),meta,stress,chair):"";
