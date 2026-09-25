@@ -2383,6 +2383,16 @@ function PHDSS() {
                     <div><span style={{fontSize:11,fontWeight:700,color:"#92400E"}}>PARTIAL EVIDENCE BASE — </span><span style={{fontSize:11,color:"#92400E"}}>Decision Brief synthesised without: {failedLabels.join(", ")}.</span></div>
                   </div>;
                 })()}
+                {failedSynthesisStages.length>0&&<div style={{marginBottom:8,padding:"10px 13px",borderRadius:9,background:failedMandatorySynthesisStages.length>0?"#FEF2F2":"#FFFBEB",border:"1px solid "+(failedMandatorySynthesisStages.length>0?"#FECACA":"#FDE68A"),display:"flex",gap:8,alignItems:"flex-start"}}>
+                  <span style={{fontSize:13,flexShrink:0}}>{failedMandatorySynthesisStages.length>0?"✕":"⚠"}</span>
+                  <div>
+                    <div style={{fontSize:11,fontWeight:700,color:failedMandatorySynthesisStages.length>0?"#B91C1C":"#92400E",marginBottom:2}}>{failedMandatorySynthesisStages.length>0?"INCOMPLETE REASONING CHAIN":"DEGRADED REASONING CHAIN"}</div>
+                    <div style={{fontSize:11,color:failedMandatorySynthesisStages.length>0?"#B91C1C":"#92400E",lineHeight:1.55}}>
+                      Chair artefact retained for audit but generated without: {failedSynthesisStages.map(function(stage){return synthesisStageLabels[stage]||stage;}).join(", ")}.
+                      {failedMandatorySynthesisStages.length>0?" Mandatory synthesis failure means this is not a complete governance run.":""}
+                    </div>
+                  </div>
+                </div>}
                 {(function(){
                   var view=synthesisGovViews.chair||"governance";
                   var rec=synthesisBriefs.chair?synthesisBriefToGovernanceRecord(synthesisBriefs.chair):null;
