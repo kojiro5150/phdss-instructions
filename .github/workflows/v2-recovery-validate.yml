@@ -17,6 +17,7 @@ on:
       - ".github/workflows/v2-recovery-validate.yml"
       - "docs/AUTHORITY_*.md"
       - "docs/FIXTURE_SCHEMA.md"
+      - "docs/GOVERNANCE_RECORD_CONTRACT.md"
       - "tests/fixtures/**"
       - "test/**"
 
