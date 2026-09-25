@@ -21,16 +21,23 @@ function assessNonSubstitution(upstream,projection){
   }
 
   for(const [key,value] of Object.entries(projection.epistemic_states||{})){
-    if(Object.prototype.hasOwnProperty.call(upstream.epistemic_states||{},key)
-      && value!==upstream.epistemic_states[key]){
+    if(!Object.prototype.hasOwnProperty.call(upstream.epistemic_states||{},key)){
+      return {permitted:false,reason:"EPISTEMIC_STATE_INVENTION"};
+    }
+    if(value!==upstream.epistemic_states[key]){
       return {permitted:false,reason:"EPISTEMIC_STATE_PROMOTION"};
     }
   }
 
-  const upstreamConditions=new Set(upstream.conditions||[]);
+  const upstreamConditions=new Map(
+    (upstream.conditions||[]).map(condition=>[condition.id,condition])
+  );
   for(const condition of projection.conditions||[]){
-    if(!upstreamConditions.has(condition)){
+    if(!upstreamConditions.has(condition.id)){
       return {permitted:false,reason:"CONDITION_INVENTION"};
+    }
+    if(!sameJson(condition,upstreamConditions.get(condition.id))){
+      return {permitted:false,reason:"CONDITION_MUTATION"};
     }
   }
 
@@ -75,6 +82,17 @@ const ids=new Set(fixture.cases.map(x=>x.id));
 assert.ok(ids.has("invalid-epistemic-promotion"));
 assert.ok(ids.has("invalid-tension-resolution"));
 assert.ok(ids.has("invalid-condition-invention"));
+
+const chairInstruction=fs.readFileSync("chair.md","utf8");
+assert.ok(chairInstruction.includes(
+  "The Chair does not add a further judgment layer. It convenes and presents the"
+));
+assert.ok(chairInstruction.includes(
+  "\"Decision Brief\", \"decision\nspace\", \"decision-maker\", and \"the decision\""
+));
+assert.ok(chairInstruction.includes(
+  "Complete — [one clause naming a material tension\nremaining unresolved in the governance record.]"
+));
 
 console.log("PHDSS Chair non-substitution verification passed.");
 console.log("Synthetic Chair cases: "+fixture.cases.length+" PASS");

@@ -45,7 +45,7 @@ You MUST NOT:
 - approve;
 - reject;
 - defer;
-- pilot;
+- pilot when used as a Chair-selected institutional action;
 - determine a preferred course;
 - create a new substantive governance finding that is not present upstream.
 
@@ -103,9 +103,11 @@ adjectival forms. This includes, without limitation:
 
 Legitimate descriptive uses remain permitted. "Decision Brief", "decision
 space", "decision-maker", and "the decision" when referring to the institutional
-act performed by the responsible human governance body are permitted. The
-prohibition applies to the Chair performing, directing, pre-empting or
-substituting for adjudication, not to naming the human act of deciding.
+act performed by the responsible human governance body are permitted. "Pilot
+Pathway" is also permitted when faithfully describing a pathway already present
+upstream. The prohibition applies to the Chair performing, directing,
+pre-empting or substituting for adjudication, not to naming the human act of
+deciding or faithfully presenting an upstream pathway.
 
 Do not assign the Board, Chair, organisation, committee, decision-maker or
 reader an obligation to take a governance act. In particular, do not write
@@ -199,7 +201,10 @@ Target 3–6 conditions where available. If fewer than three source-grounded
 conditions exist, include only those that exist.
 
 For a condition with an unresolved or adverse state, describe what remains
-unestablished. Do not prescribe the institutional response.
+unestablished. Do not prescribe the institutional response. If an upstream
+condition is itself phrased as a directive to the Board, organisation or
+decision-maker, preserve the underlying condition but rewrite it as a
+descriptive state rather than repeating the directive.
 
 **Irreducible Uncertainties**
 
