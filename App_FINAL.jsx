@@ -14,8 +14,6 @@ import {
   TRUSTED_DOMAINS,
   ANALYSIS_MODES,
   MANDATORY_DIRECTOR_IDS,
-  STRESS_KEYWORDS,
-  RUNTIME_CONTRACT,
   LEDGER_SCHEMA,
 } from "./src/constants.js";
 import {
@@ -49,39 +47,22 @@ import {
 import {
   assertBoardGovernanceRecord,
 } from "./src/governance-record-contract.js";
-import { authorityBoundaryPrompt, assessAuthorityBoundary } from "./src/authority-contract.js";
-import {
-  INSTRUCTION_COMMIT,
-  loadAllInstructions,
-} from "./src/runtime/instruction-loader.js";
+import { loadAllInstructions } from "./src/runtime/instruction-loader.js";
 import {
   installApiKeyInterceptor,
-  apiCall,
   callClaude_synthesis,
   callClaudeChat,
 } from "./src/runtime/anthropic-client.js";
-import {
-  compressDirectorOutput,
-  deterministicDirectorBrief,
-  compressSynthesisOutput,
-  deterministicSynthesisBrief,
-  formatBriefForSynthesis,
-} from "./src/runtime/governance-compression.js";
 import { buildCoverageNote } from "./src/coverage.js";
 import {
-  directorSystem,
-  metaSystem,
-  surfaceMapperSystem,
-  realityAnchorSystem,
-  stressSystem,
-  chairSystem,
   chairDialogueSystem,
-  epistemicAuditorSystem,
-  adversarialProbeSystem,
   directorBriefSystem,
   lensComparatorSystem,
-  comparatorJsonSystem,
 } from "./src/prompt-builders.js";
+import {
+  runGovernancePipeline,
+  buildLedgerRecord,
+} from "./src/pipeline.js";
 
 // =============================================================================
 // API KEY GATE
@@ -277,47 +258,6 @@ function exportFullDashboard(d, decision, decisionId, decisionSignal, orgContext
 // AI/SaMD/algorithm procurement carve-out: when decision text contains explicit AI
 // or clinical decision support keywords, Digital & AI Governance always wins as
 // adaptive fifth regardless of economics keyword co-occurrence.
-function shouldRunStressTest(mode, decisionText, activeDirectorOutputs, surfaceMapOut, epistemicOut, probeVerdict, realityAnchorOut) {
-  if (mode === "FULL") return { run: true, reason: "FULL mode — stress test always runs" };
-  var lower = (decisionText||"").toLowerCase();
-  for (var i = 0; i < STRESS_KEYWORDS.length; i++) {
-    if (lower.indexOf(STRESS_KEYWORDS[i]) !== -1) {
-      return { run: true, reason: "Decision text contains stress trigger: '" + STRESS_KEYWORDS[i] + "'" };
-    }
-  }
-  var haltCount = 0, cautionCount = 0;
-  (activeDirectorOutputs||[]).forEach(function(r) {
-    var sig = "";
-    var patterns = [
-      /\*\*Recommendation Signal\*\*:?\s*\[?\*{0,2}(PROCEED|CAUTION|HALT)\*{0,2}\]?/i,
-      /Recommendation Signal[^:]*:?\s*\[?\*{0,2}(PROCEED|CAUTION|HALT)\*{0,2}\]?/i,
-      /\*\*(PROCEED|CAUTION|HALT)\*\*/
-    ];
-    for (var pi = 0; pi < patterns.length; pi++) {
-      var m = (r.output||"").match(patterns[pi]);
-      if (m) { sig = (m[1]||"").toUpperCase(); break; }
-    }
-    if (sig === "HALT") haltCount++;
-    if (sig === "CAUTION") cautionCount++;
-  });
-  if (haltCount >= 1) return { run: true, reason: haltCount + " director(s) signalled HALT" };
-  if (cautionCount >= 2) return { run: true, reason: cautionCount + " directors signalled CAUTION" };
-  if (realityAnchorOut && /capability mismatch|capacity gap|implementation gap|not ready|insufficient capacity/i.test(realityAnchorOut)) {
-    return { run: true, reason: "Reality Anchor detected capability mismatch" };
-  }
-  if (surfaceMapOut && /high tension|highly contested|significant fragility|fragility hotspot/i.test(surfaceMapOut)) {
-    return { run: true, reason: "Decision Surface Map detected high tension" };
-  }
-  if (epistemicOut && /(WEAK|COMPROMISED)/i.test(epistemicOut)) {
-    return { run: true, reason: "Epistemic Audit detected major uncertainty" };
-  }
-  if (probeVerdict === "SIGNIFICANT GAPS" || probeVerdict === "CONCLUSION CHALLENGED") {
-    return { run: true, reason: "Adversarial Probe verdict: " + probeVerdict };
-  }
-  return { run: false, reason: "No stress triggers detected" };
-}
-
-
 function makeDocEntry() {
   return { id: Math.random().toString(36).slice(2), label:"", url:"", content:"", status:"empty" };
 }
@@ -346,34 +286,6 @@ async function fetchGoogleDoc(url) {
 // Each builder appends dynamic runtime context (coverage, web, docs, session evidence)
 // to the base instruction file content fetched from GitHub.
 
-
-async function enforceSynthesisAuthority(layer,text,systemPrompt,userPrompt) {
-  if(!text) return text;
-  var assessment=assessAuthorityBoundary(layer,text);
-  if(!assessment.violates) return text;
-  var repairSystem=systemPrompt+authorityBoundaryPrompt(layer)+
-    "\n\nBOUNDARY REPAIR: The prior draft crossed the PHDSS authority boundary ("+assessment.reason+"). Rewrite only as needed to remove adjudication. Preserve source-grounded findings, signals, constraints, conditions, tensions, uncertainty, pathway descriptions, section structure, and numeric values. Do not select, rank, resolve, approve, reject, defer, or choose an institutional pathway. Legitimate external constraint reporting may remain. Preserve the original output format exactly; if the input is JSON, return valid JSON only.";
-  var raw=await apiCall(repairSystem,userPrompt+"\n\nPRIOR OUTPUT TO REPAIR:\n"+text,false);
-  var repaired=stripCalibrationBleed(raw.text||"");
-  var after=assessAuthorityBoundary(layer,repaired);
-  if(after.violates) throw new Error(layer+" authority boundary violation persisted after repair: "+after.reason);
-  return repaired;
-}
-
-async function callGovernedSynthesis(layer,systemPrompt,userPrompt,autoContinue,useWeb) {
-  var governedSystem=systemPrompt+authorityBoundaryPrompt(layer);
-  var output=await callClaude_synthesis(governedSystem,userPrompt,autoContinue,useWeb);
-  return enforceSynthesisAuthority(layer,output,governedSystem,userPrompt);
-}
-
-// Compatibility wrapper retained during recovery. Chair is now one layer of the shared authority contract.
-function chairDecisionBoundaryLeak(text) {
-  return assessAuthorityBoundary("chair",text).violates;
-}
-
-async function repairChairDecisionBoundary(text, systemPrompt, userPrompt) {
-  return enforceSynthesisAuthority("chair",text,systemPrompt,userPrompt);
-}
 
 // --- PARSING ------------------------------------------------------------------
 // FIX 2: tightened normItem strips separator variants before comparison
@@ -1850,331 +1762,91 @@ function PHDSS() {
   }
 
 
-  function commitToLedger(results,metaOut,stressOut,chairOut,epistemicOut,probeOut,comparatorData,activeDir,omittedDir,mode,stressResult){
-    var failedDirs=results.filter(function(r){return /^\[Director failed:/i.test((r.output||"").trim());});
-    var hasChair=chairOut&&chairOut.length>50&&!/Chair failed|Director failed/i.test(chairOut);
-    var briefMatch=(chairOut||"").match(/\*\*Decision Brief Status\*\*:?\s*\*{0,2}(Complete(?:\s*[—–-]\s*Partial Evidence Base)?\s*[—–-]\s*[^\n*]+)/i);
-    var decisionBriefStatus=briefMatch?briefMatch[1].trim():null;
-    var directorOutputs={};
-    results.forEach(function(r){directorOutputs[r.id]=stripCalibrationBleed(r.output||"");});
-    var record={
-      decision_id:decisionId, schema_version:LEDGER_SCHEMA, created_at:new Date().toISOString(),
-      governance_family:"GOVERNANCE",
-      session_governance_status:hasChair?(failedDirs.length===0?"COMPLETE":"COMPLETE_PARTIAL_EVIDENCE"):"INCOMPLETE",
-      run_intensity:mode==="FULL"?"MAXIMUM":mode==="CORE"?"MINIMUM_VIABLE":"CUSTOM",
-      analysis_mode:mode||"FULL",
-      coverage_ratio:(activeDir||DIRECTORS).length+"/"+DIRECTORS.length,
-      coverage_note:buildCoverageNote(mode||"FULL",activeDir||DIRECTORS,DIRECTORS),
-      active_directors:(activeDir||DIRECTORS).map(function(d){return d.id;}),
-      omitted_directors:(omittedDir||[]).map(function(d){return d.id;}),
-      question:decision, decision_signal:decisionSignal, org_context:orgContext,
-      web_search_enabled:webSearch, docs_loaded:totalLoadedDocs+(sessionEvidence.filter(function(e){return e.content;}).length),
-      proceed_count:results.filter(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(PROCEED)/,1)==="PROCEED";}).length,
-      caution_count:results.filter(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(CAUTION)/,1)==="CAUTION";}).length,
-      halt_count:results.filter(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(HALT)/,1)==="HALT";}).length,
-      decision_brief_status:decisionBriefStatus,
-      epistemic_score:(function(){
-        var m=(epistemicOut||"").match(/\*\*Epistemic Health Score\*\*:?\s*(STRONG|ADEQUATE|WEAK|COMPROMISED)/i);
-        if(m) return m[1].toUpperCase();
-        var m2=(epistemicOut||"").match(/Epistemic Health Score[:\s]+(STRONG|ADEQUATE|WEAK|COMPROMISED)/i);
-        if(m2) return m2[1].toUpperCase();
-        return findSignal(epistemicOut,["STRONG","ADEQUATE","COMPROMISED","WEAK"]);
-      })(),
-      probe_verdict:findSignal(probeOut,["BOARD REASONING SOUND","SIGNIFICANT GAPS","CONCLUSION CHALLENGED"]),
-      fragility_score:parseInt(safeMatch(stressOut,/\*\*Fragility Score\*\*:?[^\d]*(\d+)/,1))||null,
-      stress_test_ran:(stressResult&&stressResult.run)||false,
-      stress_test_reason:(stressResult&&stressResult.reason)||null,
-      instruction_source:instrLoadState==="ready"?"github":instrLoadState==="partial"?"github_partial":"inline_fallback",
-      instruction_commit:INSTRUCTION_COMMIT,
-      runtime_contract:RUNTIME_CONTRACT,
-      comparator:comparatorData||null,
-      outputs:{
-        directors:directorOutputs,
-        surface_map:stripCalibrationBleed(surfaceMapRef.current||"")||null,
-        meta:stripCalibrationBleed(metaOut||"")||null,
-        reality_anchor:stripCalibrationBleed(realityAnchorRef.current||"")||null,
-        probe:stripCalibrationBleed(probeOut||"")||null,
-        stress:stripCalibrationBleed(stressOut||"")||null,
-        epistemic:stripCalibrationBleed(epistemicOut||"")||null,
-        chair:stripCalibrationBleed(chairOut||"")||null
-      },
-      structured_records:{
-        directors:Object.assign({},dirBriefsRef.current),
-        synthesis:Object.assign({},synthesisBriefsRef.current)
-      },
-      tags:[]
-    };
-    setLedger(function(prev){return prev.concat([record]);});
-    return record;
-  }
-
-  async function storeSynthesisBrief(key, moduleLabel, output) {
-    try {
-      var brief=await compressSynthesisOutput(moduleLabel,output);
-      synthesisBriefsRef.current=Object.assign({},synthesisBriefsRef.current,{[key]:brief});
-      setSynthesisBriefs(function(prev){var n=Object.assign({},prev);n[key]=brief;return n;});
-      return brief;
-    } catch(e) {
-      var fallback=deterministicSynthesisBrief(moduleLabel,output,e.message||String(e));
-      synthesisBriefsRef.current=Object.assign({},synthesisBriefsRef.current,{[key]:fallback});
-      setSynthesisBriefs(function(prev){var n=Object.assign({},prev);n[key]=fallback;return n;});
-      return fallback;
-    }
-  }
-
-
   async function runBoard(){
     if(!decision.trim()||running) return;
-    var activeDir=resolveActiveDirectors(analysisMode,decision,chairSelectedIds);
-    var omittedDir=DIRECTORS.filter(function(d){return !activeDir.some(function(a){return a.id===d.id;});});
-    setActiveDirectorsRef(activeDir); setOmittedDirectorsRef(omittedDir);
     setRunning(true); setDone(false); setPartialFailure(false); setError("");
     setDirOutputs({}); setDirBriefsState({}); setSynthesisBriefs({}); setDirGovViews({}); setSynthesisGovViews({});
     setMeta(""); setSurfaceMap(""); setRealityAnchor(""); setStress(""); setChair("");
     setEpistemic(""); setProbe(""); setComparator(null);
-    // Reset synthesis refs alongside state so stale content from previous runs cannot leak into exports
     epistemicRef.current=""; probeRef.current=""; chairRef.current=""; metaRef.current=""; realityAnchorRef.current=""; stressRef.current=""; surfaceMapRef.current="";
     dirBriefsRef.current={}; synthesisBriefsRef.current={};
     setStagesDone(0); setDialogueHistory([]); setDirectorResultsRef([]); setExpandedDirs({});
-    var loading={}; activeDir.forEach(function(d){loading[d.id]=true;}); setDirLoading(loading);
-    var ctx=getSessionContext();
-    var results=[],metaOut="",surfaceMapOut="",realityAnchorOut="",stressOut="",chairOut="";
-    var epistemicOut="",probeOut="",compData=null;
-    var dirBriefs={}, stageErrors=[];
 
+    var eventHandler=function(type,payload){
+      if(type==="active-directors"){
+        setActiveDirectorsRef(payload.activeDir);
+        setOmittedDirectorsRef(payload.omittedDir);
+        var loading={}; payload.activeDir.forEach(function(d){loading[d.id]=true;}); setDirLoading(loading);
+        return;
+      }
+      if(type==="director-loading"){
+        setDirLoading(function(prev){var n=Object.assign({},prev);n[payload.id]=payload.loading;return n;});
+        return;
+      }
+      if(type==="director-output"){
+        setDirOutputs(function(prev){var n=Object.assign({},prev);n[payload.id]=payload.output;return n;});
+        return;
+      }
+      if(type==="director-brief"){
+        dirBriefsRef.current=Object.assign({},dirBriefsRef.current,{[payload.id]:payload.brief});
+        setDirBriefsState(function(prev){var n=Object.assign({},prev);n[payload.id]=payload.brief;return n;});
+        return;
+      }
+      if(type==="director-results"){ setDirectorResultsRef(payload.results); return; }
+      if(type==="stages-done"){ setStagesDone(payload.value); return; }
+      if(type==="stage-loading"){
+        var loadingSetter={
+          surface_map:setSurfaceMapLoading,epistemic_audit:setEpistemicLoading,meta:setMetaLoading,
+          reality_anchor:setRealityAnchorLoading,probe:setProbeLoading,stress:setStressLoading,chair:setChairLoading
+        }[payload.stage];
+        if(loadingSetter) loadingSetter(payload.loading);
+        return;
+      }
+      if(type==="stage-output"){
+        if(payload.stage==="surface_map"){setSurfaceMap(payload.output);surfaceMapRef.current=payload.output;}
+        else if(payload.stage==="epistemic_audit"){setEpistemic(payload.output);epistemicRef.current=payload.output;}
+        else if(payload.stage==="meta"){setMeta(payload.output);metaRef.current=payload.output;}
+        else if(payload.stage==="reality_anchor"){setRealityAnchor(payload.output);realityAnchorRef.current=payload.output;}
+        else if(payload.stage==="probe"){setProbe(payload.output);probeRef.current=payload.output;}
+        else if(payload.stage==="stress"){setStress(payload.output);stressRef.current=payload.output;}
+        else if(payload.stage==="chair"){setChair(payload.output);chairRef.current=payload.output;}
+        return;
+      }
+      if(type==="synthesis-brief"){
+        synthesisBriefsRef.current=Object.assign({},synthesisBriefsRef.current,{[payload.key]:payload.brief});
+        setSynthesisBriefs(function(prev){var n=Object.assign({},prev);n[payload.key]=payload.brief;return n;});
+        return;
+      }
+      if(type==="stress-decision"){setStressTestResult(payload.stressDecision);return;}
+      if(type==="comparator"){setComparator(payload.comparatorData);return;}
+      if(type==="ledger-record"){setLedger(function(prev){return prev.concat([payload.record]);});return;}
+    };
 
+    var pipelineState=null;
     try {
-      var results_seq = [];
-      for (var di = 0; di < activeDir.length; di++) {
-        var dirI = activeDir[di];
-        var dirId_i = dirI.id;
-        if (di > 0) await new Promise(function(r){ setTimeout(r, 3000); });
-        try {
-          var sysPrompt_i = directorSystem(dirI, docs[dirId_i]||[], webSearch, ctx, publicWebSearch, sessionEvidence, analysisMode, activeDir, instructions);
-          var dirOut_i;
-          var isServerErr = function(e){ return /internal server error|500|server error/i.test(e.message); };
-          try { dirOut_i = await callClaude_synthesis(sysPrompt_i, "Decision under review: "+decision, autoContinue, webSearch||publicWebSearch); }
-          catch(err1) {
-            if (isServerErr(err1)) {
-              await new Promise(function(r){ setTimeout(r, 10000); });
-              try { dirOut_i = await callClaude_synthesis(sysPrompt_i, "Decision under review: "+decision, autoContinue, webSearch||publicWebSearch); }
-              catch(err2) {
-                if (isServerErr(err2)) {
-                  await new Promise(function(r){ setTimeout(r, 15000); });
-                  dirOut_i = await callClaude_synthesis(sysPrompt_i, "Decision under review: "+decision, autoContinue, webSearch||publicWebSearch);
-                } else { throw err2; }
-              }
-            } else { throw err1; }
-          }
-          var cId=dirId_i+"", cOut=deduplicateSections(stripCalibrationBleed(dirOut_i+""));
-          // Signal rescue: if output has no Recommendation Signal line (truncation), fire a targeted completion.
-          var hasSignal = /\*\*Recommendation Signal\*\*/.test(cOut);
-          if (!hasSignal && cOut.length > 500) {
-            try {
-              var rescueBody = {
-                model:"claude-sonnet-4-6", max_tokens:300, temperature:0.8,
-                system: sysPrompt_i,
-                messages: [
-                  {role:"user",      content: "Decision under review: "+decision},
-                  {role:"assistant", content: cOut},
-                  {role:"user",      content: "Your analysis was cut off before the closing signal line. Based solely on your analysis above, complete the output now with only: **Recommendation Signal**: [PROCEED/CAUTION/HALT] - one sentence rationale. Nothing else."}
-                ]
-              };
-              var rescueResp = await fetch("https://api.anthropic.com/v1/messages", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(rescueBody)});
-              var rescueData = await rescueResp.json();
-              var rescueText = (rescueData.content||[]).map(function(b){return b.text||"";}).join("").trim();
-              if (rescueText && /Recommendation Signal/i.test(rescueText)) cOut = cOut + "\n\n" + rescueText;
-            } catch(rescueErr) { /* signal rescue failed — output remains without signal line */ }
-          }
-          setDirOutputs(function(p){var n=Object.assign({},p); n[cId]=cOut; return n;});
-          setDirLoading(function(p){var n=Object.assign({},p); n[cId]=false; return n;});
-          results_seq.push(Object.assign({}, dirI, {output: cOut}));
-          try {
-            var brief_i=await compressDirectorOutput(dirI.label,cOut);
-            dirBriefs[cId]=brief_i;
-            dirBriefsRef.current=Object.assign({},dirBriefsRef.current,{[cId]:brief_i});
-            setDirBriefsState(function(prev){var n=Object.assign({},prev);n[cId]=brief_i;return n;});
-          } catch(compErr) {
-            var fallback_i=deterministicDirectorBrief(dirI.label,cOut,compErr.message||String(compErr));
-            dirBriefs[cId]=fallback_i;
-            dirBriefsRef.current=Object.assign({},dirBriefsRef.current,{[cId]:fallback_i});
-            setDirBriefsState(function(prev){var n=Object.assign({},prev);n[cId]=fallback_i;return n;});
-          }
-        } catch(dirErr) {
-          var eId=dirId_i+""; var errMsg="[Director failed: "+dirErr.message+"]";
-          setDirLoading(function(p){var n=Object.assign({},p); n[eId]=false; return n;});
-          setDirOutputs(function(p){var n=Object.assign({},p); n[eId]=errMsg; return n;});
-          stageErrors.push(dirI.label+" failed");
-          results_seq.push(Object.assign({}, dirI, {output: errMsg}));
-          dirBriefs[dirId_i]=null;
-        }
+      pipelineState=await runGovernancePipeline({
+        decision:decision,decisionId:decisionId,decisionSignal:decisionSignal,orgContext:orgContext,
+        analysisMode:analysisMode,chairSelectedIds:chairSelectedIds,docs:docs,instructions:instructions,
+        webSearch:webSearch,publicWebSearch:publicWebSearch,sessionEvidence:sessionEvidence,
+        autoContinue:autoContinue,totalLoadedDocs:totalLoadedDocs,instrLoadState:instrLoadState,
+        ctx:getSessionContext(),priorStressTestResult:stressTestResult
+      },{},eventHandler);
+
+      if(pipelineState.fatalError){
+        setError("Session error: "+pipelineState.fatalError.message);
+        setPartialFailure(Object.keys(dirOutputs).length>0);
+      } else if(pipelineState.stageErrors.length>0) {
+        setError("Completed with partial failures: "+pipelineState.stageErrors.join(", "));
       }
-      results=results_seq; setDirectorResultsRef(results); setStagesDone(1);
-
-
-      var briefSummary=results.map(function(d){
-        var brief=dirBriefs[d.id];
-        return brief?"### "+d.label+"\n"+formatBriefForSynthesis(brief, d.output):"### "+d.label+"\n"+d.output;
-      }).join("\n\n");
-
-
-      // Fix P1-3: Compute authoritative signal counts from results[] and inject into
-      // the Surface Map user message so the LLM cannot produce a divergent tally.
-      var _smProceed=results.filter(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(PROCEED)/,1)==="PROCEED";}).length;
-      var _smCaution=results.filter(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(CAUTION)/,1)==="CAUTION";}).length;
-      var _smHalt=results.filter(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(HALT)/,1)==="HALT";}).length;
-      // NOT APPLICABLE: Directors that correctly scoped out (e.g. Digital on non-digital decisions).
-      // Must be counted separately so the Surface Map does not mis-report them as PROCEED or UNDEFINED.
-      var _smNotApplicable=results.filter(function(r){return /NOT APPLICABLE/i.test(r.output) && !safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(PROCEED|CAUTION|HALT)/i,1);}).length;
-      var _smUndefined=results.length-_smProceed-_smCaution-_smHalt-_smNotApplicable;
-      // Compute authoritative dominant signal — highest count wins; HALT overrides only if strictly > CAUTION
-      var _smDominant=(_smHalt>_smCaution&&_smHalt>_smProceed)?"HALT":(_smCaution>=_smHalt&&_smCaution>=_smProceed)?"CAUTION":(_smProceed>0)?"PROCEED":"MIXED";
-      var signalCountNote="\n\n[AUTHORITATIVE SIGNAL COUNTS — use these exact figures in your Signal Tally, do not recount from text: "+_smProceed+" PROCEED / "+_smCaution+" CAUTION / "+_smHalt+" HALT"+(_smNotApplicable>0?" / "+_smNotApplicable+" NOT APPLICABLE":"")+(_smUndefined>0?" / "+_smUndefined+" UNDEFINED":"")+". Total directors: "+results.length+". DOMINANT SIGNAL: "+_smDominant+" — use exactly this single word for the Dominant Signal field, not a compound like HALT/CAUTION. NOT APPLICABLE means the Director correctly determined the proposal is outside their mandate — do not count as PROCEED.]";
-      try{setSurfaceMapLoading(true);surfaceMapOut=await callGovernedSynthesis("surface_map",surfaceMapperSystem(analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nAll Director Governance Briefs:\n"+briefSummary+signalCountNote,autoContinue);setSurfaceMap(surfaceMapOut);surfaceMapRef.current=surfaceMapOut;await storeSynthesisBrief("surfacemap","Decision Surface Map",surfaceMapOut);}catch(e){stageErrors.push("Surface Mapper failed");}
-      setSurfaceMapLoading(false); setStagesDone(2);
-
-
-      // Epistemic Audit uses compressed briefs + confidence self-ratings to reduce token load.
-      // Architecture change (Run 22): fullDirSummary caused empty outputs on 3-document runs
-      // because the full Director text exceeded context budget for synthesis completion.
-      // epistemicBriefSummary uses governance briefs (compressed) + appends each Director's
-      // self-reported confidence level and fragility signals so the Auditor can make
-      // independent assessments without requiring full Director outputs.
-      var fullDirSummary=results.map(function(d){return "### "+d.label+"\n"+d.output;}).join("\n\n");
-      var epistemicBriefSummary=results.map(function(r){
-        var brief=dirBriefs[r.id];
-        var confMatch=r.output.match(/Confidence:?\s*(HIGH|MEDIUM|LOW)/i);
-        var confLabel=confMatch?"\nDirector self-rated confidence: "+confMatch[1]:"";
-        var fragMatch=r.output.match(/A\)\s*Fragility signals identified:([^\n]+(?:\n[^\n*#]{0,200})*)/i);
-        var fragLabel=fragMatch?"\nFragility: "+fragMatch[1].substring(0,300).replace(/\n/g," "):"";
-        return brief
-          ? "### "+r.label+"\n"+formatBriefForSynthesis(brief, r.output)+confLabel+fragLabel
-          : "### "+r.label+"\n"+r.output.substring(0,1500)+confLabel+fragLabel;
-      }).join("\n\n");
-      try{
-        setEpistemicLoading(true);
-        epistemicOut=await callGovernedSynthesis("epistemic_audit",epistemicAuditorSystem(analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDirector Governance Briefs (with confidence ratings):\n"+epistemicBriefSummary,autoContinue);
-        // Guard: if output is suspiciously short, retry up to twice with fresh call.
-        // Empty = ~839 bytes. Near-empty = ~1000-2000 bytes.
-        if(epistemicOut && epistemicOut.length < 2000) {
-          console.warn("PHDSS: Epistemic output short ("+epistemicOut.length+" chars), retry 1 of 2...");
-          await new Promise(function(r){setTimeout(r,2000);});
-          epistemicOut=await callGovernedSynthesis("epistemic_audit",epistemicAuditorSystem(analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDirector Governance Briefs (with confidence ratings):\n"+epistemicBriefSummary,autoContinue);
-          if(epistemicOut && epistemicOut.length < 2000) {
-            console.warn("PHDSS: Epistemic still short ("+epistemicOut.length+" chars), retry 2 of 2...");
-            await new Promise(function(r){setTimeout(r,4000);});
-            epistemicOut=await callGovernedSynthesis("epistemic_audit",epistemicAuditorSystem(analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDirector Governance Briefs (with confidence ratings):\n"+epistemicBriefSummary,autoContinue);
-          }
-        }
-        var epistemicCleaned=epistemicOut?stripCalibrationBleed(epistemicOut):epistemicOut;
-        setEpistemic(epistemicCleaned);epistemicRef.current=epistemicCleaned;
-        epistemicOut=epistemicCleaned;
-        await storeSynthesisBrief("epistemic","Epistemic Confidence Audit",epistemicOut);
-      }catch(e){stageErrors.push("Epistemic failed");}
-      setEpistemicLoading(false); setStagesDone(3);
-
-
-      try{setMetaLoading(true);metaOut=await callGovernedSynthesis("cross_domain_tension_analysis",metaSystem(docs.meta||[],webSearch,publicWebSearch,sessionEvidence,analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDecision Surface Map:\n"+surfaceMapOut+"\n\nDirector Governance Briefs:\n"+briefSummary+(epistemicOut?"\n\nEpistemic Audit:\n"+epistemicOut:""),autoContinue,webSearch||publicWebSearch);setMeta(metaOut);metaRef.current=metaOut;await storeSynthesisBrief("meta","Cross-Domain Tension Analysis",metaOut);}catch(e){stageErrors.push("META failed");}
-      setMetaLoading(false); setStagesDone(4);
-
-
-      try{setRealityAnchorLoading(true);realityAnchorOut=await callGovernedSynthesis("reality_anchor",realityAnchorSystem(analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDirector Governance Briefs:\n"+briefSummary+"\n\nDecision Surface Map:\n"+surfaceMapOut+"\n\nMETA Synthesis:\n"+metaOut,autoContinue);setRealityAnchor(realityAnchorOut);realityAnchorRef.current=realityAnchorOut;await storeSynthesisBrief("reality","Reality Anchor",realityAnchorOut);}catch(e){stageErrors.push("Reality Anchor failed");}
-      setRealityAnchorLoading(false); setStagesDone(5);
-
-
-      try{
-        setProbeLoading(true);
-        var sigs=results.map(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(PROCEED|CAUTION|HALT)/,1);}).filter(Boolean);
-        var sigCounts=sigs.reduce(function(a,s){return Object.assign({},a,{[s]:(a[s]||0)+1});},{});
-        var dominant=Object.entries(sigCounts).sort(function(a,b){return b[1]-a[1];})[0]?.[0]||"UNKNOWN";
-        probeOut=await callGovernedSynthesis("adversarial_probe",adversarialProbeSystem(dominant,analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nAll Director Governance Briefs:\n"+briefSummary+"\n\nMETA-AUTHOR Synthesis:\n"+metaOut+"\n\nReality Anchor:\n"+realityAnchorOut,autoContinue);
-        setProbe(probeOut);probeRef.current=probeOut;
-        await storeSynthesisBrief("probe","Adversarial Probe",probeOut);
-      }catch(e){stageErrors.push("Probe failed");}
-      setProbeLoading(false); setStagesDone(6);
-
-
-      var probeVerdict=findSignal(probeOut,["BOARD REASONING SOUND","SIGNIFICANT GAPS","CONCLUSION CHALLENGED"]);
-      var stressDecision=shouldRunStressTest(analysisMode,decision,results,surfaceMapOut,epistemicOut,probeVerdict,realityAnchorOut);
-      setStressTestResult(stressDecision);
-      if(stressDecision.run){
-        try{setStressLoading(true);stressOut=await callGovernedSynthesis("stress_test",stressSystem(docs.stress||[],webSearch,publicWebSearch,sessionEvidence,analysisMode,activeDir,instructions),"Decision: "+decision+"\n\nDecision Surface Map:\n"+surfaceMapOut+"\n\nMETA-AUTHOR:\n"+metaOut+"\n\nReality Anchor:\n"+realityAnchorOut,autoContinue,webSearch||publicWebSearch);setStress(stressOut);stressRef.current=stressOut;await storeSynthesisBrief("stress","Decision Stress Test",stressOut);}catch(e){stageErrors.push("Stress failed");}
-        setStressLoading(false);
-      }
-      setStagesDone(7);
-
-
-      var failedDirLabels=results.filter(function(r){return /^\[Director failed:/i.test((r.output||"").trim());}).map(function(r){return r.label;});
-      // Build Probe Response injection block — extracts verdict and strongest argument
-      // to force the Chair to engage rather than skip the Adversarial Probe Response section.
-      var probeInjection=(function(){
-        if(!probeOut) return "";
-        var verdict=findSignal(probeOut,["BOARD REASONING SOUND","SIGNIFICANT GAPS","CONCLUSION CHALLENGED"])||"not determined";
-        // Extract the Strongest Counter-Argument section text
-        var strongestMatch=probeOut.match(/\*\*The Strongest Counter-Argument\*\*[^\n]*\n([\s\S]*?)(?=\n\*\*[A-Za-z]|$)/i);
-        var strongest=strongestMatch?(strongestMatch[1]||"").trim().substring(0,600):"See Adversarial Probe output.";
-        return "\n\n⚠ ADVERSARIAL PROBE VERDICT: "+verdict+"\nThe Probe's strongest argument was:\n"+strongest+"\n\nYou MUST include an **Adversarial Probe Response** section in your output — between **Coverage Limitations** and **Director Signal Distribution** — that either ACCEPTS this finding (explaining how it changes the decision conditions) or REBUTS it (with explicit Director-grounded reasoning). This section is mandatory and parser-matched. Do not convert the Probe finding into a preferred course of action.";
-      })();
-      try{
-        setChairLoading(true);
-        var chairPrompt=chairSystem(docs.chair||[],webSearch,publicWebSearch,sessionEvidence,analysisMode,activeDir,failedDirLabels,instructions);
-        var chairUser="Decision: "+decision+"\n\nDecision Surface Map:\n"+surfaceMapOut+"\n\nMETA-AUTHOR:\n"+metaOut+"\n\nReality Anchor:\n"+realityAnchorOut+(stressOut?"\n\nStress Test:\n"+stressOut:"")+(probeOut?"\n\nAdversarial Bias Probe:\n"+probeOut:"")+probeInjection;
-        chairOut=await callGovernedSynthesis("chair",chairPrompt,chairUser,autoContinue,webSearch||publicWebSearch);
-        chairOut=await repairChairDecisionBoundary(chairOut,chairPrompt,chairUser);
-        setChair(chairOut);chairRef.current=chairOut;
-        await storeSynthesisBrief("chair","Chair Decision",chairOut);
-      }catch(e){stageErrors.push("Chair failed: "+e.message);}
-      setChairLoading(false); setStagesDone(8);
-
-
-      try{
-        var _pCount=results.filter(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(PROCEED)/,1)==="PROCEED";}).length;
-        var _cCount=results.filter(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(CAUTION)/,1)==="CAUTION";}).length;
-        var _hCount=results.filter(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(HALT)/,1)==="HALT";}).length;
-        // Build kill switch examples from Director outputs — Measurement, Safety, Behaviour
-        // provide specific measurable thresholds that should anchor kill switch wording.
-        var killSwitchHints=(function(){
-          var hints=[];
-          var measureDir=results.find(function(r){return r.id==="measurement";});
-          var safetyDir=results.find(function(r){return r.id==="safety";});
-          var behaviourDir=results.find(function(r){return r.id==="behaviour";});
-          [measureDir,safetyDir,behaviourDir].forEach(function(dir){
-            if(!dir||!dir.output) return;
-            // Extract early warning / measurement indicators with numbers
-            var m=dir.output.match(/(?:override rates?|accuracy|wait time|uptake|utilisation)[^.]*?(\d+%)[^.]*\./gi);
-            if(m) m.slice(0,2).forEach(function(s){hints.push(s.trim().substring(0,150));});
-          });
-          if(hints.length===0) return "";
-          return "\n\nKILL SWITCH REQUIREMENT: Each kill_switch entry must contain a measurable indicator + specific threshold + timeframe. Examples from Director analyses:\n"+hints.map(function(h){return "- "+h;}).join("\n")+"\nFormat each kill switch as: \"[indicator] exceeds/falls below [threshold] [timeframe].\"";
-        })();
-        var compRaw=await callGovernedSynthesis("comparator",comparatorJsonSystem(decisionId,decisionSignal,results,analysisMode,activeDir,chairOut,instructions,_pCount,_cCount,_hCount),"Run comparator now."+killSwitchHints,autoContinue);
-        var compParsed=extractFirstJsonObject(compRaw);
-        // P1.2b: validate signal interpretation against authoritative counts; correct if drifted
-        if(compParsed&&compParsed.summary&&typeof compParsed.summary.decision_signal_interpretation==="string"){
-          var interp=compParsed.summary.decision_signal_interpretation;
-          if(interp.indexOf(String(_cCount))===-1||interp.indexOf(String(_hCount))===-1){
-            compParsed.summary.decision_signal_interpretation=
-              "[Signal tally: "+_pCount+" PROCEED / "+_cCount+" CAUTION / "+_hCount+" HALT] "+interp;
-          }
-        }
-        compData={raw:compRaw,parsed:compParsed,created_at:new Date().toISOString()};
-        setComparator(compData);
-      }catch(e){stageErrors.push("Comparator failed");}
-
-
-      if(results.length>0) commitToLedger(results,metaOut,stressOut,chairOut,epistemicOut,probeOut,compData,activeDir,omittedDir,analysisMode,stressDecision);
-      if(stageErrors.length>0) setError("Completed with partial failures: "+stageErrors.join(", "));
-
-
-    } catch(fatalErr){
+    } catch(fatalErr) {
       setError("Session error: "+fatalErr.message);
       setPartialFailure(Object.keys(dirOutputs).length>0);
-      if(results.length>0){ try{commitToLedger(results,metaOut,stressOut,chairOut,epistemicOut,probeOut,compData,activeDir,omittedDir,analysisMode,stressTestResult);}catch(le){} }
     } finally {
       setRunning(false); setDone(true);
       setMetaLoading(false);setSurfaceMapLoading(false);setRealityAnchorLoading(false);
       setStressLoading(false);setChairLoading(false);setEpistemicLoading(false);setProbeLoading(false);
-      var cl={}; activeDir.forEach(function(d){cl[d.id]=false;}); setDirLoading(cl);
+      var activeForCleanup=(pipelineState&&pipelineState.activeDir)||activeDirectorsRef;
+      var cl={}; activeForCleanup.forEach(function(d){cl[d.id]=false;}); setDirLoading(cl);
     }
   }
 
@@ -2229,7 +1901,19 @@ function PHDSS() {
   function rescueSession(){
     if(Object.keys(dirOutputs).length===0) return;
     var rescueResults=activeDirectorsRef.filter(function(dir){return dirOutputs[dir.id];}).map(function(dir){return Object.assign({},dir,{output:dirOutputs[dir.id]});});
-    if(rescueResults.length>0){try{commitToLedger(rescueResults,meta,stress,chair,epistemic,probe,comparator,activeDirectorsRef,omittedDirectorsRef,analysisMode);}catch(e){}}
+    if(rescueResults.length>0){
+      try{
+        var rescueRecord=buildLedgerRecord({
+          decisionId:decisionId,decision:decision,decisionSignal:decisionSignal,orgContext:orgContext,
+          webSearch:webSearch,totalLoadedDocs:totalLoadedDocs,sessionEvidence:sessionEvidence,instrLoadState:instrLoadState,
+          results:rescueResults,metaOut:meta,stressOut:stress,chairOut:chair,epistemicOut:epistemic,probeOut:probe,
+          comparatorData:comparator,activeDir:activeDirectorsRef,omittedDir:omittedDirectorsRef,mode:analysisMode,
+          stressResult:null,surfaceMapOut:surfaceMapRef.current,realityAnchorOut:realityAnchorRef.current,
+          dirBriefs:dirBriefsRef.current,synthesisBriefs:synthesisBriefsRef.current
+        });
+        setLedger(function(prev){return prev.concat([rescueRecord]);});
+      }catch(e){}
+    }
     setRunning(false);setDone(true);setPartialFailure(false);setError("");
     setMetaLoading(false);setSurfaceMapLoading(false);setRealityAnchorLoading(false);
     setStressLoading(false);setChairLoading(false);setEpistemicLoading(false);setProbeLoading(false);
