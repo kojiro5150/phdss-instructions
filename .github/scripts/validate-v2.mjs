@@ -42,6 +42,7 @@ const required = [
   "./src/governance-record-contract.js",
   "./src/runtime/instruction-loader.js",
   "./src/runtime/anthropic-client.js",
+  "./src/runtime/governance-compression.js",
   "loadAllInstructions",
   "callClaude_synthesis",
 ];
