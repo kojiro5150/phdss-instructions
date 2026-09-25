@@ -28,6 +28,12 @@ for(const testCase of fixture.cases||[]){
       " but got reason="+(result.reason||"null")
     );
   }
+  if(Object.prototype.hasOwnProperty.call(testCase,"expected_clause")&&result.clause!==testCase.expected_clause){
+    failures.push(
+      testCase.id+": expected clause="+JSON.stringify(testCase.expected_clause)+
+      " but got clause="+JSON.stringify(result.clause)
+    );
+  }
 }
 
 const requiredLayers=[

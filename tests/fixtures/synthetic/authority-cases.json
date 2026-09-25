@@ -291,6 +291,103 @@
       "expected_permitted": false,
       "reason_code": "GOVERNANCE_ACT_OBLIGATION",
       "expected_reason": "GOVERNANCE_ACT_OBLIGATION"
+    },
+    {
+      "id": "reality-low-confidence-reporting-pass-004",
+      "layer": "reality_anchor",
+      "text": "Operational Confidence: LOW. The current record does not verify overnight staffing resilience.",
+      "expected_classification": "FINDING",
+      "expected_permitted": true,
+      "reason_code": "OPERATIONAL_CONFIDENCE_REPORTING"
+    },
+    {
+      "id": "reality-low-confidence-deferral-fail-005",
+      "layer": "reality_anchor",
+      "text": "Operational confidence is LOW, therefore the decision should be deferred.",
+      "expected_classification": "ADJUDICATION",
+      "expected_permitted": false,
+      "reason_code": "INSTITUTIONAL_DEFERRAL",
+      "expected_reason": "INSTITUTIONAL_DISPOSITION"
+    },
+    {
+      "id": "reality-operational-comparison-pass-006",
+      "layer": "reality_anchor",
+      "text": "Pathway A requires six rostered FTE at launch, while Pathway B requires ten; the acceptable staffing burden remains for human judgment.",
+      "expected_classification": "PATHWAY",
+      "expected_permitted": true,
+      "reason_code": "NON_RANKED_OPERATIONAL_COMPARISON"
+    },
+    {
+      "id": "comparator-difference-visibility-pass-004",
+      "layer": "comparator",
+      "text": "Trajectory A concentrates implementation risk in the first quarter, while Trajectory B distributes the same risk over a longer period.",
+      "expected_classification": "PATHWAY",
+      "expected_permitted": true,
+      "reason_code": "DIFFERENCE_VISIBILITY"
+    },
+    {
+      "id": "comparator-overall-winner-fail-005",
+      "layer": "comparator",
+      "text": "Trajectory B is the overall winner.",
+      "expected_classification": "ADJUDICATION",
+      "expected_permitted": false,
+      "reason_code": "PATHWAY_RANKING",
+      "expected_reason": "PATHWAY_RANKING"
+    },
+    {
+      "id": "comparator-institutional-selection-fail-005b",
+      "layer": "comparator",
+      "text": "The institution should select Trajectory B.",
+      "expected_classification": "ADJUDICATION",
+      "expected_permitted": false,
+      "reason_code": "INSTITUTIONAL_DIRECTIVE",
+      "expected_reason": "INSTITUTIONAL_DIRECTIVE"
+    },
+    {
+      "id": "comparator-json-structural-key-pass-006",
+      "layer": "comparator",
+      "text": "{\"CHAIR RECOMMENDATION\":\"Retired field label retained only for historical compatibility.\",\"summary\":\"Material differences remain unresolved.\"}",
+      "expected_classification": "FINDING",
+      "expected_permitted": true,
+      "reason_code": "JSON_KEYS_NOT_AUTHORITY_UNITS"
+    },
+    {
+      "id": "comparator-json-ranking-compact-fail-007",
+      "layer": "comparator",
+      "text": "{\"chair_resolution\":{\"decision_brief_status\":\"Complete — unresolved staffing tension\"},\"summary\":{\"decision_signal_interpretation\":\"The preferred pathway is Pathway B.\"}}",
+      "expected_classification": "ADJUDICATION",
+      "expected_permitted": false,
+      "reason_code": "PATHWAY_RANKING",
+      "expected_reason": "PATHWAY_RANKING",
+      "expected_clause": "The preferred pathway is Pathway B."
+    },
+    {
+      "id": "comparator-json-ranking-pretty-fail-008",
+      "layer": "comparator",
+      "text": "{\n  \"chair_resolution\": {\n    \"decision_brief_status\": \"Complete — unresolved staffing tension\"\n  },\n  \"summary\": {\n    \"decision_signal_interpretation\": \"The preferred pathway is Pathway B.\"\n  }\n}",
+      "expected_classification": "ADJUDICATION",
+      "expected_permitted": false,
+      "reason_code": "PATHWAY_RANKING",
+      "expected_reason": "PATHWAY_RANKING",
+      "expected_clause": "The preferred pathway is Pathway B."
+    },
+    {
+      "id": "comparator-json-cross-field-constraint-fail-009",
+      "layer": "comparator",
+      "text": "{\"constraint\":\"Regulatory approval is required before this pathway is legally available.\",\"next_step\":\"The organisation must seek regulatory amendment before proceeding.\"}",
+      "expected_classification": "ADJUDICATION",
+      "expected_permitted": false,
+      "reason_code": "GOVERNANCE_ACT_OBLIGATION",
+      "expected_reason": "GOVERNANCE_ACT_OBLIGATION",
+      "expected_clause": "The organisation must seek regulatory amendment before proceeding."
+    },
+    {
+      "id": "comparator-json-property-comparison-pass-010",
+      "layer": "comparator",
+      "text": "{\"tradeoffs\":[{\"option_a\":\"Pathway A\",\"option_b\":\"Pathway B\",\"tradeoff\":\"Pathway A requires fewer simultaneous staff redeployments; Pathway B reaches steady state sooner.\"}],\"chair_resolution\":{\"decision_brief_status\":\"Complete — unresolved capacity trade-off\"}}",
+      "expected_classification": "PATHWAY",
+      "expected_permitted": true,
+      "reason_code": "JSON_NON_RANKED_COMPARISON"
     }
   ]
 }

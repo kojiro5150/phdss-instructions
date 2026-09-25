@@ -38,17 +38,45 @@ function splitClauses(text) {
     .filter(Boolean);
 }
 
+function collectJsonStringValues(value, values) {
+  if(typeof value==="string"){
+    values.push(value);
+    return;
+  }
+  if(Array.isArray(value)){
+    for(const item of value) collectJsonStringValues(item,values);
+    return;
+  }
+  if(value&&typeof value==="object"){
+    for(const item of Object.values(value)) collectJsonStringValues(item,values);
+  }
+}
+
+function authorityUnits(text) {
+  const raw=String(text||"");
+  try {
+    const parsed=JSON.parse(raw);
+    const values=[];
+    collectJsonStringValues(parsed,values);
+    return values.flatMap(splitClauses);
+  } catch {
+    return splitClauses(raw);
+  }
+}
+
 function reasonForClause(clause) {
   if(!clause) return null;
   // Questions surface decision issues without themselves adjudicating them.
   if(/\?$/.test(clause)) return null;
 
-  if(/\b(?:best|preferred|superior|stronger)\s+(?:option|pathway|course|alternative)\b/i.test(clause)
+  if(/\b(?:best|preferred|superior|stronger)\s+(?:option|pathway|course|alternative|trajectory)\b/i.test(clause)
     || /\bshould\s+be\s+preferred\b/i.test(clause)
     || /\brank(?:ed|ing)?\b[^.]{0,100}\b(?:first|second|best|worst|preferred)\b/i.test(clause)
-    || /\b(?:supports?|favou?rs?|prefers?)\b[^.]{0,120}\b(?:first|second|third|fourth|pathway|option|course)\b[^.]{0,80}\bover\b[^.]{0,80}\b(?:first|second|third|fourth|pathway|option|course)\b/i.test(clause)
-    || /\b(?:pathway|option|course)\b[^.]{0,80}\bis\s+(?:clearly\s+)?(?:preferable|better|safer|stronger)\s+(?:to|than)\b/i.test(clause)
-    || /\bthe\s+(?:preferred|better|safer|stronger)\s+(?:pathway|option|course)\s+is\b/i.test(clause)) {
+    || /\b(?:supports?|favou?rs?|prefers?)\b[^.]{0,120}\b(?:first|second|third|fourth|pathway|option|course|trajectory)\b[^.]{0,80}\bover\b[^.]{0,80}\b(?:first|second|third|fourth|pathway|option|course|trajectory)\b/i.test(clause)
+    || /\b(?:pathway|option|course|trajectory)\b[^.]{0,80}\bis\s+(?:clearly\s+)?(?:preferable|better|safer|stronger)\s+(?:to|than)\b/i.test(clause)
+    || /\bthe\s+(?:preferred|better|safer|stronger)\s+(?:pathway|option|course|trajectory)\s+is\b/i.test(clause)
+    || /\b(?:pathway|option|course|alternative|trajectory|record)\b[^.]{0,80}\b(?:is|emerges\s+as)\s+(?:the\s+)?(?:overall\s+)?winner\b/i.test(clause)
+    || /\bthe\s+(?:overall\s+)?winner\s+is\s+(?:pathway|option|course|alternative|trajectory|record)\b/i.test(clause)) {
     return "PATHWAY_RANKING";
   }
 
@@ -126,7 +154,7 @@ function reasonForClause(clause) {
 }
 
 export function assessAuthorityBoundary(layer,text) {
-  const clauses=splitClauses(text);
+  const clauses=authorityUnits(text);
   for(const clause of clauses){
     const reason=reasonForClause(clause);
     if(reason) return {violates:true,layer,reason,clause};

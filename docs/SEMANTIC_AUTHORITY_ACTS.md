@@ -85,6 +85,14 @@ Prohibited:
 
 Questions remain permitted because they surface matters for human consideration without assigning the answer or next act.
 
+## Structured JSON outputs
+
+Authority enforcement operates on semantic content rather than JSON serialization syntax.
+
+For valid JSON outputs, property names are structural metadata and are not authority-analysis units. String leaf values are inspected recursively and independently, including strings inside nested objects and arrays. Each string value is clause-split before authority classification.
+
+This makes authority enforcement invariant to compact versus pretty-printed JSON and prevents an external-constraint statement in one field from changing the authority classification of an unrelated field. If output is not valid JSON, the existing prose clause analysis applies.
+
 ## Regression discipline
 
 New authority-act rules should be paired with permissive examples that preserve:
