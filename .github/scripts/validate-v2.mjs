@@ -32,6 +32,9 @@ const required = [
   "repairChairDecisionBoundary",
   "instruction_commit",
   "structured_records",
+  "callGovernedSynthesis",
+  "assessAuthorityBoundary",
+  "authorityBoundaryPrompt",
 ];
 
 const failures = [];
