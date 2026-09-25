@@ -6,7 +6,8 @@ const compressionSource = fs.readFileSync("src/runtime/governance-compression.js
 const promptSource = fs.readFileSync("src/prompt-builders.js", "utf8");
 const coverageSource = fs.readFileSync("src/coverage.js", "utf8");
 const pipelineSource = fs.readFileSync("src/pipeline.js", "utf8");
-const requiredSource = source + "\n" + compressionSource + "\n" + promptSource + "\n" + coverageSource + "\n" + pipelineSource;
+const authoritySource = fs.readFileSync("src/authority-contract.js", "utf8");
+const requiredSource = source + "\n" + compressionSource + "\n" + promptSource + "\n" + coverageSource + "\n" + pipelineSource + "\n" + authoritySource;
 
 parse(source, {
   sourceType: "module",
@@ -30,6 +31,11 @@ parse(coverageSource, {
 });
 
 parse(pipelineSource, {
+  sourceType: "module",
+  errorRecovery: false,
+});
+
+parse(authoritySource, {
   sourceType: "module",
   errorRecovery: false,
 });
@@ -78,6 +84,9 @@ const required = [
   "authority_repair_events",
   "initial_violation_reason",
   "offending_clause_excerpt",
+  "GOVERNANCE_ACT_OBLIGATION",
+  "SEQUENCING_DIRECTIVE",
+  "Do not assign the Chair, Board, organisation",
   "SYNTHESIS EXECUTION",
   "loadAllInstructions",
   "callClaude_synthesis",
