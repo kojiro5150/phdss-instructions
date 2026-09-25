@@ -1952,16 +1952,10 @@ function TransparencyDashboard({decision,dirOutputs,meta,stress,chair,epistemic,
   }
   var biasSummary=d.biasSignals?d.biasSignals.split(/[.!?]/)[0].trim():"";
   var absentSummary=d.absentPerspectives?d.absentPerspectives.split(/[.!?]/)[0].trim():"";
-  var proceedNow=d.chairRec==="PROCEED WITH CONDITIONS"||d.chairRec==="PROCEED WITH CAUTION";
-  var noGo=d.chairRec==="DO NOT PROCEED";
-  var proceedLater=d.chairRec==="DEFER"||d.chairRec==="PROCEED WITH CONDITIONS";
-  var isConditional=d.chairRec==="CONDITIONAL APPROVAL";
-
-
-  // Verdict strip derived values
-  var recColor=d.chairRec==="CONDITIONAL APPROVAL"?"#0891B2":d.chairRec&&d.chairRec.indexOf("CONDITIONS")!==-1?"#059669":d.chairRec&&d.chairRec.indexOf("CAUTION")!==-1?"#D97706":d.chairRec==="DEFER"?"#7C3AED":d.chairRec==="DO NOT PROCEED"?"#DC2626":"#64748B";
-  var recBg=d.chairRec==="CONDITIONAL APPROVAL"?"#ECFEFF":d.chairRec&&d.chairRec.indexOf("CONDITIONS")!==-1?"#F0FDF4":d.chairRec&&d.chairRec.indexOf("CAUTION")!==-1?"#FFFBEB":d.chairRec==="DEFER"?"#F5F3FF":d.chairRec==="DO NOT PROCEED"?"#FEF2F2":"#F8FAFC";
-  var recBorder=d.chairRec==="CONDITIONAL APPROVAL"?"#67E8F9":d.chairRec&&d.chairRec.indexOf("CONDITIONS")!==-1?"#BBF7D0":d.chairRec&&d.chairRec.indexOf("CAUTION")!==-1?"#FDE68A":d.chairRec==="DEFER"?"#DDD6FE":d.chairRec==="DO NOT PROCEED"?"#FECACA":"#E2E8F0";
+  var briefReady=d.decisionBriefStatus&&d.decisionBriefStatus!=="-";
+  var briefColor=d.isPartialEvidenceBrief?"#B45309":briefReady?"#0369A1":"#64748B";
+  var briefBg=d.isPartialEvidenceBrief?"#FFFBEB":briefReady?"#EFF6FF":"#F8FAFC";
+  var briefBorder=d.isPartialEvidenceBrief?"#FDE68A":briefReady?"#BFDBFE":"#E2E8F0";
 
   return (
     <div style={{animation:"fadeIn 0.4s ease"}}>
@@ -2012,13 +2006,13 @@ function TransparencyDashboard({decision,dirOutputs,meta,stress,chair,epistemic,
       }
 
       {/* ── 1. VERDICT STRIP ─────────────────────────────────────────────── */}
-      <div style={{background:"#FFFFFF",border:"2px solid "+recBorder,borderRadius:14,padding:"18px 20px",marginBottom:14,boxShadow:"0 2px 8px rgba(0,0,0,0.06)"}}>
+      <div style={{background:"#FFFFFF",border:"2px solid "+briefBorder,borderRadius:14,padding:"18px 20px",marginBottom:14,boxShadow:"0 2px 8px rgba(0,0,0,0.06)"}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12}}>
           {/* Chair verdict */}
           <div style={{display:"flex",alignItems:"center",gap:14,flex:"1 1 auto",minWidth:0}}>
-            <div style={{padding:"10px 18px",borderRadius:10,background:recBg,border:"1px solid "+recBorder,whiteSpace:"nowrap"}}>
-              <div style={{fontSize:10,color:"#64748B",fontWeight:600,letterSpacing:0.6,marginBottom:3,textTransform:"uppercase"}}>Chair Recommendation</div>
-              <div style={{fontSize:18,fontWeight:800,color:recColor,letterSpacing:-0.3}}>{d.chairRec||<span style={{color:"#94A3B8",fontWeight:400,fontSize:14}}>Awaiting Chair…</span>}</div>
+            <div style={{padding:"10px 18px",borderRadius:10,background:briefBg,border:"1px solid "+briefBorder,whiteSpace:"nowrap"}}>
+              <div style={{fontSize:10,color:"#64748B",fontWeight:600,letterSpacing:0.6,marginBottom:3,textTransform:"uppercase"}}>Decision Brief Status</div>
+              <div style={{fontSize:18,fontWeight:800,color:briefColor,letterSpacing:-0.3,lineHeight:1.3}}>{briefReady?<span>{d.decisionBriefStatus}{d.decisionBriefClause&&<span style={{fontSize:12,fontWeight:500,color:"#475569",marginLeft:6}}>— {d.decisionBriefClause}</span>}</span>:<span style={{color:"#94A3B8",fontWeight:400,fontSize:14}}>Awaiting Decision Brief…</span>}</div>
             </div>
             {/* Signal balance */}
             <div style={{padding:"10px 16px",borderRadius:10,background:"#F8FAFC",border:"1px solid #E2E8F0",whiteSpace:"nowrap"}}>
@@ -2051,26 +2045,29 @@ function TransparencyDashboard({decision,dirOutputs,meta,stress,chair,epistemic,
         </div>
       </div>
 
-      {/* ── 2. DECISION STATUS ───────────────────────────────────────────── */}
+      {/* ── 2. DECISION BRIEF ───────────────────────────────────────────── */}
       <div style={{background:"#FFFFFF",border:"1px solid #E2E8F0",borderRadius:14,padding:"18px 20px",marginBottom:14,boxShadow:"0 1px 4px rgba(0,0,0,0.04)"}}>
-        <SectionHead title="Decision Status" color="#0F172A" pending={!chair&&!done}/>
-        {!chair?<PendingNote stage="Chair" running={running} notStarted={!running&&!done}/>:
+        <SectionHead title="Decision Brief" color="#0F172A" pending={!chair&&!done}/>
+        {!chair?<PendingNote stage="Chair Decision Brief" running={running} notStarted={!running&&!done}/>:
           <div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:14}}>
-              <div style={{padding:"12px 14px",borderRadius:10,background:isConditional?"#ECFEFF":(proceedNow&&!noGo?"#F0FDF4":"#FEF2F2"),border:"1px solid "+(isConditional?"#67E8F9":(proceedNow&&!noGo?"#BBF7D0":"#FECACA")),textAlign:"center"}}>
-                <div style={{fontSize:11,color:"#64748B",marginBottom:4}}>Proceed now?</div>
-                <div style={{fontSize:20,fontWeight:700,color:isConditional?"#0891B2":(proceedNow&&!noGo?"#059669":"#DC2626")}}>{noGo?"No":isConditional?"Verify first":proceedNow?"Conditional":"No"}</div>
+              <div style={{padding:"12px 14px",borderRadius:10,background:briefBg,border:"1px solid "+briefBorder}}>
+                <div style={{fontSize:10,color:"#64748B",marginBottom:4,textTransform:"uppercase",fontWeight:700}}>Brief status</div>
+                <div style={{fontSize:14,fontWeight:800,color:briefColor,lineHeight:1.35}}>{d.decisionBriefStatus||"—"}</div>
               </div>
-              <div style={{padding:"12px 14px",borderRadius:10,background:proceedLater&&!noGo?"#EFF6FF":"#F8FAFC",border:"1px solid "+(proceedLater&&!noGo?"#BFDBFE":"#E2E8F0"),textAlign:"center"}}>
-                <div style={{fontSize:11,color:"#64748B",marginBottom:4}}>If conditions met?</div>
-                <div style={{fontSize:20,fontWeight:700,color:proceedLater&&!noGo?"#0369A1":(isConditional?"#0369A1":"#94A3B8")}}>{noGo?"Unlikely":(proceedLater||isConditional)?"Yes":"Unclear"}</div>
+              <div style={{padding:"12px 14px",borderRadius:10,background:"#F8FAFC",border:"1px solid #E2E8F0"}}>
+                <div style={{fontSize:10,color:"#64748B",marginBottom:4,textTransform:"uppercase",fontWeight:700}}>Director distribution</div>
+                <div style={{fontSize:14,fontWeight:800,color:"#334155"}}>{d.haltCount+" HALT / "+d.cautionCount+" CAUTION / "+d.proceedCount+" PROCEED"}</div>
               </div>
-              <div style={{padding:"12px 14px",borderRadius:10,background:"#FAFAFA",border:"1px solid #E2E8F0",textAlign:"center"}}>
-                <div style={{fontSize:11,color:"#64748B",marginBottom:4}}>Fragility exposure</div>
+              <div style={{padding:"12px 14px",borderRadius:10,background:"#FAFAFA",border:"1px solid #E2E8F0"}}>
+                <div style={{fontSize:10,color:"#64748B",marginBottom:4,textTransform:"uppercase",fontWeight:700}}>Fragility exposure</div>
                 <div style={{fontSize:20,fontWeight:700,color:d.fragScore!=="-"?fragColor:"#94A3B8"}}>{d.fragScore!=="-"?d.fragScore+"/10":(stressTestResult&&stressTestResult.run?"—":"N/A")}</div>
               </div>
             </div>
-            {d.conditions.length>0&&<div><div style={{fontSize:10,fontWeight:700,color:"#0369A1",marginBottom:6,textTransform:"uppercase",letterSpacing:0.6}}>Critical Preconditions</div><div style={{display:"flex",flexDirection:"column",gap:5}}>{d.conditions.map(function(c,i){return <div key={i} style={{fontSize:11,padding:"6px 10px",borderRadius:8,background:"#F8FAFC",border:"1px solid #E2E8F0",color:"#334155",lineHeight:1.55}}><span style={{fontWeight:700,color:"#0369A1",marginRight:6}}>{i+1}.</span>{c.replace(/^\d+\.\s*/,"")}</div>;})}</div></div>}
+            {d.decisionBriefClause&&<div style={{marginBottom:12,padding:"9px 12px",borderRadius:9,background:"#EFF6FF",border:"1px solid #BFDBFE",fontSize:11,color:"#1E3A5F",lineHeight:1.6}}>
+              <span style={{fontWeight:700}}>Central unresolved tension — </span>{d.decisionBriefClause}
+            </div>}
+            {d.conditions.length>0&&<div><div style={{fontSize:10,fontWeight:700,color:"#0369A1",marginBottom:6,textTransform:"uppercase",letterSpacing:0.6}}>Decision Conditions</div><div style={{display:"flex",flexDirection:"column",gap:5}}>{d.conditions.map(function(c,i){return <div key={i} style={{fontSize:11,padding:"6px 10px",borderRadius:8,background:"#F8FAFC",border:"1px solid #E2E8F0",color:"#334155",lineHeight:1.55}}><span style={{fontWeight:700,color:"#0369A1",marginRight:6}}>{i+1}.</span>{c.replace(/^\d+\.\s*/,"")}</div>;})}</div></div>}
             {d.tradeoffs.length>0&&<div style={{marginTop:12}}><div style={{fontSize:10,fontWeight:700,color:"#7C3AED",marginBottom:6,textTransform:"uppercase",letterSpacing:0.6}}>Key Trade-offs</div><div style={{display:"flex",flexDirection:"column",gap:5}}>{d.tradeoffs.map(function(t,i){return <div key={i} style={{fontSize:11,padding:"6px 10px",borderRadius:8,background:"#F5F3FF",border:"1px solid #DDD6FE",color:"#5B21B6",lineHeight:1.55}}><span style={{fontWeight:700,marginRight:6}}>{i+1}.</span>{t.replace(/^\d+\.\s*/,"")}</div>;})}</div></div>}
           </div>
         }
@@ -2085,7 +2082,7 @@ function TransparencyDashboard({decision,dirOutputs,meta,stress,chair,epistemic,
           <ExpandRow label="Integration coherence" count={d.integrationSignal||"-"} color={d.integrationSignal==="HIGH"?"#059669":d.integrationSignal==="MEDIUM"?"#D97706":d.integrationSignal==="LOW"?"#DC2626":"#94A3B8"} items={(d.integrationRationale?["Rationale: "+d.integrationRationale]:[]).concat(d.tensions)} bg="#FFF7ED" border="#FED7AA" textColor="#92400E"/>
           <ExpandRow label="Epistemic health" count={d.epistemicScore||"-"} color={d.epistemicScore==="STRONG"?"#059669":d.epistemicScore==="ADEQUATE"?"#D97706":(d.epistemicScore==="WEAK"||d.epistemicScore==="COMPROMISED")?"#DC2626":"#94A3B8"} items={d.overconfidenceFlags} bg="#FFF5F5" border="#FECACA" textColor="#7F1D1D"/>
           <ExpandRow label="Adversarial gap finding" count={d.probeVerdict||"-"} color={d.probeVerdict==="BOARD REASONING SOUND"?"#059669":d.probeVerdict==="SIGNIFICANT GAPS"?"#D97706":d.probeVerdict==="CONCLUSION CHALLENGED"?"#DC2626":"#94A3B8"} items={d.boardMissed} bg="#F5F3FF" border="#DDD6FE" textColor="#5B21B6"/>
-          <ExpandRow label="Current governance position" count={d.chairRec||"-"} color={d.chairRec==="CONDITIONAL APPROVAL"?"#0891B2":d.chairRec&&d.chairRec.indexOf("CONDITIONS")!==-1?"#059669":d.chairRec&&d.chairRec.indexOf("CAUTION")!==-1?"#D97706":d.chairRec==="DEFER"?"#7C3AED":d.chairRec==="DO NOT PROCEED"?"#DC2626":"#94A3B8"} items={d.conditions} bg="#EFF6FF" border="#BFDBFE" textColor="#1E3A5F"/>
+          <ExpandRow label="Decision brief status" count={d.decisionBriefStatus||"-"} color={d.isPartialEvidenceBrief?"#B45309":briefReady?"#0369A1":"#94A3B8"} items={(d.decisionBriefClause?[d.decisionBriefClause]:[]).concat(d.conditions)} bg="#EFF6FF" border="#BFDBFE" textColor="#1E3A5F"/>
           <ExpandRow label="Fragility score" count={d.fragScore!=="-"?d.fragScore+"/10":(stressTestResult&&stressTestResult.run?"Not extracted":"N/A — not run")} color={d.fragScore!=="-"?fragColor:"#94A3B8"} items={d.allFragility.map(function(f){return "["+f.source+"] "+f.text;})} bg="#FFF5F5" border="#FECACA" textColor="#7F1D1D"/>
           <ExpandRow label="AI Integrity score ⓘ" count={d.aiIntegrityScore!==null&&d.aiIntegrityScore!==undefined?d.aiIntegrityScore+"%":"-"} color={d.aiIntegrityScore>=70?"#059669":d.aiIntegrityScore>=40?"#D97706":"#DC2626"} items={d.epistemicGaps.concat(d.aiIntegrityScore!==null?["Composite: Epistemic health (60%) + Adversarial Probe (40%). Low scores indicate analytical uncertainty, not a system error."+(d.analysisMode!=="FULL"?" Expected range for "+d.analysisMode+" mode ("+d.activeDirectorCount+"/"+DIRECTORS.length+" directors)" is lower than FULL mode — score is structurally depressed by partial coverage.":"")]:[])} bg="#FFF5F5" border="#FECACA" textColor="#7F1D1D"/>
         </div>
