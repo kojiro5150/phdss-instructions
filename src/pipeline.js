@@ -145,9 +145,18 @@ function runtimeNow(runtime) {
   return runtime && runtime.nowImpl ? runtime.nowImpl() : new Date().toISOString();
 }
 
+function boundedAuthorityClause(clause) {
+  var value=String(clause||"").replace(/\s+/g," ").trim();
+  return value.length>600?value.substring(0,597)+"...":value;
+}
+
+function emitAuthorityRepairTelemetry(runtime,event) {
+  if(!runtime||typeof runtime.onAuthorityRepairEvent!=="function") return;
+  try { runtime.onAuthorityRepairEvent(Object.assign({},event)); } catch(e) {}
+}
+
 export function authorityViolationMessage(layer,assessment,attemptCount) {
-  var clause=String((assessment&&assessment.clause)||"").replace(/\s+/g," ").trim();
-  if(clause.length>600) clause=clause.substring(0,597)+"...";
+  var clause=boundedAuthorityClause(assessment&&assessment.clause);
   return layer+" authority boundary violation persisted after "+attemptCount+" repair attempt"+(attemptCount===1?"":"s")+": "+((assessment&&assessment.reason)||"UNKNOWN")+(clause?" | Offending clause: "+clause:"");
 }
 
@@ -156,6 +165,9 @@ export async function enforceSynthesisAuthority(layer,text,systemPrompt,userProm
   var current=stripCalibrationBleed(text);
   var assessment=assessAuthorityBoundary(layer,current);
   if(!assessment.violates) return current;
+
+  var initialAssessment=assessment;
+  var initialClause=boundedAuthorityClause(initialAssessment.clause);
 
   for(var attempt=1;attempt<=2;attempt++) {
     var offendingClause=String(assessment.clause||"").replace(/\s+/g," ").trim();
@@ -168,9 +180,29 @@ export async function enforceSynthesisAuthority(layer,text,systemPrompt,userProm
     var raw=await runtimeApiCall(runtime)(repairSystem,repairUser,false);
     current=stripCalibrationBleed(raw.text||"");
     assessment=assessAuthorityBoundary(layer,current);
-    if(!assessment.violates) return current;
+    if(!assessment.violates) {
+      emitAuthorityRepairTelemetry(runtime,{
+        layer:layer,
+        initial_violation_reason:initialAssessment.reason,
+        attempt_count:attempt,
+        outcome:"repaired",
+        offending_clause_excerpt:initialClause,
+        final_violation_reason:null,
+        final_offending_clause_excerpt:null,
+      });
+      return current;
+    }
   }
 
+  emitAuthorityRepairTelemetry(runtime,{
+    layer:layer,
+    initial_violation_reason:initialAssessment.reason,
+    attempt_count:2,
+    outcome:"failed",
+    offending_clause_excerpt:initialClause,
+    final_violation_reason:assessment.reason||null,
+    final_offending_clause_excerpt:boundedAuthorityClause(assessment.clause)||null,
+  });
   throw new Error(authorityViolationMessage(layer,assessment,2));
 }
 
@@ -219,6 +251,7 @@ export function buildLedgerRecord(input,runtime) {
     failed_synthesis_stages:failedSynthesisStages,
     failed_mandatory_synthesis_stages:failedMandatorySynthesisStages,
     stage_errors:(input.stageErrors||[]).slice(),
+    authority_repair_events:(input.authorityRepairEvents||[]).map(function(event){return Object.assign({},event);}),
     run_intensity:mode==="FULL"?"MAXIMUM":mode==="CORE"?"MINIMUM_VIABLE":"CUSTOM",
     analysis_mode:mode,
     coverage_ratio:activeDir.length+"/"+DIRECTORS.length,
@@ -316,6 +349,7 @@ function makeLedgerInput(config,state,stressResult) {
     synthesisBriefs:state.synthesisBriefs,
     synthesisStageStatus:state.synthesisStageStatus,
     stageErrors:state.stageErrors,
+    authorityRepairEvents:state.authorityRepairEvents,
   };
 }
 
@@ -328,11 +362,22 @@ export async function runGovernancePipeline(config,runtime,emit) {
   var deterministicDirector=runtime.deterministicDirectorBriefImpl||deterministicDirectorBrief;
   var compressSynthesis=runtime.compressSynthesisImpl||compressSynthesisOutput;
   var deterministicSynthesis=runtime.deterministicSynthesisBriefImpl||deterministicSynthesisBrief;
+  var authorityRepairEvents=[];
+  var externalAuthorityObserver=runtime.onAuthorityRepairEvent;
+  var governedRuntime=Object.assign({},runtime,{
+    onAuthorityRepairEvent:function(event){
+      authorityRepairEvents.push(Object.assign({},event));
+      emit("authority-repair",{event:Object.assign({},event)});
+      if(typeof externalAuthorityObserver==="function"){
+        try { externalAuthorityObserver(Object.assign({},event)); } catch(e) {}
+      }
+    }
+  });
   var runGoverned=runtime.callGovernedSynthesisImpl||function(layer,systemPrompt,userPrompt,autoContinue,useWeb){
-    return callGovernedSynthesis(layer,systemPrompt,userPrompt,autoContinue,useWeb,runtime);
+    return callGovernedSynthesis(layer,systemPrompt,userPrompt,autoContinue,useWeb,governedRuntime);
   };
   var repairChair=runtime.repairChairDecisionBoundaryImpl||function(text,systemPrompt,userPrompt){
-    return repairChairDecisionBoundary(text,systemPrompt,userPrompt,runtime);
+    return repairChairDecisionBoundary(text,systemPrompt,userPrompt,governedRuntime);
   };
 
   var activeDir=resolveActiveDirectors(config.analysisMode,config.decision,config.chairSelectedIds||[]);
@@ -341,7 +386,7 @@ export async function runGovernancePipeline(config,runtime,emit) {
     activeDir:activeDir,omittedDir:omittedDir,results:[],dirBriefs:{},synthesisBriefs:{},
     metaOut:"",surfaceMapOut:"",realityAnchorOut:"",stressOut:"",chairOut:"",
     epistemicOut:"",probeOut:"",comparatorData:null,stageErrors:[],stressDecision:null,
-    synthesisStageStatus:{}
+    synthesisStageStatus:{},authorityRepairEvents:authorityRepairEvents
   };
 
   emit("active-directors",{activeDir:activeDir,omittedDir:omittedDir});
