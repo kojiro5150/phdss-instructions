@@ -3543,19 +3543,24 @@ function PHDSS() {
 
             {hasStarted&&<div style={{animation:"fadeIn 0.4s ease"}}>
               {(chair||chairLoading)&&<div style={{marginBottom:18}}>
-                <div style={{fontSize:10,letterSpacing:1.5,color:"#0369A1",textTransform:"uppercase",fontWeight:700,marginBottom:12,background:"#EFF6FF",padding:"4px 10px",borderRadius:8,display:"inline-block"}}>Board Decision</div>
+                <div style={{fontSize:10,letterSpacing:1.5,color:"#0369A1",textTransform:"uppercase",fontWeight:700,marginBottom:12,background:"#EFF6FF",padding:"4px 10px",borderRadius:8,display:"inline-block"}}>Decision Brief</div>
                 {(function(){
                   var failedLabels=activeDirectorsRef.filter(function(d){var out=dirOutputs[d.id]||""; return out.length>0&&/^\[Director failed:/i.test(out.trim());}).map(function(d){return d.label;});
                   if(!failedLabels.length) return null;
                   return <div style={{marginBottom:8,padding:"9px 13px",borderRadius:9,background:"#FFF7ED",border:"1px solid #FED7AA",display:"flex",gap:8,alignItems:"flex-start"}}>
                     <span style={{fontSize:13,flexShrink:0}}>⚠</span>
-                    <div><span style={{fontSize:11,fontWeight:700,color:"#92400E"}}>PARTIAL EVIDENCE BASE — </span><span style={{fontSize:11,color:"#92400E"}}>Chair recommendation synthesised without: {failedLabels.join(", ")}.</span></div>
+                    <div><span style={{fontSize:11,fontWeight:700,color:"#92400E"}}>PARTIAL EVIDENCE BASE — </span><span style={{fontSize:11,color:"#92400E"}}>Decision Brief synthesised without: {failedLabels.join(", ")}.</span></div>
                   </div>;
                 })()}
-                <Panel title="Governance Reasoning Record" icon="C" color="#0369A1" tooltip="Surfaces the governance reasoning record — key discovery, tensions, adversarial challenge, and current governance position. Final decision authority remains with human governance leaders." content={chair} loading={chairLoading} badge={extractStatusBadge(chair,"chair")||(chairSignal?<SignalPill signal={chairSignal}/>:null)} onExport={chair?function(){exportPanel("Chair_Decision",chairRef.current||chair,decisionId,decision,decisionSignal,orgContext);}:null}>
-                  {chair&&!chairLoading&&d&&d.keyDiscovery&&<div style={{background:"#EAF2FA",border:"1px solid #1A5276",borderRadius:8,padding:"10px 14px",marginBottom:12,fontSize:11,color:"#0F1923"}}><span style={{fontWeight:700,color:"#1A5276",textTransform:"uppercase",fontSize:10,letterSpacing:1,display:"block",marginBottom:4}}>Key Discovery</span>{d.keyDiscovery}</div>}
-                  {chair&&!chairLoading&&<ChairDialogue dialogueSystem={dialogueSystem} dialogueHistory={dialogueHistory} onDialogueHistory={setDialogueHistory}/>}
-                </Panel>
+                {(function(){
+                  var view=synthesisGovViews.chair||"governance";
+                  var rec=synthesisBriefs.chair?synthesisBriefToGovernanceRecord(synthesisBriefs.chair):null;
+                  return <Panel title="Decision Brief" icon="C" color="#0369A1" tooltip="Integrates tensions, conditions, uncertainties and adversarial challenge without selecting a preferred course of action. Decision authority remains with human governance leaders." content={view==="technical"?chair:""} loading={chairLoading} badge={extractStatusBadge(chair,"chair")} onExport={chair?function(){exportPanel("Chair_Decision",chairRef.current||chair,decisionId,decision,decisionSignal,orgContext,view,rec);}:null}>
+                    {chair&&!chairLoading&&<GovToggle view={view} setView={function(v){setSynthesisGovViews(function(prev){var n=Object.assign({},prev);n.chair=v;return n;});}} hasContent={!!chair}/>}
+                    {chair&&!chairLoading&&view==="governance"&&<GovernanceRecord record={rec}/>}
+                    {chair&&!chairLoading&&<ChairDialogue dialogueSystem={dialogueSystem} dialogueHistory={dialogueHistory} onDialogueHistory={setDialogueHistory}/>}
+                  </Panel>;
+                })()}
               </div>}
 
 
@@ -3583,18 +3588,55 @@ function PHDSS() {
               </div>
               <div>
                 <div style={{fontSize:10,letterSpacing:1.5,color:"#6D28D9",textTransform:"uppercase",fontWeight:700,marginBottom:12,background:"#EDE9FE",padding:"4px 10px",borderRadius:8,display:"inline-block"}}>Governance Synthesis</div>
-                <Panel title="Decision Stress Test" icon="S" color="#EF4444" tooltip="Worst-case failure cascade analysis. Tests the decision against adverse scenarios, second-order consequences, and irreversibility. Fragility Score 1–10 (10 = extremely fragile)." content={stress} loading={stressLoading} badge={stressTestResult&&!stressTestResult.run&&done?<span style={{fontSize:9,padding:"2px 7px",borderRadius:8,background:"#F1F5F9",color:"#64748B",fontWeight:600}}>SKIPPED</span>:extractStatusBadge(stress,"stress")} onExport={stress?function(){exportPanel("Stress_Test",stressRef.current||stress,decisionId,decision,decisionSignal,orgContext);}:null}>{stressTestResult&&!stressTestResult.run&&done&&<div style={{fontSize:11,color:"#64748B",padding:"8px 0",fontStyle:"italic"}}>{stressTestResult.reason}</div>}</Panel>
-                <Panel title="Adversarial Bias Probe" icon="P" color="#7C3AED" tooltip="Steelmans the strongest counter-argument and actively challenges the Board's reasoning. Identifies what was missed, whose perspective is absent, and where AI limitations are most visible." content={probeView==="technical"?probe:""} loading={probeLoading} badge={extractStatusBadge(probe,"probe")} onExport={probe?function(){exportPanel("Adversarial_Probe",probeRef.current||probe,decisionId,decision,decisionSignal,orgContext);}:null}>
-                  {probe&&!probeLoading&&<GovToggle view={probeView} setView={setProbeView} hasContent={!!probe}/>}
-                  {probe&&!probeLoading&&probeView==="governance"&&<ProbeGovernanceRecord decision={decision}/>}
-                </Panel>
-                <Panel title="Reality Anchor" icon="A" color="#0369A1" tooltip="Grounds the analysis in operational reality — baseline conditions, implementation capability, reversibility, and accountability. Flags where the governance reasoning departs from what is actually achievable." content={realityView==="technical"?realityAnchor:""} loading={realityAnchorLoading} badge={extractStatusBadge(realityAnchor,"reality")} onExport={realityAnchor?function(){exportPanel("Reality_Anchor",realityAnchorRef.current||realityAnchor,decisionId,decision,decisionSignal,orgContext);}:null}>
-                  {realityAnchor&&!realityAnchorLoading&&<GovToggle view={realityView} setView={setRealityView} hasContent={!!realityAnchor}/>}
-                  {realityAnchor&&!realityAnchorLoading&&realityView==="governance"&&<RealityGovernanceRecord decision={decision}/>}
-                </Panel>
-                <Panel title="Cross-Domain Tension Analysis" icon="M" color="#7C3AED" tooltip="Synthesises all Director outputs into a cross-domain reasoning map. Surfaces conflicts, hidden assumptions, reasoning gaps, and unresolved tensions. Produces the Integration Signal (HIGH/MEDIUM/LOW)." content={meta} loading={metaLoading} badge={extractStatusBadge(meta,"meta")} onExport={meta?function(){exportPanel("Cross-Domain_Tension_Analysis",metaRef.current||meta,decisionId,decision,decisionSignal,orgContext);}:null}/>
-                <Panel title="Epistemic Confidence Audit" icon="E" color="#DC2626" tooltip="Rates each Director's analytical confidence (HIGH/MEDIUM/LOW/UNCERTAIN) and flags overconfidence, systematic bias signals, and epistemic gaps. Produces the Epistemic Health Score used in AI Integrity." content={epistemic} loading={epistemicLoading} badge={extractStatusBadge(epistemic,"epistemic")} onExport={epistemic?function(){exportPanel("Epistemic_Audit",epistemicRef.current||epistemic,decisionId,decision,decisionSignal,orgContext);}:null}/>
-                <Panel title="Decision Surface Map" icon="⊕" color="#0891B2" tooltip="Maps the full signal landscape across all active Directors — consensus zones, conflict zones, trade-off axes, and fragility hotspots. Produces the Dominant Signal summary." content={surfaceMap} loading={surfaceMapLoading} badge={extractStatusBadge(surfaceMap,"surfacemap")} onExport={surfaceMap?function(){exportPanel("Decision_Surface_Map",surfaceMapRef.current||surfaceMap,decisionId,decision,decisionSignal,orgContext);}:null}/>
+                {(function(){
+                  var view=synthesisGovViews.stress||"governance";
+                  var rec=synthesisBriefs.stress?synthesisBriefToGovernanceRecord(synthesisBriefs.stress):null;
+                  return <Panel title="Decision Stress Test" icon="S" color="#EF4444" tooltip="Worst-case failure cascade analysis. Tests the decision against adverse scenarios, second-order consequences, and irreversibility. Fragility Score 1–10 (10 = extremely fragile)." content={view==="technical"?stress:""} loading={stressLoading} badge={stressTestResult&&!stressTestResult.run&&done?<span style={{fontSize:9,padding:"2px 7px",borderRadius:8,background:"#F1F5F9",color:"#64748B",fontWeight:600}}>SKIPPED</span>:extractStatusBadge(stress,"stress")} onExport={stress?function(){exportPanel("Stress_Test",stressRef.current||stress,decisionId,decision,decisionSignal,orgContext,view,rec);}:null}>
+                    {stressTestResult&&!stressTestResult.run&&done&&<div style={{fontSize:11,color:"#64748B",padding:"8px 0",fontStyle:"italic"}}>{stressTestResult.reason}</div>}
+                    {stress&&!stressLoading&&<GovToggle view={view} setView={function(v){setSynthesisGovViews(function(prev){var n=Object.assign({},prev);n.stress=v;return n;});}} hasContent={!!stress}/>}
+                    {stress&&!stressLoading&&view==="governance"&&<GovernanceRecord record={rec}/>}
+                  </Panel>;
+                })()}
+                {(function(){
+                  var view=synthesisGovViews.probe||"governance";
+                  var rec=synthesisBriefs.probe?synthesisBriefToGovernanceRecord(synthesisBriefs.probe):null;
+                  return <Panel title="Adversarial Bias Probe" icon="P" color="#7C3AED" tooltip="Steelmans the strongest counter-argument and actively challenges the Board's reasoning. Identifies what was missed, whose perspective is absent, and where AI limitations are most visible." content={view==="technical"?probe:""} loading={probeLoading} badge={extractStatusBadge(probe,"probe")} onExport={probe?function(){exportPanel("Adversarial_Probe",probeRef.current||probe,decisionId,decision,decisionSignal,orgContext,view,rec);}:null}>
+                    {probe&&!probeLoading&&<GovToggle view={view} setView={function(v){setSynthesisGovViews(function(prev){var n=Object.assign({},prev);n.probe=v;return n;});}} hasContent={!!probe}/>}
+                    {probe&&!probeLoading&&view==="governance"&&<GovernanceRecord record={rec}/>}
+                  </Panel>;
+                })()}
+                {(function(){
+                  var view=synthesisGovViews.reality||"governance";
+                  var rec=synthesisBriefs.reality?synthesisBriefToGovernanceRecord(synthesisBriefs.reality):null;
+                  return <Panel title="Reality Anchor" icon="A" color="#0369A1" tooltip="Grounds the analysis in operational reality — baseline conditions, implementation capability, reversibility, and accountability." content={view==="technical"?realityAnchor:""} loading={realityAnchorLoading} badge={extractStatusBadge(realityAnchor,"reality")} onExport={realityAnchor?function(){exportPanel("Reality_Anchor",realityAnchorRef.current||realityAnchor,decisionId,decision,decisionSignal,orgContext,view,rec);}:null}>
+                    {realityAnchor&&!realityAnchorLoading&&<GovToggle view={view} setView={function(v){setSynthesisGovViews(function(prev){var n=Object.assign({},prev);n.reality=v;return n;});}} hasContent={!!realityAnchor}/>}
+                    {realityAnchor&&!realityAnchorLoading&&view==="governance"&&<GovernanceRecord record={rec}/>}
+                  </Panel>;
+                })()}
+                {(function(){
+                  var view=synthesisGovViews.meta||"governance";
+                  var rec=synthesisBriefs.meta?synthesisBriefToGovernanceRecord(synthesisBriefs.meta):null;
+                  return <Panel title="Cross-Domain Tension Analysis" icon="M" color="#7C3AED" tooltip="Synthesises all Director outputs into a cross-domain reasoning map. Surfaces conflicts, hidden assumptions, reasoning gaps, and unresolved tensions." content={view==="technical"?meta:""} loading={metaLoading} badge={extractStatusBadge(meta,"meta")} onExport={meta?function(){exportPanel("Cross-Domain_Tension_Analysis",metaRef.current||meta,decisionId,decision,decisionSignal,orgContext,view,rec);}:null}>
+                    {meta&&!metaLoading&&<GovToggle view={view} setView={function(v){setSynthesisGovViews(function(prev){var n=Object.assign({},prev);n.meta=v;return n;});}} hasContent={!!meta}/>}
+                    {meta&&!metaLoading&&view==="governance"&&<GovernanceRecord record={rec}/>}
+                  </Panel>;
+                })()}
+                {(function(){
+                  var view=synthesisGovViews.epistemic||"governance";
+                  var rec=synthesisBriefs.epistemic?synthesisBriefToGovernanceRecord(synthesisBriefs.epistemic):null;
+                  return <Panel title="Epistemic Confidence Audit" icon="E" color="#DC2626" tooltip="Rates analytical confidence and flags overconfidence, systematic bias signals, and epistemic gaps." content={view==="technical"?epistemic:""} loading={epistemicLoading} badge={extractStatusBadge(epistemic,"epistemic")} onExport={epistemic?function(){exportPanel("Epistemic_Audit",epistemicRef.current||epistemic,decisionId,decision,decisionSignal,orgContext,view,rec);}:null}>
+                    {epistemic&&!epistemicLoading&&<GovToggle view={view} setView={function(v){setSynthesisGovViews(function(prev){var n=Object.assign({},prev);n.epistemic=v;return n;});}} hasContent={!!epistemic}/>}
+                    {epistemic&&!epistemicLoading&&view==="governance"&&<GovernanceRecord record={rec}/>}
+                  </Panel>;
+                })()}
+                {(function(){
+                  var view=synthesisGovViews.surfacemap||"governance";
+                  var rec=synthesisBriefs.surfacemap?synthesisBriefToGovernanceRecord(synthesisBriefs.surfacemap):null;
+                  return <Panel title="Decision Surface Map" icon="⊕" color="#0891B2" tooltip="Maps the signal landscape across active Directors — convergence, conflict zones, trade-offs and fragility hotspots." content={view==="technical"?surfaceMap:""} loading={surfaceMapLoading} badge={extractStatusBadge(surfaceMap,"surfacemap")} onExport={surfaceMap?function(){exportPanel("Decision_Surface_Map",surfaceMapRef.current||surfaceMap,decisionId,decision,decisionSignal,orgContext,view,rec);}:null}>
+                    {surfaceMap&&!surfaceMapLoading&&<GovToggle view={view} setView={function(v){setSynthesisGovViews(function(prev){var n=Object.assign({},prev);n.surfacemap=v;return n;});}} hasContent={!!surfaceMap}/>}
+                    {surfaceMap&&!surfaceMapLoading&&view==="governance"&&<GovernanceRecord record={rec}/>}
+                  </Panel>;
+                })()}
                 {done&&<div style={{marginTop:12,padding:"11px 15px",borderRadius:12,background:"#F0FDF4",border:"1px solid #BBF7D0",fontSize:11,color:"#065F46",lineHeight:1.6,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
                   <span>Audit Trail: {activeDirectorsRef.length} Directors ({analysisMode}) · Surface Map · Epistemic · META · Reality · Probe{stressTestResult&&stressTestResult.run?" · Stress Test":" · Stress Test (skipped)"} · Chair{comparator?" · Comparator":""} — {decisionId}</span>
                   <button onClick={function(){setTab("dashboard");}} style={{fontSize:11,padding:"5px 14px",borderRadius:9,border:"none",background:"linear-gradient(135deg,#0EA5E9,#0369A1)",color:"#FFFFFF",fontWeight:600,cursor:"pointer"}}>View Dashboard</button>
@@ -3629,7 +3671,7 @@ function PHDSS() {
                   onExport={lensComparator?function(){exportPanel("Lens_Comparator",lensComparator,decisionId,decision,decisionSignal,orgContext);}:null}/>
               </div>}
               {advisoryDone&&<div style={{marginTop:12,padding:"11px 15px",borderRadius:12,background:"#F5F3FF",border:"1px solid #DDD6FE",fontSize:11,color:"#5B21B6",lineHeight:1.7}}>
-                <strong>Advisory only.</strong> For governance-grade analysis with Chair recommendation, switch to a Governance Run.
+                <strong>Advisory only.</strong> For governance-grade analysis with a Decision Brief and full audit trail, switch to a Governance Run.
               </div>}
             </div>}
 
@@ -3637,7 +3679,7 @@ function PHDSS() {
             {!hasStarted&&!advisoryStarted&&<div style={{textAlign:"center",padding:"60px 20px",animation:"fadeIn 0.5s ease"}}>
               <div style={{width:64,height:64,borderRadius:18,background:"linear-gradient(135deg,#EFF6FF,#DBEAFE)",border:"1px solid #BFDBFE",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 20px",fontSize:28,fontWeight:700,color:"#0369A1"}}>P</div>
               <div style={{fontSize:16,color:"#0F172A",marginBottom:8,fontWeight:700}}>Governance-Grade Decision Intelligence</div>
-              <div style={{fontSize:13,color:"#64748B",maxWidth:520,margin:"0 auto 24px",lineHeight:1.8}}><strong>Governance Runs</strong>: CORE, FULL, or CHAIR SPECIFIED — full synthesis pipeline with Chair decision. <strong>Advisory Runs</strong>: Director Brief or Dual Lens — fast domain briefings without governance modules.</div>
+              <div style={{fontSize:13,color:"#64748B",maxWidth:520,margin:"0 auto 24px",lineHeight:1.8}}><strong>Governance Runs</strong>: CORE, FULL, or CHAIR SPECIFIED — full synthesis pipeline with a Chair Decision Brief. <strong>Advisory Runs</strong>: Director Brief or Dual Lens — fast domain briefings without governance modules.</div>
               <div style={{display:"flex",justifyContent:"center",flexWrap:"wrap",gap:8}}>
                 {DIRECTORS.map(function(d){return <div key={d.id} style={{display:"flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:20,background:"#FFFFFF",border:"1px solid #E2E8F0"}}><div style={{width:20,height:20,borderRadius:6,background:d.color+"18",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10}}><span style={{color:d.color}}>{d.icon}</span></div><span style={{fontSize:11,fontWeight:500,color:"#334155"}}>{d.label}</span></div>;})}
               </div>
