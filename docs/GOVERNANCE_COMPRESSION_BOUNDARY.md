@@ -28,11 +28,15 @@ The semantic authority rules are **not reimplemented** here. The compression run
 
 This preserves an important existing behavior: if a synthesis Governance Brief is structurally valid but crosses the authority boundary, that attempt is rejected inside the same two-attempt extraction loop. A second violation leads to the same deterministic fallback path as before.
 
-The main synthesis authority path remains in `App_FINAL.jsx`:
+The main synthesis authority path now lives in `src/pipeline.js`:
 
 - `enforceSynthesisAuthority`;
 - `callGovernedSynthesis`;
-- Chair compatibility repair.
+- Chair compatibility repair;
+- Comparator schema validation;
+- Decision Ledger assembly.
+
+`App_FINAL.jsx` retains the React adapter/state boundary rather than owning synthesis authority logic.
 
 ## Compatibility invariants
 
@@ -50,15 +54,11 @@ Regression tests preserve:
 
 ## Deliberately deferred
 
-This PR does not move:
+Current deferred boundaries are:
 
-- synthesis execution order;
-- synthesis authority repair;
-- React state or refs;
-- `storeSynthesisBrief`;
-- ledger assembly;
-- signal rescue;
+- React presentation state and refs;
 - `parseDashboard`;
-- board-facing Governance Record adapters.
+- Advisory execution extraction (`runAdvisory`);
+- board-facing presentation adapters not already modularised.
 
-Those remain separately reviewable orchestration boundaries.
+Synthesis execution order, authority repair, Comparator schema enforcement, Governance Brief storage, and Ledger assembly are now owned by the extracted runtime/pipeline modules.
