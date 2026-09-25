@@ -22,6 +22,12 @@ for(const testCase of fixture.cases||[]){
       (result.reason?" ("+result.reason+")":"")
     );
   }
+  if(testCase.expected_reason&&result.reason!==testCase.expected_reason){
+    failures.push(
+      testCase.id+": expected reason="+testCase.expected_reason+
+      " but got reason="+(result.reason||"null")
+    );
+  }
 }
 
 const requiredLayers=[

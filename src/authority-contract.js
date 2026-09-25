@@ -45,8 +45,15 @@ function reasonForClause(clause) {
 
   if(/\b(?:best|preferred|superior|stronger)\s+(?:option|pathway|course|alternative)\b/i.test(clause)
     || /\bshould\s+be\s+preferred\b/i.test(clause)
-    || /\brank(?:ed|ing)?\b[^.]{0,100}\b(?:first|second|best|worst|preferred)\b/i.test(clause)) {
+    || /\brank(?:ed|ing)?\b[^.]{0,100}\b(?:first|second|best|worst|preferred)\b/i.test(clause)
+    || /\b(?:supports?|favou?rs?|prefers?)\b[^.]{0,120}\b(?:first|second|third|fourth|pathway|option|course)\b[^.]{0,80}\bover\b[^.]{0,80}\b(?:first|second|third|fourth|pathway|option|course)\b/i.test(clause)
+    || /\b(?:pathway|option|course)\b[^.]{0,80}\bis\s+(?:clearly\s+)?(?:preferable|better|safer|stronger)\s+(?:to|than)\b/i.test(clause)
+    || /\bthe\s+(?:preferred|better|safer|stronger)\s+(?:pathway|option|course)\s+is\b/i.test(clause)) {
     return "PATHWAY_RANKING";
+  }
+
+  if(/\b(?:sites?|settings?|jurisdictions?|populations?)\b[^.]{0,120}\bshould\s+be\s+(?:included|excluded)\b[^.]{0,100}\b(?:pilot|deployment|rollout|scope)\b/i.test(clause)) {
+    return "PATHWAY_SELECTION";
   }
 
   if(/\b(?:conflict|tension|trade[- ]off)\b[^.]{0,120}\b(?:is|has been|should be)\s+resolved\b/i.test(clause)

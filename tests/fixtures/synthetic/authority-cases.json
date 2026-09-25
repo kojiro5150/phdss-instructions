@@ -153,6 +153,58 @@
       "expected_classification": "ADJUDICATION",
       "expected_permitted": false,
       "reason_code": "ALTERNATIVE_SELECTION"
+    },
+    {
+      "id": "live-chair-ranking-supports-over-20260925",
+      "layer": "chair",
+      "text": "The governance record supports the first pathway over the second, not because the first leads to deployment but because deferral without a conditions-satisfaction programme is not a governance decision.",
+      "expected_classification": "ADJUDICATION",
+      "expected_permitted": false,
+      "reason_code": "PATHWAY_RANKING",
+      "expected_reason": "PATHWAY_RANKING"
+    },
+    {
+      "id": "ranking-preferable-002",
+      "layer": "chair",
+      "text": "Pathway A is preferable to Pathway B.",
+      "expected_classification": "ADJUDICATION",
+      "expected_permitted": false,
+      "reason_code": "PATHWAY_RANKING",
+      "expected_reason": "PATHWAY_RANKING"
+    },
+    {
+      "id": "ranking-safer-course-003",
+      "layer": "chair",
+      "text": "The safer course is Pathway A.",
+      "expected_classification": "ADJUDICATION",
+      "expected_permitted": false,
+      "reason_code": "PATHWAY_RANKING",
+      "expected_reason": "PATHWAY_RANKING"
+    },
+    {
+      "id": "pilot-scope-directive-001",
+      "layer": "chair",
+      "text": "Rural and remote sites should be excluded from initial pilot scope until the capacity assessment is complete.",
+      "expected_classification": "ADJUDICATION",
+      "expected_permitted": false,
+      "reason_code": "PATHWAY_SELECTION",
+      "expected_reason": "PATHWAY_SELECTION"
+    },
+    {
+      "id": "pilot-description-002",
+      "layer": "chair",
+      "text": "A pilot pathway could be structured as a twelve-month, two-site research programme with pre-specified halt criteria, subject to human approval.",
+      "expected_classification": "PATHWAY",
+      "expected_permitted": true,
+      "reason_code": "HYPOTHETICAL_PATHWAY_DESCRIPTION"
+    },
+    {
+      "id": "pilot-conditions-003",
+      "layer": "chair",
+      "text": "A pilot pathway would require confirmed regulatory status, ethics approval, and pre-specified halt criteria.",
+      "expected_classification": "CONDITION",
+      "expected_permitted": true,
+      "reason_code": "CONDITION_REPORTING"
     }
   ]
 }
