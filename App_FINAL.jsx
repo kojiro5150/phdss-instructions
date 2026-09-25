@@ -1054,19 +1054,21 @@ function lensComparatorSystem(directorA, directorB, entries, useWeb, publicWeb, 
 
 
 function comparatorJsonSystem(decisionId, decisionSignal, directorOutputs, analysisMode, activeDirectors, chairOutput, instructions, proceedCount, cautionCount, haltCount) {
-  var bundle = directorOutputs.map(function(d){ return "---\nDIRECTOR: "+d.label+"\n"+d.output+"\n"; }).join("\n");
-  var signalBlock = (decisionSignal&&decisionSignal.trim()) ? "\n## Decision Signal\n"+decisionSignal.trim()+"\n" : "";
-  var tallyLine = (typeof cautionCount==="number")
+  var bundle=directorOutputs.map(function(d){return "---\nDIRECTOR: "+d.label+"\n"+d.output+"\n";}).join("\n");
+  var signalBlock=(decisionSignal&&decisionSignal.trim())?"\n## Decision Signal\n"+decisionSignal.trim()+"\n":"";
+  var tallyLine=(typeof cautionCount==="number")
     ? "\nSignal Tally (authoritative — use these exact figures in decision_signal_interpretation): "+proceedCount+" PROCEED / "+cautionCount+" CAUTION / "+haltCount+" HALT\n"
     : "";
-  var covBlock = "\n## Coverage\nAnalysis Mode: "+analysisMode+tallyLine+"Active Directors: "+activeDirectors.map(function(d){return d.label;}).join(", ")+"\n";
-  var chairBlock = chairOutput ? "\n## Chair Governance Position\n"+chairOutput+"\n" : "";
-  var base = (instructions && instructions.comparator)
-    ? instructions.comparator + "\n\n"
+  var covBlock="\n## Coverage\nAnalysis Mode: "+analysisMode+tallyLine+"Active Directors: "+activeDirectors.map(function(d){return d.label;}).join(", ")+"\n";
+  var chairBlock=chairOutput?"\n## Chair Decision Brief\n"+chairOutput+"\n":"";
+  var base=(instructions&&instructions.comparator)
+    ? instructions.comparator+"\n\n"
     : "### PHDSS COMPARATOR JSON\n### DECISION_ID: "+decisionId+"\n\nYou are the Governance Comparator. Produce a structured governance record.\n";
-  return base + signalBlock + covBlock + chairBlock + "\n## Director Outputs\n" + bundle + "\n\n## Output Format (STRICT)\nReturn ONLY valid JSON. No markdown fences.\n\n{\"decision_id\":\""+decisionId+"\",\"schema_version\":\"2.5.0\",\"analysis_mode\":\""+analysisMode+"\",\"coverage_ratio\":\""+activeDirectors.length+"/"+DIRECTORS.length+"\",\"summary\":{\"one_paragraph\":\"string\",\"dominant_frame\":\"string\",\"decision_signal_interpretation\":\"string\"},\"consensus\":[{\"point\":\"string\",\"why_it_matters\":\"string\",\"supporting_directors\":[\"string\"]}],\"dissensus\":[{\"tension\":\"string\",\"what_would_resolve\":\"string\",\"directors\":[\"string\"]}],\"tradeoffs\":[{\"option_a\":\"string\",\"option_b\":\"string\",\"tradeoff\":\"string\",\"who_pays\":\"string\"}],\"key_risks\":[{\"risk\":\"string\",\"pathway\":\"string\",\"mitigations\":[\"string\"],\"residual_risk\":\"low|medium|high\"}],\"chair_resolution\":{\"recommendation\":\"string\",\"conditions\":[\"string\"],\"irreducible_uncertainties\":[\"string\"],\"kill_switches\":[\"string\"],\"success_metrics\":[\"string\"]},\"next_actions_30_60_90\":{\"days_0_30\":[\"string\"],\"days_31_60\":[\"string\"],\"days_61_90\":[\"string\"]},\"coverage_limitations\":\"string\"}\n\nThe chair_resolution object must reflect the Chair output above. CRITICAL for kill_switches: The kill_switches array must ONLY contain measurable operational triggers from Director early warning indicators and fragility signals. NEVER use Verification Phase forced-choice text or governance pathway descriptions as kill switches. NEVER invent indicators that do not appear in the Director outputs — every kill switch must be traceable to a specific Director fragility signal or early warning indicator. Do NOT include kill switches referencing technology systems, AI, triage systems, digital platforms, or software availability unless the decision explicitly involves those technologies. Each kill_switch must follow this format: [indicator] exceeds/falls below [threshold] within [timeframe]. Example correct kill switch: Coordinator clinical duty time exceeds 60 percent within 6 months triggers program suspension. Example wrong (do not use): At the end of the verification window forced-choice options are PROCEED WITH CONDITIONS.";
+  return base+signalBlock+covBlock+chairBlock+"\n## Director Outputs\n"+bundle+
+    "\n\n## Output Format (STRICT)\nReturn ONLY valid JSON. No markdown fences.\n\n"+
+    "{\"decision_id\":\""+decisionId+"\",\"schema_version\":\""+LEDGER_SCHEMA+"\",\"analysis_mode\":\""+analysisMode+"\",\"coverage_ratio\":\""+activeDirectors.length+"/"+DIRECTORS.length+"\",\"summary\":{\"one_paragraph\":\"string\",\"dominant_frame\":\"string\",\"decision_signal_interpretation\":\"string\"},\"consensus\":[{\"point\":\"string\",\"why_it_matters\":\"string\",\"supporting_directors\":[\"string\"]}],\"dissensus\":[{\"tension\":\"string\",\"what_would_resolve\":\"string\",\"directors\":[\"string\"]}],\"tradeoffs\":[{\"option_a\":\"string\",\"option_b\":\"string\",\"tradeoff\":\"string\",\"who_pays\":\"string\"}],\"key_risks\":[{\"risk\":\"string\",\"pathway\":\"string\",\"mitigations\":[\"string\"],\"residual_risk\":\"low|medium|high\"}],\"chair_resolution\":{\"decision_brief_status\":\"string\",\"conditions\":[\"string\"],\"irreducible_uncertainties\":[\"string\"],\"kill_switches\":[\"string\"],\"success_metrics\":[\"string\"]},\"next_actions_30_60_90\":{\"days_0_30\":[\"string\"],\"days_31_60\":[\"string\"],\"days_61_90\":[\"string\"]},\"coverage_limitations\":\"string\"}\n\n"+
+    "The chair_resolution object must reflect the Chair Decision Brief above. decision_brief_status carries the Decision Brief Status value and unresolved-tension clause; it must never contain a proceed/defer/halt instruction or preferred course of action. CRITICAL for kill_switches: the kill_switches array may contain only measurable operational triggers grounded in Director early-warning indicators or fragility signals. Do not invent indicators.";
 }
-
 
 // --- PARSING ------------------------------------------------------------------
 function escRe(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"); }
