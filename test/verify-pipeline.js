@@ -638,6 +638,9 @@ assert.equal(pipelineSequenceContract.ledger.runtimeContract,"2.0-recovery");
 
 const app=fs.readFileSync("App_FINAL.jsx","utf8");
 const pipeline=fs.readFileSync("src/pipeline.js","utf8");
+assert.match(pipeline,/Do not ACCEPT or REBUT on the Chair's own authority\./);
+assert.match(pipeline,/show where that challenge aligns with, conflicts with, or remains unresolved/);
+assert.doesNotMatch(pipeline,/either ACCEPTS this finding/);
 assert.ok(app.includes("./src/pipeline.js"));
 assert.ok(/async function\s+runBoard\s*\(/.test(app));
 assert.ok(/function\s+parseDashboard\s*\(/.test(app));
