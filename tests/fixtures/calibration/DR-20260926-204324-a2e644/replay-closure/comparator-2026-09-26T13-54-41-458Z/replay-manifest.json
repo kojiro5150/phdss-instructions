@@ -1,0 +1,23 @@
+{
+  "fixture_id": "DR-20260926-204324-a2e644",
+  "source_instruction_commit": "b6792cb5e69b4dbe3c5db438063ef4255b76d56e",
+  "replay_instruction_commit": "b6792cb5e69b4dbe3c5db438063ef4255b76d56e",
+  "from": "comparator",
+  "planned_stages": [
+    "comparator"
+  ],
+  "source_session_governance_status": "COMPLETE_DEGRADED",
+  "execute": true,
+  "baseline_api_stage_calls": 1,
+  "note": "Authority repair or transport retries may add API calls beyond the baseline.",
+  "completed_at": "2026-09-26T13:54:41.461Z",
+  "stage_status": {
+    "chair": {
+      "status": "frozen"
+    },
+    "comparator": {
+      "status": "success"
+    }
+  },
+  "stage_errors": []
+}
