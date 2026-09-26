@@ -2,6 +2,8 @@
 
 Status: product-orientation layer for v2.0. This contract is explanatory only; it does not alter governance runtime behaviour.
 
+**Normative-source rule:** This document is the source of truth for all PHDSS orientation and explanatory UI copy. JSX and other presentation surfaces implement this contract and must not redefine it independently. `docs/NORTH_STAR.md` governs the broader constitutional invariants; for orientation copy, this contract is normative.
+
 ## North Star
 
 > PHDSS is designed to make the decision space larger and more legible before humans decide — surfacing assumptions, tensions, missing evidence, affected perspectives, operational constraints and plausible alternatives that may otherwise remain hidden.
