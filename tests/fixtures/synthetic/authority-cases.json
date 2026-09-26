@@ -388,6 +388,49 @@
       "expected_classification": "PATHWAY",
       "expected_permitted": true,
       "reason_code": "JSON_NON_RANKED_COMPARISON"
+    },
+    {
+      "id": "chair-descriptive-necessity-20260926",
+      "layer": "chair",
+      "text": "The model depends on three prerequisites outside the organisation's administrative control, all of which must function simultaneously for the model to be safe.",
+      "expected_classification": "FINDING",
+      "expected_permitted": true,
+      "reason_code": "DESCRIPTIVE_SYSTEM_NECESSITY"
+    },
+    {
+      "id": "chair-board-object-descriptive-necessity-20260926",
+      "layer": "chair",
+      "text": "The evidence available to the Board indicates that the prerequisites must function simultaneously for the model to be safe.",
+      "expected_classification": "FINDING",
+      "expected_permitted": true,
+      "reason_code": "DESCRIPTIVE_SYSTEM_NECESSITY"
+    },
+    {
+      "id": "chair-organisation-subject-obligation-20260926",
+      "layer": "chair",
+      "text": "The organisation must resolve all three prerequisites before proceeding.",
+      "expected_classification": "ADJUDICATION",
+      "expected_permitted": false,
+      "reason_code": "GOVERNANCE_ACT_OBLIGATION",
+      "expected_reason": "GOVERNANCE_ACT_OBLIGATION"
+    },
+    {
+      "id": "chair-board-parenthetical-obligation-20260926",
+      "layer": "chair",
+      "text": "The Board, after reviewing the unresolved evidence, must determine the next governance act.",
+      "expected_classification": "ADJUDICATION",
+      "expected_permitted": false,
+      "reason_code": "GOVERNANCE_ACT_OBLIGATION",
+      "expected_reason": "GOVERNANCE_ACT_OBLIGATION"
+    },
+    {
+      "id": "chair-conjoined-institution-obligation-20260926",
+      "layer": "chair",
+      "text": "The record remains incomplete, and the institution must commission a further governance review before proceeding.",
+      "expected_classification": "ADJUDICATION",
+      "expected_permitted": false,
+      "reason_code": "GOVERNANCE_ACT_OBLIGATION",
+      "expected_reason": "GOVERNANCE_ACT_OBLIGATION"
     }
   ]
 }
