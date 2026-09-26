@@ -1,0 +1,12 @@
+{
+  "manifest_schema_version": "1.0.0",
+  "corpus_version": "1.0.0",
+  "corpus_path": "tests/fixtures/v3/chair-authority-detector-challenge.v1.json",
+  "corpus_sha256": "3c0d671ec6a600eb5a16da5e16d6aed8987bbf1e3e54d76f7d9e275c351b93a5",
+  "case_count": 36,
+  "created_date": "2026-09-27",
+  "base_v3_commit": "0586e73b52564cf9bc981f1741247f0ff4222219",
+  "detector_path": "src/authority-contract.js",
+  "integrity_policy": "Published corpus versions are immutable. New failure classes are appended in a new corpus version; existing cases and expected classifications are not rewritten to improve detector performance.",
+  "data_policy": "Synthetic-only. No real institutional, patient, participant, or health-service data may be committed to this challenge corpus."
+}
