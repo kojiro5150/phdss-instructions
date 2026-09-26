@@ -1,0 +1,11 @@
+[
+  {
+    "layer": "comparator",
+    "initial_violation_reason": "GOVERNANCE_ACT_OBLIGATION",
+    "attempt_count": 1,
+    "outcome": "repaired",
+    "offending_clause_excerpt": "Establish verified transfer times and confirmed receiving protocols for each geographic zone before enrolment in that zone",
+    "final_violation_reason": null,
+    "final_offending_clause_excerpt": null
+  }
+]

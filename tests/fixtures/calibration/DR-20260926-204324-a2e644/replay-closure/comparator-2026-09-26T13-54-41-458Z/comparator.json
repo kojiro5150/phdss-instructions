@@ -1,0 +1,334 @@
+{
+  "decision_id": "DR-20260926-204324-a2e644",
+  "schema_version": "3.0.0-alpha.2",
+  "analysis_mode": "FULL",
+  "coverage_ratio": "13/13",
+  "summary": {
+    "one_paragraph": "The governance record examines a proposed conversion of St Elsewhere's 6-bed Statewide Child Unit to a Hospital in the Home model for children aged 12 and under across a statewide catchment including regional and remote geographies. The signal distribution is 0 PROCEED / 11 CAUTION / 2 HALT. No Director endorses the conversion as currently scoped. The two HALT signals (Systems & Dynamics; Safety, Quality & Harm) characterise the current prerequisites as ungovernable within a clinically acceptable timeframe. The eleven CAUTION signals are conditional rather than permissive: each Director specifies what would need to be demonstrated before the risk landscape changes. The record is analytically coherent across all thirteen domains and operationally ungrounded at the same load-bearing points: the involuntary treatment legal pathway under the applicable state Mental Health Act is unconfirmed (named by eight Directors); the second statewide service fallback is unverified (named by eleven Directors); regional and remote delivery infrastructure is undemonstrated; family carer burden monitoring is absent; and the baseline outcome data needed for any evaluation is unconfirmed as extractable. The Adversarial Probe verdict is SIGNIFICANT GAPS, identifying that the status quo's harm profile has not been characterised with the same rigour applied to the proposed model's risks, and that the feasibility of the CAUTION prerequisites within any governance-acceptable timeframe has not been examined. The Stress Test assigns a fragility score of 9/10. The record is more analytically complete on why full conversion is premature than on whether responsible intermediate postures are operationally available.",
+    "dominant_frame": "Conditional safety hold: the dominant signal across the record is that the proposed model's core safety prerequisites — involuntary treatment legal pathway, second statewide service fallback, regional and remote infrastructure, family carer burden architecture, and baseline data — are unconfirmed, and the CAUTION cluster is a conditional hold rather than a permissive signal. The equity aspiration animating the proposal is characterised as legitimate and the status quo's access harms as real, but neither the CAUTION nor the HALT cluster treats equity aspiration as sufficient to displace the unconfirmed safety prerequisites. The Adversarial Probe identifies a structural asymmetry in how the record applies analytical rigour: the proposed model's risks are characterised with precision; the current model's harms are not measured with equivalent specificity.",
+    "decision_signal_interpretation": "Authoritative signal tally as supplied: 0 PROCEED / 11 CAUTION / 2 HALT. The two HALT Directors (Systems & Dynamics; Safety, Quality & Harm) are distinguished from the eleven CAUTION Directors by a threshold characterisation of governability, not by a different view of the underlying risks — the HALT Directors assess one or more prerequisites as requiring structural change on timelines outside the organisation's administrative control. The eleven CAUTION Directors each specify conditions that would need to be demonstrated before the landscape changes; none characterises the CAUTION signal as permissive. The signal distribution does not function as a vote and is not converted here into an institutional disposition. The Adversarial Probe verdict is SIGNIFICANT GAPS, identifying that the record has not examined whether the CAUTION prerequisites are achievable within a governance-acceptable timeframe and has not measured the current model's harm profile with equivalent analytical rigour to the proposed model's risks. The temporal dimension of the CAUTION signal — whether the named prerequisites are resolvable within months or years, and whether they have sequential dependencies — is unspecified in the record."
+  },
+  "consensus": [
+    {
+      "point": "The involuntary treatment legal pathway under the applicable state Mental Health Act has not been confirmed as viable in a dispersed home setting.",
+      "why_it_matters": "Eight Directors independently identify this as a structural gap in the model's architecture rather than an implementation detail. The gap is characterised as requiring legislative, regulatory, or formal legal clarification that lies outside the organisation's administrative control. It does not activate upon a governance decision — it will manifest in the first case requiring involuntary intervention in a home setting. The record has not examined whether a model architecture that explicitly excludes presentations requiring involuntary treatment — routing them to a retained inpatient setting — would address this as a design parameter rather than requiring its legislative resolution.",
+      "supporting_directors": [
+        "Systems & Dynamics",
+        "Safety, Quality & Harm",
+        "Behaviour & Implementation",
+        "Policy & Power",
+        "Equity & Human Rights",
+        "Digital & AI Governance",
+        "Capacity & Constraints",
+        "Measurement & Evidence Integrity"
+      ]
+    },
+    {
+      "point": "The second statewide inpatient service has not confirmed capacity, intake criteria, or willingness to function as the escalation fallback, and no formal interoperability agreement exists.",
+      "why_it_matters": "Eleven Directors identify the assumed fallback as operationally uncredible. An assumed fallback is not a safety net: under surge, high-acuity periods, or concurrent capacity constraints at both services, the system would have no structural redundancy for children aged 12 and under requiring inpatient-level care. The record has not determined whether the gap is resolvable through agreement or is structurally precluded by the second service's mandate, catchment definition, or funding model.",
+      "supporting_directors": [
+        "Systems & Dynamics",
+        "Health Economics",
+        "Behaviour & Implementation",
+        "Policy & Power",
+        "Equity & Human Rights",
+        "Lived Experience",
+        "Digital & AI Governance",
+        "Ethics & Influence Risk",
+        "Safety, Quality & Harm",
+        "Capacity & Constraints",
+        "Measurement & Evidence Integrity"
+      ]
+    },
+    {
+      "point": "Regional and remote delivery infrastructure — digital connectivity, specialist workforce reach, and physical escalation pathways — has not been verified and cannot be assumed adequate.",
+      "why_it_matters": "The model's equity claim depends on infrastructure whose adequacy is the central unverified assumption. Where connectivity fails, the information channel fails and the model at that node is not operationally credible regardless of clinical or organisational quality. Geography is characterised as a fixed constraint rather than a manageable risk: emergency response times in regional and remote settings are structurally longer than metropolitan regardless of protocol quality.",
+      "supporting_directors": [
+        "Systems & Dynamics",
+        "Behaviour & Implementation",
+        "Equity & Human Rights",
+        "Digital & AI Governance",
+        "Safety, Quality & Harm",
+        "Capacity & Constraints",
+        "Measurement & Evidence Integrity",
+        "Innovation & Improvement"
+      ]
+    },
+    {
+      "point": "The proposed model transfers substantial clinical monitoring and escalation burden to family carers without a confirmed support architecture, and this burden is the least monitored element of the system.",
+      "why_it_matters": "The family-admission model currently distributes clinical load between specialist inpatient staff and the family in a supervised environment. HITH inverts this: families absorb functions previously held by inpatient nursing. For families already at or beyond capacity — which is characteristic of the population presenting to a tertiary service — this transfer is characterised as a structural pathway to harm that will not appear in governance signals until burden has accumulated to crisis. No monitoring mechanism for carer burden accumulation has been described or confirmed as existing.",
+      "supporting_directors": [
+        "Health Economics",
+        "Behaviour & Implementation",
+        "Equity & Human Rights",
+        "Lived Experience",
+        "Ethics & Influence Risk",
+        "Safety, Quality & Harm",
+        "Capacity & Constraints",
+        "Measurement & Evidence Integrity"
+      ]
+    },
+    {
+      "point": "No direct evidence base for HITH at this acuity level, age range, and statewide catchment geography has been identified, and the existing HITH evidence base does not transfer without explicit validation.",
+      "why_it_matters": "Evidence from adult HITH, adolescent mental health HITH, and paediatric physical health HITH cannot be directly extrapolated to children aged 12 and under with tertiary-level acute psychiatric presentations across a statewide catchment including remote geographies. The Theory of Change for the proposed conversion is characterised as a draft hypothesis rather than an established pathway. This means the model's safety case is built on transferred evidence rather than validated evidence for this population.",
+      "supporting_directors": [
+        "Digital & AI Governance",
+        "Safety, Quality & Harm",
+        "Measurement & Evidence Integrity",
+        "Innovation & Improvement"
+      ]
+    },
+    {
+      "point": "The conversion as operationally implemented is substantially irreversible in practice, notwithstanding that reversibility is treated as a governance value in the record.",
+      "why_it_matters": "Once specialist workforce reconcentration has occurred, operational knowledge has dispersed, infrastructure dependencies are established, and public commitment is made, the ability to return to the inpatient model is characterised as substantially foreclosed. The Stress Test identifies reversibility as assumed in governance design and operationally unavailable across workforce, infrastructure, behavioural, political, and referral ecosystem dimensions. The small unit size means any conversion reduces inpatient capacity to near-zero, creating a binary rather than staged outcome unless bed retention is explicitly protected.",
+      "supporting_directors": [
+        "Systems & Dynamics",
+        "Behaviour & Implementation",
+        "Policy & Power",
+        "Capacity & Constraints",
+        "Innovation & Improvement"
+      ]
+    },
+    {
+      "point": "Whether St Elsewhere holds confirmed delegated authority to make this reconfiguration — or requires ministerial or departmental approval — is unresolved and is characterised as a threshold question preceding all other governance acts.",
+      "why_it_matters": "Policy & Power identifies that a statewide tertiary CAMHS reconfiguration almost certainly requires ministerial or departmental approval, and that proceeding without confirmed authority while an adverse event occurs is a governance breach condition rather than a risk factor. The record does not confirm the authority position.",
+      "supporting_directors": [
+        "Policy & Power"
+      ]
+    }
+  ],
+  "dissensus": [
+    {
+      "tension": "HALT versus CAUTION threshold: whether the named prerequisites are governable within a clinically acceptable timeframe or require structural change outside the organisation's administrative control.",
+      "what_would_resolve": "A formal assessment of the timeline required to resolve each prerequisite — specifically whether the involuntary treatment legal pathway requires months or years to address, whether the prerequisites have sequential dependencies that extend the feasible resolution horizon, and whether any prerequisite is structurally impassable regardless of timeframe. This is an evidentiary condition about prerequisite feasibility, not an institutional action.",
+      "directors": [
+        "Systems & Dynamics (HALT)",
+        "Safety, Quality & Harm (HALT)",
+        "Health Economics (CAUTION)",
+        "Behaviour & Implementation (CAUTION)",
+        "Policy & Power (CAUTION)",
+        "Equity & Human Rights (CAUTION)",
+        "Lived Experience (CAUTION)",
+        "Digital & AI Governance (CAUTION)",
+        "Ethics & Influence Risk (CAUTION)",
+        "Sovereignty & Containment (CAUTION)",
+        "Capacity & Constraints (CAUTION)",
+        "Measurement & Evidence Integrity (CAUTION)",
+        "Innovation & Improvement (CAUTION)"
+      ]
+    },
+    {
+      "tension": "Comparative harm asymmetry: the proposed model's risks have been characterised with analytical rigour; the current model's harm profile — access failures for non-presenting regional and remote families, carer burden for co-residing families — has not been measured with equivalent specificity.",
+      "what_would_resolve": "Systematic measurement of the current model's access failure profile: what proportion of the eligible statewide catchment does not access the service, what are the geographic and socioeconomic characteristics of that gap, and what harm accumulates in that gap over time. This is an evidentiary condition about the status quo's harm profile, not a directional recommendation about which model is safer.",
+      "directors": [
+        "Innovation & Improvement",
+        "Adversarial Probe (SIGNIFICANT GAPS)",
+        "Systems & Dynamics",
+        "Equity & Human Rights"
+      ]
+    },
+    {
+      "tension": "Whether responsible intermediate postures — specifically a modified model retaining inpatient capacity for involuntary presentations (trajectory 3) or a formally staged pilot with binding stop rules (trajectory 4) — are operationally available, and what they would specifically require.",
+      "what_would_resolve": "An operational feasibility assessment of each intermediate posture: what workforce, legal, and infrastructure conditions each would require, whether those conditions are achievable within a defined timeframe, and whether the organisation has the capacity to sustain a dual-model arrangement during any transition period. This is an evidentiary condition about option availability.",
+      "directors": [
+        "Measurement & Evidence Integrity",
+        "Innovation & Improvement",
+        "Capacity & Constraints",
+        "Adversarial Probe (SIGNIFICANT GAPS)"
+      ]
+    },
+    {
+      "tension": "Whether the equity frame functions as an analytical resource that illuminates real status quo harms or as an analytical forecloser that suppresses scrutiny of whether the proposed model delivers equitable access in practice.",
+      "what_would_resolve": "Evidence about whether the proposed model's equity claims hold under real delivery conditions for regional and remote families — specifically whether HITH infrastructure in those geographies is sufficient to deliver clinical equivalence, or whether the equity improvement is nominal rather than substantive. This is an evidentiary condition about model performance for the most disadvantaged subgroup.",
+      "directors": [
+        "Sovereignty & Containment",
+        "Ethics & Influence Risk",
+        "Equity & Human Rights",
+        "Lived Experience"
+      ]
+    },
+    {
+      "tension": "Whether the involuntary treatment legal gap is a design parameter resolvable by model architecture (routing involuntary presentations to a retained inpatient setting), a gap addressable through regulatory amendment, or a structural prohibition requiring legislative change.",
+      "what_would_resolve": "A formal legal opinion from a mental health law specialist that characterises the specific nature of the gap under the applicable state Mental Health Act — including whether any model architecture could resolve it by design without requiring legislative or regulatory change. This is an evidentiary condition about the legal character of the gap.",
+      "directors": [
+        "Safety, Quality & Harm",
+        "Systems & Dynamics",
+        "Behaviour & Implementation",
+        "Policy & Power",
+        "Capacity & Constraints"
+      ]
+    }
+  ],
+  "tradeoffs": [
+    {
+      "option_a": "Geographic access equity: HITH could reduce travel and dislocation burden currently imposed on regional and remote families by the inpatient model.",
+      "option_b": "Clinical intensity in the home: continuous specialist observation, immediate escalation capacity, and legally grounded involuntary treatment authority are structural features of the inpatient setting that are not replicated in HITH.",
+      "tradeoff": "Both the access gain and the clinical intensity loss are characterised as real. The weight of each depends on what HITH can actually deliver in regional and remote settings, which is currently undemonstrated. The comparative harm assessment is asymmetric: the proposed model's risks have been characterised with rigour; the current model's access failure harms have not been measured with equivalent specificity.",
+      "who_pays": "Under the current model: regional and remote families pay through travel, dislocation, and access suppression. Under HITH without demonstrated infrastructure: regional and remote children and families pay through reduced clinical intensity and unverified escalation capacity. The families who do not present at all under either model are absent from the governance record."
+    },
+    {
+      "option_a": "Institutional care burden holding: the current model concentrates clinical monitoring and escalation burden on specialist inpatient staff, with families bearing travel and co-residence burden.",
+      "option_b": "Family care burden absorption: HITH disperses clinical monitoring and escalation burden to families across the statewide catchment, including those least positioned to absorb it.",
+      "tradeoff": "Health Economics, Lived Experience, Ethics & Influence Risk, and Behaviour & Implementation characterise this transfer as invisible in organisational accounts and unlikely to surface in governance signals until burden has accumulated to harm. The Adversarial Probe notes that the convergent framing of burden transfer as directionally harmful may overstate the directionality for regional and remote families currently required to travel and co-reside — a comparative burden analysis across family subgroups has not been conducted.",
+      "who_pays": "Families with limited capacity to absorb clinical-level care labour — those in unstable housing, single-carer households, remote locations with thin informal support networks, or with their own mental health challenges — pay disproportionately. This cost does not appear in organisational financial accounts because it falls on unpaid carers."
+    },
+    {
+      "option_a": "Staged or piloted approach: preserves the option to return to the inpatient model if HITH does not achieve viability, retains specialist concentration during the learning period, and generates evidence before statewide extension.",
+      "option_b": "Full conversion: forecloses the inpatient option through specialist workforce reconcentration, infrastructure commitment, and operational knowledge dispersal.",
+      "tradeoff": "The Stress Test identifies reversibility as assumed in governance design and substantially foreclosed under real implementation conditions. No Director argues for irreversible conversion. The record does not examine what a credible staged approach costs to operate or whether the organisation has the capacity to sustain a dual-model arrangement.",
+      "who_pays": "If full conversion proceeds and HITH proves insufficient for a subset of presentations, children requiring escalation bear the cost of an absent inpatient fallback. If a staged approach is pursued, the organisation bears the operational cost of maintaining dual-model capacity during the learning period — a cost that has not been assessed."
+    },
+    {
+      "option_a": "Population protection now: the children served by this unit are highly vulnerable, low-volume, and high-acuity; using them as the evidence base for an unproven model without demonstrated safety infrastructure exposes them to risks whose magnitude is not currently assessable.",
+      "option_b": "Learning opportunity for future children: the knowledge gap about distributed tertiary child mental health care is real; indefinite deferral has a population cost for future children who would benefit from a demonstrated HITH model that does not yet exist.",
+      "tradeoff": "Measurement & Evidence Integrity and Innovation & Improvement both hold this tension explicitly. Both sides carry genuine moral weight. The governance record does not resolve which consideration should dominate, and characterises the tension as irreducible without additional evidence about both the proposed model's safety profile and the current model's harm profile.",
+      "who_pays": "Current children in the service bear the experimental risk if the model proceeds without demonstrated safety infrastructure. Future children who would benefit from a validated HITH model bear the cost of indefinite deferral. The distribution of this cost across time cohorts is not currently quantifiable."
+    },
+    {
+      "option_a": "Equity framing as analytical resource: the equity aspiration animating the proposal is legitimate and the status quo harms it identifies are real.",
+      "option_b": "Equity framing as analytical forecloser: the moral weight of the equity argument is sufficient to suppress scrutiny of whether the proposed solution actually delivers equitable access in practice for the most disadvantaged subgroups.",
+      "tradeoff": "Sovereignty & Containment and Ethics & Influence Risk both identify that once a proposal is understood as addressing regional and remote disadvantage, the analytical question can shift from 'does this model achieve that?' to 'on what grounds could we oppose it?' — a narrowing that is not driven by evidence. The tension is between the moral force of the equity argument and the analytical discipline required to assess whether the proposed solution delivers what it promises for families in remote geographies with unverified infrastructure.",
+      "who_pays": "If the equity frame forecloses scrutiny, regional and remote families — the stated beneficiaries — bear the cost if the model fails to deliver clinical equivalence in their geographies. The families most harmed by model failure are the least positioned to escalate that failure through governance channels."
+    }
+  ],
+  "key_risks": [
+    {
+      "risk": "Involuntary treatment legal pathway failure: a child requiring involuntary assessment, treatment, or detention in a home setting cannot be lawfully managed under the applicable state Mental Health Act, and no operationally credible alternative pathway exists.",
+      "pathway": "The applicable mental health legislation is designed for inpatient or equivalent supervised settings. A child in acute psychiatric crisis in a home setting — particularly in a regional or remote location — encounters a legal gap that cannot be resolved by clinical protocol, organisational goodwill, or emergency services attendance alone. This gap is characterised as a structural feature of the model's architecture that will manifest in the first case requiring involuntary intervention, not a contingent implementation risk.",
+      "mitigations": [
+        "Formal legal opinion from a mental health law specialist on the specific character of the gap under the applicable state Mental Health Act is identified by Safety, Quality & Harm and Policy & Power as a precondition for assessing whether the gap is a design parameter, a regulatory matter, or a legislative matter",
+        "The record identifies an unexamined model architecture question: whether explicitly excluding presentations carrying foreseeable involuntary treatment risk from HITH eligibility — routing them to a retained inpatient setting — would address the gap by design rather than requiring legislative resolution",
+        "The timeline and pathway for any legislative or regulatory change required to address the gap, if that is its character, is unexamined in the governance record and is identified as outside the organisation's administrative control"
+      ],
+      "residual_risk": "high"
+    },
+    {
+      "risk": "Second statewide service fallback failure: the model's safety architecture assumes the second statewide inpatient service will absorb escalations, but that service has not confirmed capacity, intake criteria, or willingness, and the structural feasibility of this role has not been assessed.",
+      "pathway": "Under surge, high-acuity periods, or concurrent demand at both services, the assumed fallback does not activate. Children requiring escalation from HITH have no operationally credible inpatient pathway. The record has not determined whether the gap is resolvable through agreement or is structurally precluded by the second service's mandate, catchment definition, or funding model — these require different responses.",
+      "mitigations": [
+        "The record identifies an unexamined structural question about whether the second statewide service's mandate, catchment definition, and funding model permit the fallback role regardless of willingness — a finding that would determine whether the gap is an operational confirmation problem or a structural feasibility problem",
+        "A formal interoperability agreement specifying capacity commitments, intake criteria, and agreed protocols is identified by eleven Directors as a condition whose current absence makes the fallback assumption operationally uncredible",
+        "Informal historical cooperation between services is characterised in the governance record as distinct from an operational fallback and insufficient as a safety architecture"
+      ],
+      "residual_risk": "high"
+    },
+    {
+      "risk": "Regional and remote infrastructure inadequacy: the model's equity claim and safety case both depend on digital connectivity, specialist workforce reach, and physical escalation pathways that have not been verified for regional and remote geographies.",
+      "pathway": "Where connectivity is absent or unreliable, the information channel between the family and the clinical team fails. Where specialist workforce cannot reach the patient location within a clinically safe timeframe, deterioration cannot be responded to. Where emergency services response times are structurally longer than in metropolitan settings, escalation pathways that appear viable on paper do not function in practice. These are fixed geographic constraints rather than manageable implementation risks.",
+      "mitigations": [
+        "Digital & AI Governance and Safety, Quality & Harm identify that minimum connectivity standards for safe clinical operation would need to be defined and verified at the individual address level — not at the postcode or regional classification level — for any geographic zone where enrolment is under consideration, as a condition whose current absence makes the safety case for regional and remote delivery unassessable",
+        "Safety, Quality & Harm identifies that transfer times and receiving protocols for each geographic zone are elements whose current absence means the escalation safety case is based on assumption rather than verified operational capacity",
+        "The governance record characterises geography as a fixed physical constraint on escalation response times that protocol quality cannot compress"
+      ],
+      "residual_risk": "high"
+    },
+    {
+      "risk": "Family carer capacity collapse and invisible burden accumulation: the model transfers clinical monitoring and escalation functions to family carers without a confirmed support architecture, and carer burden will not surface in governance signals until it has accumulated to crisis.",
+      "pathway": "Families who have sought inpatient admission have typically exhausted community management capacity. HITH asks them to resume primary clinical monitoring responsibility — a reversal of the burden-relief that inpatient admission provides. Carer capacity degrades under sustained stress and sleep deprivation in ways that are not detectable from the metropolitan end through telehealth check-ins. Children in families whose carers cannot sustain the monitoring role are left without a safety net in the home, and this failure mode is silent until a critical incident occurs.",
+      "mitigations": [
+        "A validated carer burden monitoring instrument administered independently of the treating team is identified across multiple Directors as a monitoring architecture element whose current absence means carer burden accumulation is invisible to governance",
+        "Minimum carer capacity requirements as eligibility criteria, with explicit criteria for when carer capacity is insufficient and an operationally credible response to that finding, are identified by Safety, Quality & Harm as conditions whose current absence is a structural gap in the model's safety architecture",
+        "Explicit, documented, informed agreement to the clinical monitoring role — distinct from procedural consent embedded in general admission paperwork — is identified by Ethics & Influence Risk as a condition for the consent environment to be ethically legitimate"
+      ],
+      "residual_risk": "high"
+    },
+    {
+      "risk": "Evaluation collapse: the model is implemented without a validated baseline or feasible escalation-detection mechanism, leaving the governance body without reliable means to distinguish genuine clinical equivalence from undetected deterioration in a geographically dispersed, low-volume, high-acuity population.",
+      "pathway": "If the current inpatient unit does not hold structured, extractable outcome data, the pre/post comparison that underpins any evaluation design is impossible. Low service volume means even multi-year baseline data may be insufficient to detect differences in rare safety events with adequate statistical confidence. Escalation underreporting — where clinicians manage deterioration informally rather than formally logging escalations — will cause the escalation rate indicator to appear favourable while actual clinical risk increases. This failure mode is invisible in governance data until it produces a visible adverse event.",
+      "mitigations": [
+        "Measurement & Evidence Integrity identifies confirmation of whether the current inpatient unit holds structured, extractable outcome data as a precondition for any evaluation design selection, characterising its absence as converting evaluation collapse from a contingent risk into a confirmed baseline condition",
+        "Prospective baseline data collection using the agreed priority indicators, if usable baseline data is confirmed as present, is identified as the foundational element of all three evaluation design options described in the governance record",
+        "Independent adverse event review and independently administered family burden collection are identified by Measurement & Evidence Integrity as structural requirements for any evaluation design to detect the Goodhart failure mode — escalation underreporting — before it accumulates to harm"
+      ],
+      "residual_risk": "high"
+    },
+    {
+      "risk": "Scope compression and shadow triage: HITH clinicians operating in dispersed settings without real-time specialist backup progressively narrow the presentations they accept, creating a de facto exclusion of the highest-acuity presentations that is invisible in formal data.",
+      "pathway": "Clinicians managing acute presentations in home settings without immediate support develop informal risk thresholds that differ from those applied in inpatient settings — accepting higher risk levels to avoid triggering escalation pathways they know are slow, uncertain, or burdensome. This manifests as informal triage gatekeeping and slightly altered referral language, not as a formal policy change. The model appears to function while systematically excluding the children it was designed to serve.",
+      "mitigations": [
+        "Behaviour & Implementation identifies regular audit of referral acceptance and triage decisions as a mechanism for detecting acuity drift in the HITH caseload — specifically whether the complexity profile of accepted presentations drifts toward lower acuity over time",
+        "A threshold at which mean complexity of accepted presentations triggers mandatory audit of triage decision-making is identified by Behaviour & Implementation as an early-warning indicator whose specification is currently absent from the proposal",
+        "Emergency department presentations by HITH-enrolled children are identified by Behaviour & Implementation as a signal that families are using ED as the de facto escalation point because HITH escalation pathways are insufficient"
+      ],
+      "residual_risk": "medium"
+    },
+    {
+      "risk": "Governance authority breach: proceeding with reconfiguration without confirmed ministerial or departmental authority creates legal and governance exposure that cannot be remediated after the fact, particularly if an adverse event occurs.",
+      "pathway": "A statewide tertiary CAMHS reconfiguration for children aged 12 and under almost certainly exceeds the organisation's internal operational delegation. If the organisation proceeds on the assumption that the reconfiguration is within its delegation without written confirmation, that assumption will not hold under scrutiny following an adverse event or parliamentary inquiry.",
+      "mitigations": [
+        "Policy & Power identifies written confirmation from the state health department — and ministerial office if required — of whether the proposed reconfiguration is within the organisation's delegated authority or requires formal approval as the threshold condition preceding all other governance acts",
+        "A review of relevant service agreements and funding schedules for model-of-care specifications that may constitute a material variation is identified by Policy & Power as a necessary element of the authority confirmation process"
+      ],
+      "residual_risk": "high"
+    }
+  ],
+  "chair_resolution": {
+    "decision_brief_status": "Complete — the governance record contains an unresolved tension between the CAUTION signal's conditional posture and the unexamined question of whether the named prerequisites are achievable within a timeframe that preserves the improvement opportunity the proposal represents, while the current model's harm profile remains uncharacterised alongside the proposed model's risks. The Decision Brief does not resolve this tension and does not select a pathway, rank options, or prescribe an institutional next act. The two HALT Directors and the eleven CAUTION Directors share the same view of the underlying risks but differ on whether those risks are governable within a clinically acceptable timeframe — a threshold disagreement that the governance record has not resolved.",
+    "conditions": [
+      "Governance authority confirmation: whether St Elsewhere holds delegated authority to make this reconfiguration — or requires ministerial or departmental approval — is unconfirmed. This is characterised upstream as a threshold question preceding all other governance acts. The condition remains unresolved.",
+      "Involuntary treatment legal pathway: the legal and operational viability of involuntary assessment, treatment, and detention in a dispersed home setting under the applicable state Mental Health Act has not been confirmed by formal legal opinion. The condition requires legislative, regulatory, or formal legal clarification outside the organisation's administrative control. The record has not examined whether a model architecture explicitly excluding presentations requiring involuntary treatment would address this as a design parameter. The condition remains unresolved.",
+      "Second statewide service formal agreement: the second statewide service has not confirmed capacity, intake criteria, or willingness to function as the escalation fallback, and no formal interoperability agreement exists. The record has not determined whether the gap is resolvable through agreement or is structurally precluded by the second service's mandate, catchment definition, or funding model. The condition remains unresolved.",
+      "Regional and remote connectivity and escalation verification: digital connectivity, specialist workforce reach, and physical escalation pathways for regional and remote settings have not been verified at the individual address level against pre-specified minimum clinical standards. The model's equity claim depends on infrastructure whose adequacy is the central unverified assumption. The condition remains unresolved.",
+      "Prospective baseline data establishment: whether the current inpatient unit holds structured, extractable outcome data usable as a pre/post comparison baseline is unconfirmed. If no usable baseline exists, evaluation collapse is characterised as a confirmed baseline condition rather than a contingent risk. The condition remains unresolved.",
+      "Family carer burden monitoring architecture: no monitoring mechanism for family carer burden accumulation has been described in the proposal or confirmed as existing. Family carers are identified as the model's primary safety net and the least monitored element of the system. The condition remains unresolved."
+    ],
+    "irreducible_uncertainties": [
+      "Whether the involuntary treatment legal gap is a design parameter resolvable by model architecture, a gap addressable through regulatory amendment, or a structural prohibition requiring legislative change. Formal legal opinion has not been obtained. The governance record characterises the gap as unresolved, not as a confirmed prohibition.",
+      "Whether the second statewide service is structurally positioned to perform the fallback role regardless of willingness — specifically whether its mandate, catchment definition, and funding model permit this role. This requires different governance responses from a gap that is merely an operational confirmation problem.",
+      "Whether the current inpatient model's harm profile — access failures for non-presenting regional and remote families, carer burden for co-residing families — is larger or smaller than the proposed model's risk profile. The comparative harm assessment is asymmetric in the governance record: one side has been characterised with rigour; the other has not been measured.",
+      "Whether the CAUTION prerequisites are achievable within a timeframe that preserves the improvement opportunity the proposal represents. No Director has modelled the timeline for resolving each prerequisite or assessed whether sequential dependencies between them affect the feasible resolution horizon.",
+      "Whether responsible intermediate postures — specifically a modified model retaining inpatient capacity for involuntary presentations or a formally staged pilot with binding stop rules — are operationally available. No Director has examined what either would specifically require in operational, legal, and workforce terms.",
+      "Whether the specialist workforce constraint is a two-year planning problem or a five-to-ten-year structural development challenge. No Director has confirmed headcount, geographic distribution, outreach capacity, or development pipeline data.",
+      "Whether the current unit holds structured, extractable baseline outcome data. Absence of confirmed presence is not confirmed absence; the epistemic state is unresolved."
+    ],
+    "kill_switches": [
+      "Any single instance in which a child enrolled in HITH in a regional or remote location experiences acute psychiatric deterioration and the documented escalation pathway cannot be activated within the pre-agreed response time — specifically, if transfer to inpatient care cannot be initiated within the timeframe specified in the escalation protocol — triggers mandatory immediate review of HITH enrolment eligibility for all non-metropolitan children and suspension of new regional and remote enrolments pending review. (Source: Safety, Quality & Harm)",
+      "If legal advice confirms that no mechanism exists under the applicable state Mental Health Act to lawfully detain or involuntarily treat a child in a private home, the HITH model as proposed cannot be implemented for any child whose presentation carries a foreseeable risk of requiring involuntary intervention. This threshold is binary: either legal authority is confirmed in writing before enrolment commences, or children for whom involuntary treatment is a credible clinical possibility are ineligible for enrolment. (Source: Safety, Quality & Harm)",
+      "If any enrolled child's primary carer reports being unable to safely manage the child's presentation, or if a clinician assesses carer capacity as insufficient during scheduled or unscheduled contact, and no alternative carer or clinical response can be mobilised within the timeframe specified in the safety plan, this constitutes a same-day escalation trigger. If this event occurs more than once in any rolling 90-day period across the HITH caseload, a mandatory service-level safety review is triggered. (Source: Safety, Quality & Harm)",
+      "Any emergency department presentation by a currently HITH-enrolled child for a mental health reason triggers immediate case review. A rate exceeding two ED presentations per quarter across the HITH caseload triggers mandatory governance review of the escalation pathway model. (Source: Behaviour & Implementation)",
+      "If the mean complexity score of HITH-enrolled presentations falls more than one standard deviation below the baseline established at model launch within the first six months, this triggers a mandatory audit of triage and acceptance decision-making, including review of informal scope compression in referral pathways. (Source: Behaviour & Implementation)",
+      "If more than 20% of HITH families request early discharge to inpatient care, request discontinuation of HITH, or report on a validated carer burden instrument that they are unable to sustain the monitoring role, this triggers mandatory review of the carer support model and the burden assumptions underpinning the HITH design. (Source: Behaviour & Implementation)",
+      "Any statistically or clinically meaningful divergence in escalation rate, readmission rate, or family burden between metropolitan and regional or remote cohorts at the 90-day review triggers mandatory equity review and reconsideration of regional and remote eligibility criteria. (Source: Measurement & Evidence Integrity)",
+      "Any instance where time from deterioration signal to clinical response exceeds the pre-specified clinical protocol threshold triggers escalation to the Medical Director and governance body within 24 hours. (Source: Measurement & Evidence Integrity)"
+    ],
+    "success_metrics": [
+      "Unplanned escalation to inpatient care rate per episode: any rate exceeding the inpatient baseline rate, or any single escalation event where time-to-inpatient-care exceeded the clinically specified safe window, triggers mandatory clinical safety review. (Source: Measurement & Evidence Integrity)",
+      "Time from deterioration signal to clinical response in hours: tracked prospectively from the first enrolment, measured against the pre-specified clinical protocol threshold established during pilot design. (Source: Measurement & Evidence Integrity)",
+      "Family-reported care burden score on a validated instrument administered independently of the treating team, tracked from the first enrolment. (Source: Measurement & Evidence Integrity, Behaviour & Implementation)",
+      "Clinical outcomes stratified by catchment geography — metropolitan, regional, and remote — including escalation rate, readmission within 28 days of episode closure, and family burden score, tracked as a distinct subgroup from the first enrolment. (Source: Measurement & Evidence Integrity)",
+      "Readmission within 28 days of episode closure: standard proxy for episode adequacy, tracked against the inpatient baseline if baseline data is confirmed as extractable. (Source: Measurement & Evidence Integrity)",
+      "Monitoring system uptime and alert-to-contact time in remote and regional settings, where remote monitoring is the clinical safety mechanism. (Source: Digital & AI Governance, Measurement & Evidence Integrity)",
+      "Involuntary treatment pathway use under HITH — rate and outcome — tracked from the first enrolment to detect whether the pathway is legally and operationally functioning as characterised. (Source: Safety, Quality & Harm, Measurement & Evidence Integrity)"
+    ]
+  },
+  "monitoring_triggers_30_60_90": {
+    "days_0_30": [
+      "Whether a formal written legal opinion on the involuntary treatment pathway under the applicable state Mental Health Act has been obtained or commissioned, and whether preliminary findings are available characterising the gap as a design parameter, a regulatory matter, or a legislative matter.",
+      "Whether the organisation has received written confirmation from the state health department — or ministerial office — on whether the proposed reconfiguration is within its delegated authority or requires formal approval.",
+      "Whether the second statewide service has been formally engaged to assess whether its mandate, catchment definition, and funding model structurally permit the fallback role — regardless of willingness or capacity.",
+      "Whether the current inpatient unit's clinical records have been assessed for the presence of structured, extractable outcome data usable as a pre/post baseline — specifically readmission rate, escalation events, episode duration, and safety incidents.",
+      "Whether minimum connectivity standards for safe clinical operation have been specified, and whether a methodology for verifying those standards at the individual address level for any geographic zone under consideration has been identified.",
+      "Whether any digital monitoring or telehealth platform proposed for use has been assessed for TGA SaMD classification and regulatory status before procurement.",
+      "Whether a carer burden monitoring instrument and administration protocol — independent of the treating team — has been identified and assessed for feasibility with this population."
+    ],
+    "days_31_60": [
+      "Whether the formal legal opinion on the involuntary treatment pathway has been received and whether it characterises any model architecture options — such as excluding presentations with foreseeable involuntary treatment risk from HITH eligibility — as viable design parameters.",
+      "Whether the second statewide service has provided a formal response on its structural capacity and willingness to perform the fallback role, and whether that response indicates the gap is resolvable through agreement or is structurally precluded.",
+      "Whether connectivity verification findings are available for the sub-regions of the statewide catchment under consideration, and whether any geographic zones have been identified where minimum clinical standards cannot be confirmed as met.",
+      "Whether the baseline outcome data assessment has produced a finding on whether usable baseline data exists, and if so, whether prospective baseline data collection has commenced using the agreed priority indicators.",
+      "Whether a draft carer eligibility and burden monitoring framework — specifying minimum carer capacity requirements and criteria for when carer capacity is insufficient — has been produced and is available for clinical governance review.",
+      "Whether the specialist workforce outreach capacity has been assessed against the geographic scope of any proposed pilot, including available headcount, outreach range, and on-call arrangements.",
+      "Whether the governance authority question has been formally resolved in writing, with the applicable service agreements and funding schedules reviewed for model-of-care specifications that may constitute a material variation."
+    ],
+    "days_61_90": [
+      "Whether the involuntary treatment legal opinion findings have been formally reviewed by clinical governance, and whether those findings are reflected in any eligibility criteria or model architecture specifications for a proposed pilot.",
+      "Whether a formal interoperability agreement with the second statewide service — or a formal finding that such an agreement is not structurally feasible — has been produced and is available for review.",
+      "Whether the connectivity verification and escalation pathway assessment for each proposed delivery geography has produced a finding on which geographic zones meet minimum clinical standards and which do not.",
+      "Whether the baseline data assessment has confirmed the presence or confirmed absence of usable baseline outcome data, and whether the evaluation design selected from the options identified in the governance record has been specified.",
+      "Whether the carer burden monitoring architecture — instrument, administration protocol, and governance review threshold — has been confirmed as operationally specified for any pilot commencement.",
+      "Whether either intermediate posture identified in the governance record — a staged pilot with binding stop rules or a modified model retaining inpatient capacity for involuntary presentations — has been assessed for operational feasibility, including what each would specifically require in workforce, legal, and infrastructure terms.",
+      "Whether the comparative harm profile of the current inpatient model — specifically access failure rates for non-presenting regional and remote families — has been assessed using available utilisation and geographic data, to determine whether the comparative harm assessment remains asymmetric or can be characterised with greater specificity."
+    ]
+  },
+  "coverage_limitations": "All thirteen Directors were active and coverage is complete across the represented domains. Four substantive content gaps are present in the governance record that no Director analysis can resolve regardless of analytical quality: formal legal opinion on involuntary treatment compatibility under the applicable state Mental Health Act; quantified specialist workforce data including headcount, geographic distribution, outreach capacity, and development pipeline; a systematic review of the nearest comparable evidence base for HITH in paediatric mental health for children aged 12 and under at tertiary acuity; and confirmed operational profile of the second statewide service including capacity, intake criteria, mandate scope, and catchment definition. The Safety, Quality & Harm brief carried a provenance flag (DETERMINISTIC_FALLBACK: ABSENCE_PROMOTION) and the Innovation & Improvement brief carried a schema flag (DETERMINISTIC_FALLBACK: invalid schema); both are included as received. The responsible governance body may wish to note these flags when considering those Directors' contributions. The Adversarial Probe identifies a fifth structural gap: the record has not examined whether the CAUTION prerequisites are achievable within a governance-acceptable timeframe, and has not assessed whether responsible intermediate postures are operationally available — leaving the dominant signal grounded in a conditional hold whose conditions have not been tested for feasibility. This gap is not resolvable by any single Director and constitutes a structural limitation of the record as a whole."
+}
