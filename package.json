@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "validate": "node .github/scripts/validate-v2.mjs && node .github/scripts/authority-regression.mjs && node test/verify-chair-non-substitution.js && node .github/scripts/reality-instruction-contract.mjs && node test/verify.js && node test/verify-governance-contracts.js && node test/verify-runtime-orchestration.js && node test/verify-governance-compression.js && node test/verify-comparator-contract.js && node test/verify-prompt-builders.js && node test/verify-pipeline.js && node test/verify-stage-replay.js",
+    "validate": "node .github/scripts/validate-v2.mjs && node .github/scripts/authority-regression.mjs && node test/verify-chair-non-substitution.js && node .github/scripts/reality-instruction-contract.mjs && node test/verify.js && node test/verify-governance-contracts.js && node test/verify-runtime-orchestration.js && node test/verify-governance-compression.js && node test/verify-comparator-contract.js && node test/verify-prompt-builders.js && node test/verify-pipeline.js && node test/verify-stage-replay.js && node test/verify-orientation.js",
     "verify:equivalence": "node test/verify.js",
     "verify:governance-contracts": "node test/verify-governance-contracts.js",
     "verify:runtime-orchestration": "node test/verify-runtime-orchestration.js",
@@ -16,7 +16,8 @@
     "verify:pipeline": "node test/verify-pipeline.js",
     "verify:chair-non-substitution": "node test/verify-chair-non-substitution.js",
     "verify:stage-replay": "node test/verify-stage-replay.js",
-    "replay:stage": "node scripts/replay-stage.mjs"
+    "replay:stage": "node scripts/replay-stage.mjs",
+    "verify:orientation": "node test/verify-orientation.js"
   },
   "dependencies": {
     "react": "^19.1.1",
