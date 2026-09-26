@@ -63,6 +63,16 @@ import {
   runGovernancePipeline,
   buildLedgerRecord,
 } from "./src/pipeline.js";
+import {
+  PHDSS_NORTH_STAR,
+  ORIENTATION_AUTHORITY_CHAIN,
+  ORIENTATION_FLOW,
+  ORIENTATION_USE_WHEN,
+  ORIENTATION_DO_NOT_USE_AS,
+  ORIENTATION_MODES,
+  ORIENTATION_ADVISORY_NOTE,
+  ORIENTATION_LEGITIMACY_NOTE,
+} from "./src/orientation.js";
 
 // =============================================================================
 // API KEY GATE
@@ -1634,9 +1644,100 @@ function ChairDialogue({dialogueSystem,dialogueHistory,onDialogueHistory}) {
 }
 
 
+function OrientationPanel({open,onToggle,analysisMode,onSelectMode}) {
+  return (
+    <div style={{background:"#FFFFFF",border:"1px solid #BFDBFE",borderRadius:16,marginBottom:16,boxShadow:"0 1px 6px rgba(0,0,0,0.05)",overflow:"hidden"}}>
+      <button onClick={onToggle} style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,padding:"14px 18px",border:"none",background:"linear-gradient(135deg,#F8FAFC,#EFF6FF)",cursor:"pointer",textAlign:"left"}}>
+        <div>
+          <div style={{fontSize:10,letterSpacing:1.3,color:"#0369A1",textTransform:"uppercase",fontWeight:800,marginBottom:3}}>Orientation</div>
+          <div style={{fontSize:14,fontWeight:800,color:"#0F172A"}}>How PHDSS works — and where its authority stops</div>
+        </div>
+        <span style={{fontSize:11,color:"#0369A1",fontWeight:700,flexShrink:0}}>{open?"Hide":"Show"}</span>
+      </button>
+      {open&&<div style={{padding:"18px"}}>
+        <div style={{fontSize:13,lineHeight:1.75,color:"#0F172A",fontWeight:650,marginBottom:16}}>{PHDSS_NORTH_STAR}</div>
+
+        <div style={{padding:"12px 14px",borderRadius:11,background:"#F8FAFC",border:"1px solid #E2E8F0",marginBottom:16}}>
+          <div style={{fontSize:10,fontWeight:800,color:"#475569",textTransform:"uppercase",letterSpacing:0.8,marginBottom:8}}>Authority chain</div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(170px,1fr))",gap:8}}>
+            {ORIENTATION_AUTHORITY_CHAIN.map(function(item,i){
+              return <div key={item.id} style={{padding:"10px 11px",borderRadius:9,background:"#FFFFFF",border:"1px solid #E2E8F0"}}>
+                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
+                  <span style={{fontSize:11,fontWeight:800,color:i===3?"#059669":"#0369A1"}}>{item.label}</span>
+                  <span style={{fontSize:10,color:"#94A3B8"}}>→</span>
+                  <span style={{fontSize:10,fontWeight:700,color:"#475569"}}>{item.action}</span>
+                </div>
+                <div style={{fontSize:10.5,lineHeight:1.55,color:"#64748B"}}>{item.detail}</div>
+              </div>;
+            })}
+          </div>
+        </div>
+
+        <div style={{marginBottom:16}}>
+          <div style={{fontSize:10,fontWeight:800,color:"#475569",textTransform:"uppercase",letterSpacing:0.8,marginBottom:8}}>Reasoning flow</div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(135px,1fr))",gap:7}}>
+            {ORIENTATION_FLOW.map(function(item,i){
+              return <div key={item.id} style={{position:"relative",padding:"10px 11px",borderRadius:9,background:i===3?"#EFF6FF":"#F8FAFC",border:"1px solid "+(i===3?"#BFDBFE":"#E2E8F0")}}>
+                <div style={{fontSize:9,color:"#94A3B8",fontWeight:800,marginBottom:3}}>{String(i+1).padStart(2,"0")}</div>
+                <div style={{fontSize:11,fontWeight:800,color:i===3?"#0369A1":"#0F172A",marginBottom:4}}>{item.label}</div>
+                <div style={{fontSize:10,lineHeight:1.5,color:"#64748B"}}>{item.detail}</div>
+              </div>;
+            })}
+          </div>
+        </div>
+
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:10,marginBottom:16}}>
+          <div style={{padding:"12px 14px",borderRadius:10,background:"#F0FDF4",border:"1px solid #BBF7D0"}}>
+            <div style={{fontSize:10,fontWeight:800,color:"#047857",textTransform:"uppercase",letterSpacing:0.7,marginBottom:7}}>Use PHDSS when</div>
+            {ORIENTATION_USE_WHEN.map(function(item,i){return <div key={i} style={{display:"flex",gap:7,alignItems:"flex-start",marginBottom:i===ORIENTATION_USE_WHEN.length-1?0:6}}><span style={{fontSize:10,color:"#059669",fontWeight:800}}>✓</span><span style={{fontSize:10.5,lineHeight:1.55,color:"#475569"}}>{item}</span></div>;})}
+          </div>
+          <div style={{padding:"12px 14px",borderRadius:10,background:"#FFF7ED",border:"1px solid #FED7AA"}}>
+            <div style={{fontSize:10,fontWeight:800,color:"#C2410C",textTransform:"uppercase",letterSpacing:0.7,marginBottom:7}}>Do not use PHDSS as</div>
+            {ORIENTATION_DO_NOT_USE_AS.map(function(item,i){return <div key={i} style={{display:"flex",gap:7,alignItems:"flex-start",marginBottom:i===ORIENTATION_DO_NOT_USE_AS.length-1?0:6}}><span style={{fontSize:10,color:"#EA580C",fontWeight:800}}>×</span><span style={{fontSize:10.5,lineHeight:1.55,color:"#475569"}}>{item}</span></div>;})}
+          </div>
+        </div>
+
+        <div style={{marginBottom:16}}>
+          <div style={{display:"flex",alignItems:"baseline",justifyContent:"space-between",gap:10,flexWrap:"wrap",marginBottom:8}}>
+            <div style={{fontSize:10,fontWeight:800,color:"#475569",textTransform:"uppercase",letterSpacing:0.8}}>Choose governance run depth</div>
+            <div style={{fontSize:9.5,color:"#94A3B8"}}>Coverage and model/API cost move together; narrower coverage remains visible.</div>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(210px,1fr))",gap:8}}>
+            {ORIENTATION_MODES.map(function(item){
+              var selected=analysisMode===item.id;
+              var col=item.id==="FULL"?"#059669":item.id==="CORE"?"#0369A1":"#7C3AED";
+              return <button key={item.id} onClick={function(){onSelectMode(item.id);}} style={{textAlign:"left",padding:"11px 12px",borderRadius:10,border:"2px solid "+(selected?col:col+"33"),background:selected?col+"0D":"#FFFFFF",cursor:"pointer"}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,marginBottom:4}}>
+                  <span style={{fontSize:11,fontWeight:800,color:col}}>{item.label}</span>
+                  {selected&&<span style={{fontSize:8.5,padding:"1px 6px",borderRadius:8,background:col+"18",color:col,fontWeight:800}}>SELECTED</span>}
+                </div>
+                <div style={{fontSize:10.5,fontWeight:700,color:"#334155",marginBottom:2}}>{item.coverage}</div>
+                <div style={{fontSize:9.5,fontWeight:700,color:col,marginBottom:5}}>{item.cost}</div>
+                <div style={{fontSize:10,lineHeight:1.5,color:"#64748B"}}>{item.detail}</div>
+              </button>;
+            })}
+          </div>
+        </div>
+
+        <div style={{padding:"11px 13px",borderRadius:10,background:"#F5F3FF",border:"1px solid #DDD6FE",marginBottom:10}}>
+          <div style={{fontSize:10,fontWeight:800,color:"#6D28D9",textTransform:"uppercase",letterSpacing:0.7,marginBottom:4}}>Advisory is different</div>
+          <div style={{fontSize:10.5,lineHeight:1.55,color:"#5B21B6"}}>{ORIENTATION_ADVISORY_NOTE}</div>
+        </div>
+
+        <div style={{padding:"11px 13px",borderRadius:10,background:"#FFFBEB",border:"1px solid #FDE68A"}}>
+          <div style={{fontSize:10,fontWeight:800,color:"#92400E",textTransform:"uppercase",letterSpacing:0.7,marginBottom:4}}>Human authority & legitimacy</div>
+          <div style={{fontSize:10.5,lineHeight:1.6,color:"#78350F"}}>{ORIENTATION_LEGITIMACY_NOTE}</div>
+        </div>
+      </div>}
+    </div>
+  );
+}
+
+
 // --- MAIN APP -----------------------------------------------------------------
 function PHDSS() {
   var [tab,setTab]=useState("board");
+  var [orientationOpen,setOrientationOpen]=useState(true);
   var [decision,setDecision]=useState("");
   var [decisionSignal,setDecisionSignal]=useState("");
   var [orgContext,setOrgContext]=useState("");
@@ -2183,6 +2284,13 @@ function PHDSS() {
               })}
             </div>}
 
+
+            {!hasStarted&&!advisoryStarted&&<OrientationPanel
+              open={orientationOpen}
+              onToggle={function(){setOrientationOpen(function(v){return !v;});}}
+              analysisMode={analysisMode}
+              onSelectMode={function(mode){setModeFamily("GOVERNANCE");setAnalysisMode(mode);}}
+            />}
 
             <div style={{display:"flex",gap:8,marginBottom:16,flexWrap:"wrap"}}>
               <span style={{fontSize:11,padding:"4px 10px",borderRadius:20,background:hasAnyDocs?"#D1FAE5":"#F1F5F9",color:hasAnyDocs?"#065F46":"#94A3B8",border:"1px solid "+(hasAnyDocs?"#A7F3D0":"#E2E8F0")}}>Tier 1: {hasAnyDocs?totalLoadedDocs+" docs loaded":"No docs"}</span>
