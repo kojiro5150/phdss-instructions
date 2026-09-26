@@ -1,0 +1,43 @@
+{
+  "fixture_id": "DR-20260926-204324-a2e644",
+  "fixture_class": "live_constitutional_calibration",
+  "captured_at": "2026-09-26T21:55:35+10:00",
+  "analysis_mode": "FULL",
+  "coverage_ratio": "13/13",
+  "source_main_commit": "3b2d6c805f1fa4eaa56b157434877c7ee94a9347",
+  "source_instruction_commit": "b6792cb5e69b4dbe3c5db438063ef4255b76d56e",
+  "ledger_schema": "3.0.0-alpha.2",
+  "runtime_contract": "2.0-recovery",
+  "source_ledger": "artifacts/phdss-ledger_2026-09-26.json",
+  "artifact_count": 42,
+  "expected": {
+    "session_governance_status": "COMPLETE_DEGRADED",
+    "chair_constitutional_behaviour": "PASS",
+    "chair_zero_repair_criterion": "NOT_CLEAN_1_REPAIRED_EVENT",
+    "provenance_monotonicity_in_synthesis": "PASS_MATERIALLY_IMPROVED",
+    "compression_provenance_enforcement": "PASS_LIVE_ABSENCE_PROMOTION_CAUGHT",
+    "decision_space_expansion": "PASS",
+    "mandatory_reasoning_chain": "PASS",
+    "comparator": "NOT_TESTED_BILLING_FAILURE",
+    "proceed_count": 0,
+    "caution_count": 11,
+    "halt_count": 2,
+    "epistemic_score": "WEAK",
+    "probe_verdict": "SIGNIFICANT GAPS",
+    "fragility_score": 9
+  },
+  "replay": {
+    "supported_entry_stages": [
+      "chair",
+      "comparator"
+    ],
+    "first_use_case": "comparator",
+    "second_use_case": "chair"
+  },
+  "preserved_failures": [
+    "Safety governance-record deterministic fallback: ABSENCE_PROMOTION",
+    "Cross-Domain Tension Analysis governance-record deterministic fallback after structured extraction failure",
+    "Chair authority repair: one GOVERNANCE_ACT_OBLIGATION event repaired on first attempt",
+    "Comparator billing failure: Anthropic credit balance exhausted"
+  ]
+}
