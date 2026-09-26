@@ -46,6 +46,9 @@ const chairPrompts=buildChairReplayPrompts(decision,state,instructions);
 assert.match(chairPrompts.system,/The Chair does not add a further judgment layer/);
 assert.match(chairPrompts.user,/Decision Surface Map:/);
 assert.match(chairPrompts.user,/Adversarial Bias Probe:/);
+assert.match(chairPrompts.user,/Do not ACCEPT or REBUT on the Chair's own authority\./);
+assert.match(chairPrompts.user,/show where that challenge aligns with, conflicts with, or remains unresolved/);
+assert.doesNotMatch(chairPrompts.user,/either ACCEPTS this finding/);
 
 const comparatorPrompts=buildComparatorReplayPrompts(decision,state,instructions);
 assert.deepStrictEqual(comparatorPrompts.counts,{proceed:0,caution:11,halt:2});

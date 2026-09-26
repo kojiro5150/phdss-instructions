@@ -606,7 +606,7 @@ export async function runGovernancePipeline(config,runtime,emit) {
       var verdict=findSignal(state.probeOut,["BOARD REASONING SOUND","SIGNIFICANT GAPS","CONCLUSION CHALLENGED"])||"not determined";
       var strongestMatch=state.probeOut.match(/\*\*The Strongest Counter-Argument\*\*[^\n]*\n([\s\S]*?)(?=\n\*\*[A-Za-z]|$)/i);
       var strongest=strongestMatch?(strongestMatch[1]||"").trim().substring(0,600):"See Adversarial Probe output.";
-      return "\n\n⚠ ADVERSARIAL PROBE VERDICT: "+verdict+"\nThe Probe's strongest argument was:\n"+strongest+"\n\nYou MUST include an **Adversarial Probe Response** section in your output — between **Coverage Limitations** and **Director Signal Distribution** — that either ACCEPTS this finding (explaining how it changes the decision conditions) or REBUTS it (with explicit Director-grounded reasoning). This section is mandatory and parser-matched. Do not convert the Probe finding into a preferred course of action.";
+      return "\n\n⚠ ADVERSARIAL PROBE VERDICT: "+verdict+"\nThe Probe's strongest argument was:\n"+strongest+"\n\nYou MUST include an **Adversarial Probe Response** section in your output — between **Coverage Limitations** and **Director Signal Distribution**. Report the Probe verdict exactly as supplied, surface its strongest challenge, and show where that challenge aligns with, conflicts with, or remains unresolved against the other supplied reasoning. Do not ACCEPT or REBUT on the Chair's own authority. Do not determine whether the Probe wins, whether the dominant signal stands, or whether the challenge changes the institutional disposition. Preserve the challenge for human judgment. This section is mandatory and parser-matched.";
     })();
     try {
       stageEmitter(emit,"chair",true);
