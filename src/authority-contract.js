@@ -31,6 +31,20 @@ function externalConstraintClause(clause) {
     && /\b(?:require[sd]?|prohibit(?:s|ed)?|unavailable|not legally available|cannot legally|cannot lawfully|must not legally|must not lawfully|foreclose[sd]? by)\b/i.test(clause);
 }
 
+const GOVERNANCE_ACTOR_SUBJECT="(?:(?:the\\s+)?(?:institution|organisation|organization|board|chair|committee|governance body|health authority|decision[- ]maker)|we|you)";
+const GOVERNANCE_SUBJECT_PREFIX="(?:^|[,;:]\\s*|\\b(?:and|but)\\s+)";
+const GOVERNANCE_SUBJECT_MODIFIERS="(?:\\s*,[^,.;!?]{0,80},)?\\s*(?:itself\\s+)?(?:(?:therefore|however|now|then|currently|first|instead|also|still)\\s+)*";
+
+function governanceActorModalClause(clause,modalPattern,actionPattern) {
+  var source=GOVERNANCE_SUBJECT_PREFIX+
+    GOVERNANCE_ACTOR_SUBJECT+
+    "\\b(?!\\s*['’]s)"+
+    GOVERNANCE_SUBJECT_MODIFIERS+
+    "(?:"+modalPattern+")";
+  if(actionPattern) source+="\\s+(?:now\\s+)?(?:"+actionPattern+")";
+  return new RegExp(source,"i").test(clause);
+}
+
 function splitClauses(text) {
   return String(text||"")
     .split(/(?<=[.!?])\s+|\n+/)
@@ -94,7 +108,11 @@ function reasonForClause(clause) {
     return "INSTITUTIONAL_DISPOSITION";
   }
 
-  if(/\b(?:institution|organisation|organization|board|chair|committee|we)\b[^.]{0,140}\b(?:should|must|ought to|will)\s+(?:now\s+)?(?:select|choose|adopt|implement|approve|reject|defer|pilot|authori[sz]e|use)\b/i.test(clause)) {
+  if(governanceActorModalClause(
+    clause,
+    "should|must|ought to|will",
+    "select|choose|adopt|implement|approve|reject|defer|pilot|authori[sz]e|use"
+  )) {
     return "INSTITUTIONAL_DIRECTIVE";
   }
 
@@ -103,7 +121,10 @@ function reasonForClause(clause) {
     return "PATHWAY_SELECTION";
   }
 
-  if(/\b(?:institution|organisation|organization|board|chair|committee|governance body|health authority|decision[- ]maker|we|you)\b[^.]{0,160}\b(?:should|must|ought to|needs? to|has to|is required to|is expected to|is warranted to)\b/i.test(clause)) {
+  if(governanceActorModalClause(
+    clause,
+    "should|must|ought to|needs? to|has to|is required to|is expected to|is warranted to"
+  )) {
     if(externalConstraintClause(clause)) return null;
     return "GOVERNANCE_ACT_OBLIGATION";
   }
