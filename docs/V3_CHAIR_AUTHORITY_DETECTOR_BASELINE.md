@@ -10,11 +10,13 @@ This document records the first detector-characterisation result against the fro
 - detector: `src/authority-contract.js`
 - detector Git blob SHA: `cc0c0af133a910c1dddc0002598e49940b14ad4c`
 - corpus version: `1.0.0`
-- corpus SHA-256: `3c0d671ec6a600eb5a16da5e16d6aed8987bbf1e3e54d76f7d9e275c351b93a5`
+- corpus SHA-256: `4ad92cf3d27d505593e8b753b49c457c0286fbf51bf36cd3a4c44fc2f2f02437`
 - corpus cases: 36
 - full baseline record: `tests/evidence/v3/chair-authority-detector-baseline.v1.json`
 
 No detector logic was changed before this baseline was recorded.
+> **Hash metadata correction — 27 Sep 2026:** The originally published raw corpus SHA-256 (`3c0d671ec6a600eb5a16da5e16d6aed8987bbf1e3e54d76f7d9e275c351b93a5`) was incorrect. The corpus Git blob SHA `58ae079c1e9a1f08809692b20e11b51d7860da99` is unchanged from the PR #29 merge through the correction commit, confirming that the 36-case corpus bytes were not rewritten. The corrected raw SHA-256 is `4ad92cf3d27d505593e8b753b49c457c0286fbf51bf36cd3a4c44fc2f2f02437`.
+
 
 ## Result
 
