@@ -147,6 +147,7 @@ export async function createGovernanceManifest(input){
     instruction_commit:input.instruction_commit,
     instruction_normalization_version:"trim_v1",
     analysis_mode:input.analysis_mode,
+    decision_text:input.decision_text||null,
     model:SYNTHESIS_MODEL,
     model_settings:{max_tokens:16000,temperature:0.8,auto_continue:!!input.auto_continue},
     web_search:!!input.web_search,
