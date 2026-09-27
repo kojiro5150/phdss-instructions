@@ -1,0 +1,13 @@
+{
+  "schema": "phdss.participation-calibration-request-integrity.v2.1",
+  "instruction_commit": "58d7c45a86db0905e8893452f8f0b81e56942b3d",
+  "instruction_file": "lived.md",
+  "instruction_source_blob_sha": "267dd81387611d71be252866887c434437dd12f7",
+  "instruction_source_sha256": "cf93e4e1e6b29c6e3bf624a1b539def6c38c32d205e1a173e55c53fbcf3aa57f",
+  "instruction_normalization_version": "trim_v1",
+  "instruction_runtime_sha256": "938e33c500d50e3779309dec4de30f651359c65921d3187c7f4b6b4770cae871",
+  "request_schema": "phdss.advisory-request.v3",
+  "run_type": "ADVISORY",
+  "advisory_mode": "DIRECTOR_BRIEF",
+  "director_id": "lived"
+}

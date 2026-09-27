@@ -1,0 +1,86 @@
+{
+  "schema": "phdss.participation-status-classifier-v2-1.cases.v1",
+  "classifier_version": "status_classifier_v2_1",
+  "cases": [
+    {
+      "id": "direct_not_established",
+      "text": "Actual participation in this decision process is not established by the supplied evidence.",
+      "expected": "not_established"
+    },
+    {
+      "id": "direct_established",
+      "text": "Actual participation in this decision process is established by the supplied record.",
+      "expected": "established"
+    },
+    {
+      "id": "scoped_negative",
+      "text": "Actual participation was not established by the supplied record, though participation may exist outside this record.",
+      "expected": "not_established"
+    },
+    {
+      "id": "no_documented_engagement",
+      "text": "No interviews, surveys, testimony, consultation records, co-design records, or documented engagement by affected consumers or carers have been provided for this decision.",
+      "expected": "not_established"
+    },
+    {
+      "id": "documented_engagement_positive",
+      "text": "Documented engagement with affected consumers occurred for this decision through a facilitated workshop.",
+      "expected": "established"
+    },
+    {
+      "id": "none_of_records",
+      "text": "None of the supplied records documents participation in the current decision process.",
+      "expected": "not_established"
+    },
+    {
+      "id": "participation_absent",
+      "text": "Evidence of actual participation in the current decision process is absent from the supplied record.",
+      "expected": "not_established"
+    },
+    {
+      "id": "participation_lacking",
+      "text": "The supplied record is lacking documented participation in the current decision process.",
+      "expected": "not_established"
+    },
+    {
+      "id": "without_engagement",
+      "text": "The proposal is presented without any documented consumer engagement for this decision.",
+      "expected": "not_established"
+    },
+    {
+      "id": "unknown",
+      "text": "Actual participation in this decision process remains unknown from the supplied evidence.",
+      "expected": "not_established"
+    },
+    {
+      "id": "prior_evidence_not_current",
+      "text": "Participation is documented in a prior service review. Actual participation in the current decision process is not established by the supplied record.",
+      "expected": "not_established"
+    },
+    {
+      "id": "current_workshop",
+      "text": "Three consumers and two carers attended a documented workshop specifically about this proposal.",
+      "expected": "established"
+    },
+    {
+      "id": "genuine_conflict_direct",
+      "text": "Actual participation in the current decision process is established by the workshop record. A separate supplied note states that actual participation in the current decision process is not established.",
+      "expected": "ambiguous"
+    },
+    {
+      "id": "genuine_conflict_records",
+      "text": "No documented engagement is present in one supplied record for this decision. A separate workshop record documents consumer participation in this decision.",
+      "expected": "ambiguous"
+    },
+    {
+      "id": "double_negative",
+      "text": "It is not true that actual participation in this decision process was not established.",
+      "expected": "ambiguous"
+    },
+    {
+      "id": "unresolved",
+      "text": "The supplied material discusses participation principles but does not state the participation status for the current decision.",
+      "expected": "ambiguous"
+    }
+  ]
+}

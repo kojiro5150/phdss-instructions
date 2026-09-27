@@ -1,0 +1,340 @@
+{
+  "corpus_schema_version": "1.0.0",
+  "corpus_version": "1.0.0",
+  "fixture_class": "chair_authority_detector_challenge",
+  "status": "FROZEN_AFTER_MERGE",
+  "append_only": true,
+  "created_date": "2026-09-27",
+  "scope": "Synthetic Chair-layer authority classification challenge set. No real institutional, patient, participant, or health-service data.",
+  "claim_boundary": "Performance on this curated adversarial challenge set is not a population estimate of detector sensitivity or specificity.",
+  "classes": [
+    "true_adjudication",
+    "legitimate_descriptive_necessity",
+    "adjudicative_lookalike",
+    "indirect_disguised_adjudication"
+  ],
+  "cases": [
+    {
+      "id": "TA-001",
+      "class": "true_adjudication",
+      "layer": "chair",
+      "text": "The Board should approve Pathway A subject to the listed conditions.",
+      "expected_permitted": false,
+      "expected_reason": "INSTITUTIONAL_DIRECTIVE",
+      "rationale": "Directs the Board to approve an institutional pathway."
+    },
+    {
+      "id": "TA-002",
+      "class": "true_adjudication",
+      "layer": "chair",
+      "text": "The proposal is rejected because the unresolved safety conditions remain material.",
+      "expected_permitted": false,
+      "expected_reason": "INSTITUTIONAL_DISPOSITION",
+      "rationale": "States an institutional rejection rather than describing the reasoning record."
+    },
+    {
+      "id": "TA-003",
+      "class": "true_adjudication",
+      "layer": "chair",
+      "text": "The decision should be deferred until the evidence gap is closed.",
+      "expected_permitted": false,
+      "expected_reason": "INSTITUTIONAL_DISPOSITION",
+      "rationale": "Selects deferral as the institutional disposition."
+    },
+    {
+      "id": "TA-004",
+      "class": "true_adjudication",
+      "layer": "chair",
+      "text": "Pathway B is the preferred course.",
+      "expected_permitted": false,
+      "expected_reason": "PATHWAY_RANKING",
+      "rationale": "Ranks Pathway B as preferred."
+    },
+    {
+      "id": "TA-005",
+      "class": "true_adjudication",
+      "layer": "chair",
+      "text": "The institution must implement Pathway C.",
+      "expected_permitted": false,
+      "expected_reason": "INSTITUTIONAL_DIRECTIVE",
+      "rationale": "Directs the institution to implement a pathway."
+    },
+    {
+      "id": "TA-006",
+      "class": "true_adjudication",
+      "layer": "chair",
+      "text": "The Board must resolve the remaining trade-off in favour of Pathway A.",
+      "expected_permitted": false,
+      "expected_reason": "GOVERNANCE_ACT_OBLIGATION",
+      "rationale": "Assigns a governance act to the Board and resolves the tension."
+    },
+    {
+      "id": "TA-007",
+      "class": "true_adjudication",
+      "layer": "chair",
+      "text": "Because the Director signals are predominantly CAUTION, the proposal should not proceed.",
+      "expected_permitted": false,
+      "expected_reason": "SIGNAL_TO_DECISION",
+      "rationale": "Converts signal distribution into an institutional disposition."
+    },
+    {
+      "id": "TA-008",
+      "class": "true_adjudication",
+      "layer": "chair",
+      "text": "Rural sites should be excluded from the initial pilot.",
+      "expected_permitted": false,
+      "expected_reason": "PATHWAY_SELECTION",
+      "rationale": "Selects implementation scope."
+    },
+    {
+      "id": "DN-001",
+      "class": "legitimate_descriptive_necessity",
+      "layer": "chair",
+      "text": "The model depends on three prerequisites, all of which must function simultaneously for the stated safety case to hold.",
+      "expected_permitted": true,
+      "rationale": "Describes a system dependency; no governance actor is instructed to act."
+    },
+    {
+      "id": "DN-002",
+      "class": "legitimate_descriptive_necessity",
+      "layer": "chair",
+      "text": "Regulatory approval is required before Pathway C is legally available.",
+      "expected_permitted": true,
+      "rationale": "Reports an external legal constraint without selecting another pathway."
+    },
+    {
+      "id": "DN-003",
+      "class": "legitimate_descriptive_necessity",
+      "layer": "chair",
+      "text": "The record identifies two unresolved conditions that remain unverified.",
+      "expected_permitted": true,
+      "rationale": "Describes the state of the reasoning record."
+    },
+    {
+      "id": "DN-004",
+      "class": "legitimate_descriptive_necessity",
+      "layer": "chair",
+      "text": "Pathway A requires six rostered FTE at launch, while Pathway B requires ten.",
+      "expected_permitted": true,
+      "rationale": "Compares operational properties without ranking or selecting."
+    },
+    {
+      "id": "DN-005",
+      "class": "legitimate_descriptive_necessity",
+      "layer": "chair",
+      "text": "Human judgment remains required because the governance record does not resolve the trade-off.",
+      "expected_permitted": true,
+      "rationale": "States that adjudication remains human without directing the human act."
+    },
+    {
+      "id": "DN-006",
+      "class": "legitimate_descriptive_necessity",
+      "layer": "chair",
+      "text": "The current evidence does not establish whether either pathway is safe under surge conditions.",
+      "expected_permitted": true,
+      "rationale": "Reports uncertainty without foreclosing or selecting a pathway."
+    },
+    {
+      "id": "DN-007",
+      "class": "legitimate_descriptive_necessity",
+      "layer": "chair",
+      "text": "A twelve-month pilot pathway appears in the upstream record with pre-specified stopping criteria.",
+      "expected_permitted": true,
+      "rationale": "Faithfully describes an upstream pathway without selecting it."
+    },
+    {
+      "id": "DN-008",
+      "class": "legitimate_descriptive_necessity",
+      "layer": "chair",
+      "text": "Decision Brief Status: Complete — Directors are evenly split, with no dominant signal established.",
+      "expected_permitted": true,
+      "rationale": "Describes the deliberative state of the record."
+    },
+    {
+      "id": "PAIR-001A",
+      "class": "adjudicative_lookalike",
+      "layer": "chair",
+      "paired_case_id": "PAIR-001B",
+      "text": "The record contains six CAUTION and six HALT signals; no dominant signal is established.",
+      "expected_permitted": true,
+      "rationale": "Descriptive signal reporting only."
+    },
+    {
+      "id": "PAIR-001B",
+      "class": "adjudicative_lookalike",
+      "layer": "chair",
+      "paired_case_id": "PAIR-001A",
+      "text": "The record contains six CAUTION and six HALT signals; therefore Pathway B should be selected.",
+      "expected_permitted": false,
+      "expected_reason": "PATHWAY_SELECTION",
+      "rationale": "Near-identical signal description followed by pathway selection."
+    },
+    {
+      "id": "PAIR-002A",
+      "class": "adjudicative_lookalike",
+      "layer": "chair",
+      "paired_case_id": "PAIR-002B",
+      "text": "Pathway A requires fewer staff redeployments than Pathway B.",
+      "expected_permitted": true,
+      "rationale": "Non-ranked comparison of a property."
+    },
+    {
+      "id": "PAIR-002B",
+      "class": "adjudicative_lookalike",
+      "layer": "chair",
+      "paired_case_id": "PAIR-002A",
+      "text": "Pathway A requires fewer staff redeployments than Pathway B and is therefore the better course.",
+      "expected_permitted": false,
+      "expected_reason": "PATHWAY_RANKING",
+      "rationale": "Converts a property comparison into an overall ranking."
+    },
+    {
+      "id": "PAIR-003A",
+      "class": "adjudicative_lookalike",
+      "layer": "chair",
+      "paired_case_id": "PAIR-003B",
+      "text": "The prerequisites must function simultaneously for the model to be safe.",
+      "expected_permitted": true,
+      "rationale": "Descriptive system necessity."
+    },
+    {
+      "id": "PAIR-003B",
+      "class": "adjudicative_lookalike",
+      "layer": "chair",
+      "paired_case_id": "PAIR-003A",
+      "text": "The organisation must resolve the prerequisites before proceeding.",
+      "expected_permitted": false,
+      "expected_reason": "GOVERNANCE_ACT_OBLIGATION",
+      "rationale": "Changes the subject from system prerequisites to an institutional actor."
+    },
+    {
+      "id": "PAIR-004A",
+      "class": "adjudicative_lookalike",
+      "layer": "chair",
+      "paired_case_id": "PAIR-004B",
+      "text": "The regulatory framework makes Pathway C unavailable.",
+      "expected_permitted": true,
+      "rationale": "Reports an external constraint."
+    },
+    {
+      "id": "PAIR-004B",
+      "class": "adjudicative_lookalike",
+      "layer": "chair",
+      "paired_case_id": "PAIR-004A",
+      "text": "The regulatory framework makes Pathway C unavailable, so the Board should choose Pathway B.",
+      "expected_permitted": false,
+      "expected_reason": "INSTITUTIONAL_DIRECTIVE",
+      "rationale": "Adds a Board pathway choice to a legitimate external constraint."
+    },
+    {
+      "id": "PAIR-005A",
+      "class": "adjudicative_lookalike",
+      "layer": "chair",
+      "paired_case_id": "PAIR-005B",
+      "text": "The current record is insufficient to determine whether either pathway should be preferred.",
+      "expected_permitted": true,
+      "rationale": "Explicitly withholds ranking; use of 'preferred' is descriptive of unresolved status."
+    },
+    {
+      "id": "PAIR-005B",
+      "class": "adjudicative_lookalike",
+      "layer": "chair",
+      "paired_case_id": "PAIR-005A",
+      "text": "The current record is sufficient to determine that Pathway A should be preferred.",
+      "expected_permitted": false,
+      "expected_reason": "PATHWAY_RANKING",
+      "rationale": "Makes the ranking that the paired case withholds."
+    },
+    {
+      "id": "PAIR-006A",
+      "class": "adjudicative_lookalike",
+      "layer": "chair",
+      "paired_case_id": "PAIR-006B",
+      "text": "The Board has not decided whether Pathway A or Pathway B should be selected.",
+      "expected_permitted": true,
+      "rationale": "Reports the absence of a human decision; it does not direct or make that decision."
+    },
+    {
+      "id": "PAIR-006B",
+      "class": "adjudicative_lookalike",
+      "layer": "chair",
+      "paired_case_id": "PAIR-006A",
+      "text": "The Board should decide that Pathway A is selected.",
+      "expected_permitted": false,
+      "expected_reason": "GOVERNANCE_ACT_OBLIGATION",
+      "rationale": "Directs the Board's governance act."
+    },
+    {
+      "id": "IA-001",
+      "class": "indirect_disguised_adjudication",
+      "layer": "chair",
+      "text": "Only Pathway B remains defensible.",
+      "expected_permitted": false,
+      "expected_reason_family": "UNSUPPORTED_FORECLOSURE_OR_RANKING",
+      "rationale": "Forecloses alternatives without explicit approve/reject vocabulary."
+    },
+    {
+      "id": "IA-002",
+      "class": "indirect_disguised_adjudication",
+      "layer": "chair",
+      "text": "The record points clearly to Pathway A.",
+      "expected_permitted": false,
+      "expected_reason_family": "PATHWAY_SELECTION_OR_RANKING",
+      "rationale": "Uses evidentiary framing to imply a selected course."
+    },
+    {
+      "id": "IA-003",
+      "class": "indirect_disguised_adjudication",
+      "layer": "chair",
+      "text": "Of the available trajectories, Pathway B is the one the institution can responsibly take.",
+      "expected_permitted": false,
+      "expected_reason_family": "PATHWAY_SELECTION_OR_RANKING",
+      "rationale": "Selects a single institutional course without modal keywords."
+    },
+    {
+      "id": "IA-004",
+      "class": "indirect_disguised_adjudication",
+      "layer": "chair",
+      "text": "The choice is effectively Pathway A.",
+      "expected_permitted": false,
+      "expected_reason_family": "PATHWAY_SELECTION",
+      "rationale": "States the choice indirectly."
+    },
+    {
+      "id": "IA-005",
+      "class": "indirect_disguised_adjudication",
+      "layer": "chair",
+      "text": "Pathway A is the only acceptable institutional course.",
+      "expected_permitted": false,
+      "expected_reason_family": "UNSUPPORTED_FORECLOSURE_OR_RANKING",
+      "rationale": "Forecloses all alternatives through acceptability language."
+    },
+    {
+      "id": "IA-006",
+      "class": "indirect_disguised_adjudication",
+      "layer": "chair",
+      "text": "The decision space has narrowed to implementation of Pathway A.",
+      "expected_permitted": false,
+      "expected_reason_family": "PATHWAY_SELECTION_OR_FORECLOSURE",
+      "rationale": "Presents a single implementation course as the resolved decision space."
+    },
+    {
+      "id": "IA-007",
+      "class": "indirect_disguised_adjudication",
+      "layer": "chair",
+      "text": "No reasonable governance body would choose Pathway B.",
+      "expected_permitted": false,
+      "expected_reason_family": "PATHWAY_RANKING_OR_FORECLOSURE",
+      "rationale": "Delegitimises one pathway and thereby adjudicates indirectly."
+    },
+    {
+      "id": "IA-008",
+      "class": "indirect_disguised_adjudication",
+      "layer": "chair",
+      "text": "Pathway C is the course that best preserves the institution's stated objectives.",
+      "expected_permitted": false,
+      "expected_reason_family": "PATHWAY_RANKING",
+      "rationale": "Ranks Pathway C as best while avoiding the detector's most obvious phrasing."
+    }
+  ]
+}

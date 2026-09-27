@@ -47,11 +47,12 @@ import {
 import {
   assertBoardGovernanceRecord,
 } from "./src/governance-record-contract.js";
-import { loadAllInstructions } from "./src/runtime/instruction-loader.js";
+import { loadAllInstructions, INSTRUCTION_COMMIT } from "./src/runtime/instruction-loader.js";
 import {
   installApiKeyInterceptor,
   callClaude_synthesis,
   callClaudeChat,
+  SYNTHESIS_MODEL,
 } from "./src/runtime/anthropic-client.js";
 import { buildCoverageNote } from "./src/coverage.js";
 import {
@@ -166,6 +167,15 @@ function downloadJson(filename, dataObj) {
   var url = URL.createObjectURL(blob);
   var a = document.createElement("a"); a.href=url; a.download=filename;
   document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+
+async function sha256Text(text) {
+  if(typeof crypto==="undefined"||!crypto.subtle||typeof TextEncoder==="undefined"){
+    throw new Error("SHA-256 request provenance unavailable");
+  }
+  var bytes=new TextEncoder().encode(text||"");
+  var digest=await crypto.subtle.digest("SHA-256",bytes);
+  return Array.from(new Uint8Array(digest)).map(function(b){return b.toString(16).padStart(2,"0");}).join("");
 }
 
 
@@ -1755,6 +1765,7 @@ function PHDSS() {
   var [lensBId,setLensBId]=useState("safety");
   var [chairSelectedIds,setChairSelectedIds]=useState([]);
   var [advisoryOutput,setAdvisoryOutput]=useState({});
+  var [advisoryRequestRecords,setAdvisoryRequestRecords]=useState({});
   var [lensComparator,setLensComparator]=useState("");
   var [lensComparatorLoading,setLensComparatorLoading]=useState(false);
   var [advisoryDone,setAdvisoryDone]=useState(false);
@@ -2006,7 +2017,7 @@ function PHDSS() {
   async function runAdvisory(){
     if(!decision.trim()||running) return;
     setRunning(true); setDone(false); setAdvisoryDone(false); setError("");
-    setAdvisoryOutput({}); setLensComparator(""); setDirOutputs({}); setDirLoading({});
+    setAdvisoryOutput({}); setAdvisoryRequestRecords({}); setLensComparator(""); setDirOutputs({}); setDirLoading({});
     setStagesDone(0); setDirectorResultsRef([]); setExpandedDirs({});
     var ctx=getSessionContext(); var stageErrors=[];
     try {
@@ -2014,7 +2025,39 @@ function PHDSS() {
         var dir=DIRECTORS.find(function(d){return d.id===briefDirectorId;})||DIRECTORS[0];
         var loadingA={}; loadingA[dir.id]=true; setDirLoading(loadingA);
         try{
-          var briefOut=stripCalibrationBleed(await callClaude_synthesis(directorBriefSystem(dir,docs[dir.id]||[],webSearch,publicWebSearch,sessionEvidence,ctx,instructions),"Advisory request: "+decision,autoContinue,webSearch||publicWebSearch));
+          var advisorySystemPrompt=directorBriefSystem(dir,docs[dir.id]||[],webSearch,publicWebSearch,sessionEvidence,ctx,instructions);
+          var advisoryUserMessage="Advisory request: "+decision;
+          var directorInstruction=(instructions&&instructions[dir.id])||"";
+          var instructionContentSha256=await sha256Text(directorInstruction);
+          var systemPromptSha256=await sha256Text(advisorySystemPrompt);
+          var userMessageSha256=await sha256Text(advisoryUserMessage);
+          var advisoryRequestRecord={
+            schema:"phdss.advisory-request.v3",
+            captured_at:new Date().toISOString(),
+            decision_id:decisionId,
+            run_type:"ADVISORY",
+            advisory_mode:"DIRECTOR_BRIEF",
+            director_id:dir.id,
+            director_label:dir.label,
+            deployment_commit:(import.meta.env&&import.meta.env.VITE_GIT_COMMIT)||"UNRECORDED",
+            instruction_commit:INSTRUCTION_COMMIT,
+            instruction_file:dir.id+".md",
+            instruction_normalization_version:"trim_v1",
+            instruction_content:directorInstruction,
+            instruction_runtime_sha256:instructionContentSha256,
+            model:SYNTHESIS_MODEL,
+            model_settings:{max_tokens:16000,temperature:0.8,auto_continue:!!autoContinue},
+            web_search:!!webSearch,
+            public_web_search:!!publicWebSearch,
+            session_evidence_count:sessionEvidence.length,
+            director_embedded_evidence_count:(docs[dir.id]||[]).filter(function(e){return !!e.content;}).length,
+            system_prompt:advisorySystemPrompt,
+            system_prompt_sha256:systemPromptSha256,
+            user_message:advisoryUserMessage,
+            user_message_sha256:userMessageSha256
+          };
+          setAdvisoryRequestRecords(function(p){var n=Object.assign({},p);n[dir.id]=advisoryRequestRecord;return n;});
+          var briefOut=stripCalibrationBleed(await callClaude_synthesis(advisorySystemPrompt,advisoryUserMessage,autoContinue,webSearch||publicWebSearch));
           setDirOutputs(function(p){var n=Object.assign({},p); n[dir.id]=briefOut; return n;});
           setDirectorResultsRef([Object.assign({},dir,{output:briefOut})]);
           setAdvisoryOutput(function(p){return Object.assign({},p,{[dir.id]:briefOut});});
@@ -2043,7 +2086,7 @@ function PHDSS() {
 
   function resetAdvisory(){
     setDecision(""); setDecisionSignal(""); setOrgContext(""); setConstraintsText(""); setEvidenceLinksText("");
-    setAdvisoryDone(false); setRunning(false); setAdvisoryOutput({}); setLensComparator("");
+    setAdvisoryDone(false); setRunning(false); setAdvisoryOutput({}); setAdvisoryRequestRecords({}); setLensComparator("");
     setDirOutputs({}); setStagesDone(0); setError(""); setDirectorResultsRef([]);
     dirBriefsRef.current={}; synthesisBriefsRef.current={};
     setExpandedDirs({}); setDecisionId(makeDecisionId());
@@ -2089,6 +2132,7 @@ function PHDSS() {
 
   var hasStarted=(running||done||Object.keys(dirOutputs).length>0)&&modeFamily==="GOVERNANCE";
   var advisoryStarted=(running||advisoryDone||Object.keys(dirOutputs).length>0)&&modeFamily==="ADVISORY";
+  var participationDisclosureVisible=hasStarted&&activeDirectorsRef.some(function(d){return d.id==="lived";});
   var chairResolvedIds=resolveChairDirectors(chairSelectedIds).map(function(d){return d.id;});
   var chairAutoAdded=MANDATORY_DIRECTOR_IDS.filter(function(id){return chairSelectedIds.indexOf(id)===-1;});
 
@@ -2178,6 +2222,11 @@ function PHDSS() {
 
 
       <div style={{maxWidth:1100,margin:"0 auto",padding:"20px 16px"}}>
+
+        {participationDisclosureVisible&&<div data-governance-notice="participation-verification" style={{marginBottom:14,padding:"10px 14px",borderRadius:10,background:"#FFF7ED",border:"1px solid #FED7AA",borderLeft:"4px solid #F97316",fontSize:11,color:"#9A3412",lineHeight:1.55}}>
+          <div style={{fontWeight:800,marginBottom:3}}>Participation verification required</div>
+          <div>Participation status is currently inferred by the model from supplied evidence and is not independently verified. Before relying on a claim that affected people participated, a human reviewer must verify it against the documented engagement record.</div>
+        </div>}
 
 
         {tab==="dashboard"&&
@@ -2636,7 +2685,7 @@ function PHDSS() {
                   var dir=DIRECTORS.find(function(d){return d.id===briefDirectorId;})||DIRECTORS[0];
                   return <DirectorCard key={dir.id} director={dir} output={dirOutputs[dir.id]} loading={dirLoading[dir.id]} expanded={expandedDirs[dir.id]}
                     onToggle={function(){setExpandedDirs(function(p){var n=Object.assign({},p);n[dir.id]=!p[dir.id];return n;});}}
-                    onExport={dirOutputs[dir.id]?function(){exportDirector(dir,dirOutputs[dir.id],decisionId,decision,decisionSignal,orgContext);}:null}/>;
+                    onExport={dirOutputs[dir.id]?function(){exportDirector(dir,dirOutputs[dir.id],decisionId,decision,decisionSignal,orgContext); if(advisoryRequestRecords[dir.id]) downloadJson("PHDSS_"+decisionId+"_"+dir.id+"_request.json",advisoryRequestRecords[dir.id]);}:null}/>;
                 })()}
                 {advisoryMode==="DUAL_LENS"&&[lensAId,lensBId].map(function(lid){
                   var dir=DIRECTORS.find(function(d){return d.id===lid;}); if(!dir) return null;
