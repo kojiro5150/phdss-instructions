@@ -220,3 +220,16 @@ It does not establish broad runtime reliability. It creates the reproducible det
 > **Never rewrite an existing challenge case to make a detector change pass.**
 
 The evaluation instrument is part of the evidence chain and is governed accordingly.
+
+
+## 13. Shadow-classifier preregistration
+
+Any semantic classifier proposed to address authority-boundary cases that exceed deterministic pattern coverage is governed by:
+
+`docs/V3_CHAIR_SEMANTIC_SHADOW_PREREGISTRATION.md`
+
+The semantic classifier begins in telemetry-only shadow mode. Its results cannot change Chair output, stage status, repair behaviour, or release of a governance artefact.
+
+Promotion criteria, non-promotion/closure criteria, holdout authorship rules, interim external-session controls, and shadow-telemetry redaction requirements are frozen in that preregistration before classifier implementation or observation of shadow results.
+
+Meeting preregistered performance thresholds may open a constitutional-migration review. It does not authorize promotion.
