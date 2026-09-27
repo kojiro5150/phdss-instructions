@@ -46,13 +46,20 @@ function participationSignal(s){
     /\b(?:this|the\s+current)\s+(?:decision|proposal)\b[^.!?\n]{0,160}\b(?:participated|attended|engaged|workshop|consultation|engagement)\b/i.test(s);
 
   if(currentParticipation){
-    if(/\b(?:is|was|remains|appears)?\s*(?:not\s+established|not\s+documented|not\s+evidenced|unknown|unclear)\b/i.test(s)) return "not_established";
-    if(/\b(?:is|was|has\s+been|had\s+been)\s+(?:established|documented|evidenced)\b/i.test(s)) return "established";
+    const participationNegative=
+      /\b(?:actual\s+)?participation\b[^.!?\n]{0,100}\b(?:is|was|remains|appears)?\s*(?:not\s+established|not\s+documented|not\s+evidenced|unknown|unclear)\b/i.test(s) ||
+      /\b(?:does|do|did|is|was|has|have|had)\s+not\b[^.!?\n]{0,120}\b(?:establish|document|record|evidence)\b[^.!?\n]{0,80}\bparticipation\b/i.test(s);
+
+    const participationPositive=
+      /\b(?:actual\s+)?participation\b[^.!?\n]{0,100}\b(?:is|was|has\s+been|had\s+been)\s+(?:established|documented|evidenced)\b/i.test(s);
+
+    if(participationNegative&&participationPositive) return "ambiguous";
+    if(participationNegative) return "not_established";
+    if(participationPositive) return "established";
   }
 
   if(/^\s*no\b/i.test(s)&&mechanismCurrent) return "not_established";
   if(/\bno\s+documented\b[^.!?\n]{0,140}\b(?:engagement|consultation|workshop|participation)\b/i.test(s)&&mechanismCurrent) return "not_established";
-  if(/\b(?:does|do|did|is|was|has|have|had)\s+not\b[^.!?\n]{0,120}\b(?:document|record|evidence|establish)\b/i.test(s)&&currentParticipation) return "not_established";
 
   if(!isHistoricalOnly(s)){
     if(/\b(?:consumers?|carers?|affected\s+people|people\s+with\s+direct\s+service\s+experience)\b[^.!?\n]{0,140}\b(?:participated|attended|engaged)\b/i.test(s) &&
