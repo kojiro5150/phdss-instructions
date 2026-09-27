@@ -85,6 +85,6 @@ runCase("active Director missing record invalidates run",(d)=>{
 },1,'active Director missing provenance record');
 runCase("omitted Director invoked invalidates run",(d)=>{
   const extra=stage("director:systems");d.records.push(extra);d.manifest.stages.push({stage_id:extra.stage_id,status:extra.status,output_sha256:extra.output_sha256});
-},1,'omitted Director has invoked provenance record');
+},1,'Omitted Director has invoked provenance record');
 
 console.log("Governance provenance verifier regression cases passed.");
