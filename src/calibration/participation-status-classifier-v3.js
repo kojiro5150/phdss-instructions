@@ -67,17 +67,22 @@ function participationSignal(s){
 function targetSignal(s,targetPatterns,positivePatterns=[]){
   if(!targetPatterns.some(p=>p.test(s))) return null;
   if(doubleNegative(s)) return "ambiguous";
+  if(/\bdoes\s+not\s+address\s+whether\b/i.test(s)) return null;
 
-  if(
+  const negative=
     /\bnot\s+(?:established|documented|evidenced|recorded)\b/i.test(s) ||
     /\b(?:does|do|did|is|was|has|have|had)\s+not\b[^.!?\n]{0,100}\b(?:establish|document|evidence|record|show)\b/i.test(s) ||
     /^\s*no\b/i.test(s) ||
     /\bnone\s+of\b/i.test(s) ||
-    /\b(?:absent|lacking|unknown|unclear)\b/i.test(s)
-  ) return "not_established";
+    /\b(?:absent|lacking|unknown|unclear)\b/i.test(s);
 
-  if(positivePatterns.some(p=>p.test(s))) return "established";
-  if(/\b(?:is|was|has\s+been|had\s+been)\s+(?:established|documented|evidenced|recorded)\b/i.test(s)) return "established";
+  const positive=
+    positivePatterns.some(p=>p.test(s)) ||
+    /\b(?:is|was|has\s+been|had\s+been)\s+(?:established|documented|evidenced|recorded)\b/i.test(s);
+
+  if(negative&&positive) return "ambiguous";
+  if(negative) return "not_established";
+  if(positive) return "established";
   return null;
 }
 
@@ -109,7 +114,7 @@ function decisionAuthoritySignal(s){
   return targetSignal(
     s,
     [/\bdecision-making\s+authority\b/i,/\bdecision\s+authority\b/i],
-    [/\b(?:held|had)\s+decision(?:-making)?\s+authority\b/i,/\bdecision(?:-making)?\s+authority\b[^.!?\n]{0,80}\b(?:was|is)\s+(?:held|granted|established|documented)\b/i]
+    [/\b(?:held|had)\b[^.!?\n]{0,120}\bdecision(?:-making)?\s+authority\b/i,/\bdecision(?:-making)?\s+authority\b[^.!?\n]{0,80}\b(?:was|is)\s+(?:held|granted|established|documented)\b/i]
   );
 }
 
