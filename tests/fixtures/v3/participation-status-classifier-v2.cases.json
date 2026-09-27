@@ -19,8 +19,13 @@
     },
     {
       "id": "genuinely_ambiguous",
-      "text": "Participation is documented in a prior service review. Actual participation in the current decision process is not established by the supplied record.",
+      "text": "Actual participation in the current decision process is established by the workshop record. A separate supplied note states that actual participation in the current decision process is not established.",
       "expected": "ambiguous"
+    },
+    {
+      "id": "prior_evidence_not_current_participation",
+      "text": "Participation is documented in a prior service review. Actual participation in the current decision process is not established by the supplied record.",
+      "expected": "not_established"
     },
     {
       "id": "positive_workshop",
