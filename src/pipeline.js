@@ -622,7 +622,11 @@ export async function runGovernancePipeline(config,runtime,emit) {
 
     try {
       stageEmitter(emit,"meta",true);
-      var metaPrompt=metaSystem((config.docs&&config.docs.meta)||[],config.webSearch,config.publicWebSearch,config.sessionEvidence,config.analysisMode,activeDir,config.instructions);\n      var metaUser="Decision: "+config.decision+"\\n\\nDecision Surface Map:\\n"+state.surfaceMapOut+"\\n\\nDirector Governance Briefs:\\n"+briefSummary+(state.epistemicOut?"\\n\\nEpistemic Audit:\\n"+state.epistemicOut:"");\n      await beginProvenance("cross_domain_tension_analysis","synthesis",null,metaPrompt+authorityBoundaryPrompt("cross_domain_tension_analysis"),metaUser,config.webSearch||config.publicWebSearch);\n      state.metaOut=await runGoverned("cross_domain_tension_analysis",metaPrompt,metaUser,config.autoContinue,config.webSearch||config.publicWebSearch);\n      await finishProvenance("cross_domain_tension_analysis",state.metaOut,"success",null);
+      var metaPrompt=metaSystem((config.docs&&config.docs.meta)||[],config.webSearch,config.publicWebSearch,config.sessionEvidence,config.analysisMode,activeDir,config.instructions);
+      var metaUser="Decision: "+config.decision+"\n\nDecision Surface Map:\n"+state.surfaceMapOut+"\n\nDirector Governance Briefs:\n"+briefSummary+(state.epistemicOut?"\n\nEpistemic Audit:\n"+state.epistemicOut:"");
+      await beginProvenance("cross_domain_tension_analysis","synthesis",null,metaPrompt+authorityBoundaryPrompt("cross_domain_tension_analysis"),metaUser,config.webSearch||config.publicWebSearch);
+      state.metaOut=await runGoverned("cross_domain_tension_analysis",metaPrompt,metaUser,config.autoContinue,config.webSearch||config.publicWebSearch);
+      await finishProvenance("cross_domain_tension_analysis",state.metaOut,"success",null);
       emit("stage-output",{stage:"meta",output:state.metaOut});
       await storeSynthesisBrief("meta","Cross-Domain Tension Analysis",state.metaOut);
       setSynthesisStageStatus("meta","success");
@@ -631,7 +635,11 @@ export async function runGovernancePipeline(config,runtime,emit) {
 
     try {
       stageEmitter(emit,"reality_anchor",true);
-      var realityPrompt=realityAnchorSystem(config.analysisMode,activeDir,config.instructions);\n      var realityUser="Decision: "+config.decision+"\\n\\nDirector Governance Briefs:\\n"+briefSummary+"\\n\\nDecision Surface Map:\\n"+state.surfaceMapOut+"\\n\\nMETA Synthesis:\\n"+state.metaOut;\n      await beginProvenance("reality_anchor","synthesis",null,realityPrompt+authorityBoundaryPrompt("reality_anchor"),realityUser,false);\n      state.realityAnchorOut=await runGoverned("reality_anchor",realityPrompt,realityUser,config.autoContinue);\n      await finishProvenance("reality_anchor",state.realityAnchorOut,"success",null);
+      var realityPrompt=realityAnchorSystem(config.analysisMode,activeDir,config.instructions);
+      var realityUser="Decision: "+config.decision+"\n\nDirector Governance Briefs:\n"+briefSummary+"\n\nDecision Surface Map:\n"+state.surfaceMapOut+"\n\nMETA Synthesis:\n"+state.metaOut;
+      await beginProvenance("reality_anchor","synthesis",null,realityPrompt+authorityBoundaryPrompt("reality_anchor"),realityUser,false);
+      state.realityAnchorOut=await runGoverned("reality_anchor",realityPrompt,realityUser,config.autoContinue);
+      await finishProvenance("reality_anchor",state.realityAnchorOut,"success",null);
       emit("stage-output",{stage:"reality_anchor",output:state.realityAnchorOut});
       await storeSynthesisBrief("reality","Reality Anchor",state.realityAnchorOut);
       setSynthesisStageStatus("reality_anchor","success");
@@ -643,7 +651,11 @@ export async function runGovernancePipeline(config,runtime,emit) {
       var sigs=state.results.map(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(PROCEED|CAUTION|HALT)/,1);}).filter(Boolean);
       var sigCounts=sigs.reduce(function(a,s){return Object.assign({},a,{[s]:(a[s]||0)+1});},{});
       var dominantSignal=(Object.entries(sigCounts).sort(function(a,b){return b[1]-a[1];})[0]||[])[0]||"UNKNOWN";
-      var probePrompt=adversarialProbeSystem(dominantSignal,config.analysisMode,activeDir,config.instructions);\n      var probeUser="Decision: "+config.decision+"\\n\\nAll Director Governance Briefs:\\n"+briefSummary+"\\n\\nMETA-AUTHOR Synthesis:\\n"+state.metaOut+"\\n\\nReality Anchor:\\n"+state.realityAnchorOut;\n      await beginProvenance("adversarial_probe","synthesis",null,probePrompt+authorityBoundaryPrompt("adversarial_probe"),probeUser,false);\n      state.probeOut=await runGoverned("adversarial_probe",probePrompt,probeUser,config.autoContinue);\n      await finishProvenance("adversarial_probe",state.probeOut,"success",null);
+      var probePrompt=adversarialProbeSystem(dominantSignal,config.analysisMode,activeDir,config.instructions);
+      var probeUser="Decision: "+config.decision+"\n\nAll Director Governance Briefs:\n"+briefSummary+"\n\nMETA-AUTHOR Synthesis:\n"+state.metaOut+"\n\nReality Anchor:\n"+state.realityAnchorOut;
+      await beginProvenance("adversarial_probe","synthesis",null,probePrompt+authorityBoundaryPrompt("adversarial_probe"),probeUser,false);
+      state.probeOut=await runGoverned("adversarial_probe",probePrompt,probeUser,config.autoContinue);
+      await finishProvenance("adversarial_probe",state.probeOut,"success",null);
       emit("stage-output",{stage:"probe",output:state.probeOut});
       await storeSynthesisBrief("probe","Adversarial Probe",state.probeOut);
       setSynthesisStageStatus("probe","success");
@@ -656,14 +668,19 @@ export async function runGovernancePipeline(config,runtime,emit) {
     if(state.stressDecision.run){
       try {
         stageEmitter(emit,"stress",true);
-        var stressPrompt=stressSystem((config.docs&&config.docs.stress)||[],config.webSearch,config.publicWebSearch,config.sessionEvidence,config.analysisMode,activeDir,config.instructions);\n        var stressUser="Decision: "+config.decision+"\\n\\nDecision Surface Map:\\n"+state.surfaceMapOut+"\\n\\nMETA-AUTHOR:\\n"+state.metaOut+"\\n\\nReality Anchor:\\n"+state.realityAnchorOut;\n        await beginProvenance("stress_test","synthesis",null,stressPrompt+authorityBoundaryPrompt("stress_test"),stressUser,config.webSearch||config.publicWebSearch);\n        state.stressOut=await runGoverned("stress_test",stressPrompt,stressUser,config.autoContinue,config.webSearch||config.publicWebSearch);\n        await finishProvenance("stress_test",state.stressOut,"success",null);
+        var stressPrompt=stressSystem((config.docs&&config.docs.stress)||[],config.webSearch,config.publicWebSearch,config.sessionEvidence,config.analysisMode,activeDir,config.instructions);
+        var stressUser="Decision: "+config.decision+"\n\nDecision Surface Map:\n"+state.surfaceMapOut+"\n\nMETA-AUTHOR:\n"+state.metaOut+"\n\nReality Anchor:\n"+state.realityAnchorOut;
+        await beginProvenance("stress_test","synthesis",null,stressPrompt+authorityBoundaryPrompt("stress_test"),stressUser,config.webSearch||config.publicWebSearch);
+        state.stressOut=await runGoverned("stress_test",stressPrompt,stressUser,config.autoContinue,config.webSearch||config.publicWebSearch);
+        await finishProvenance("stress_test",state.stressOut,"success",null);
         emit("stage-output",{stage:"stress",output:state.stressOut});
         await storeSynthesisBrief("stress","Decision Stress Test",state.stressOut);
         setSynthesisStageStatus("stress","success");
       } catch(e){ await finishProvenance("stress_test",null,"failed",e); recordStageFailure("stress","Stress",e); }
       stageEmitter(emit,"stress",false);
     } else {
-      setSynthesisStageStatus("stress","skipped",null,"stress trigger not met");\n      skipProvenance("stress_test","stress trigger not met");
+      setSynthesisStageStatus("stress","skipped",null,"stress trigger not met");
+      skipProvenance("stress_test","stress trigger not met");
     }
     emit("stages-done",{value:7});
 
@@ -692,7 +709,8 @@ export async function runGovernancePipeline(config,runtime,emit) {
     if(!state.synthesisStageStatus.chair||state.synthesisStageStatus.chair.status!=="success"){
       state.comparatorData=null;
       setSynthesisStageStatus("comparator","skipped",null,"required upstream stage chair failed");
-      emit("comparator-skipped",{reason:"required upstream stage chair failed"});\n      skipProvenance("comparator","required upstream stage chair failed");
+      emit("comparator-skipped",{reason:"required upstream stage chair failed"});
+      skipProvenance("comparator","required upstream stage chair failed");
     } else {
       try {
         var pCount=state.results.filter(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(PROCEED)/,1)==="PROCEED";}).length;
@@ -711,7 +729,10 @@ export async function runGovernancePipeline(config,runtime,emit) {
           if(hints.length===0) return "";
           return "\n\nKILL SWITCH REQUIREMENT: Each kill_switch entry must contain a measurable indicator + specific threshold + timeframe. Examples from Director analyses:\n"+hints.map(function(h){return "- "+h;}).join("\n")+"\nFormat each kill switch as: \"[indicator] exceeds/falls below [threshold] [timeframe].\"";
         })();
-        var comparatorPrompt=comparatorJsonSystem(config.decisionId,config.decisionSignal,state.results,config.analysisMode,activeDir,state.chairOut,config.instructions,pCount,cCount,hCount);\n        var comparatorUser="Run comparator now."+killSwitchHints;\n        await beginProvenance("comparator","comparator",null,comparatorPrompt+authorityBoundaryPrompt("comparator"),comparatorUser,false);\n        var compRaw=await runGoverned("comparator",comparatorPrompt,comparatorUser,config.autoContinue);
+        var comparatorPrompt=comparatorJsonSystem(config.decisionId,config.decisionSignal,state.results,config.analysisMode,activeDir,state.chairOut,config.instructions,pCount,cCount,hCount);
+        var comparatorUser="Run comparator now."+killSwitchHints;
+        await beginProvenance("comparator","comparator",null,comparatorPrompt+authorityBoundaryPrompt("comparator"),comparatorUser,false);
+        var compRaw=await runGoverned("comparator",comparatorPrompt,comparatorUser,config.autoContinue);
         var compParsed=validateComparatorSchema(extractFirstJsonObject(compRaw));
         if(compParsed&&compParsed.summary&&typeof compParsed.summary.decision_signal_interpretation==="string"){
           var interp=compParsed.summary.decision_signal_interpretation;
