@@ -28,6 +28,9 @@ export function detectAdaptiveFifth(decisionText) {
   return "behaviour";
 }
 
+// CORE composition and rationale are documented in docs/CORE_ACTIVATION_POLICY.md.
+// Do not collapse globally mandatory (systems, safety), CORE-fixed (equity, lived),
+// and adaptive-fifth status into a single "mandatory" category.
 export function resolveCoreDirectors(decisionText) {
   var required = ["systems","safety","equity","lived"];
   var fifth = detectAdaptiveFifth(decisionText);
