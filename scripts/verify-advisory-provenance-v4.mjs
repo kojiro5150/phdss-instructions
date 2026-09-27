@@ -30,8 +30,11 @@ export async function verifyAdvisoryProvenance({record,expectedDeployment=null,r
   if(typeof record.user_message!=="string"||!record.user_message.length) fail("user_message missing");
   else if(record.user_message_sha256!==sha(record.user_message)) fail("user_message_sha256 self-check failed");
 
+  if(record.output_transform!=="stripCalibrationBleed_v1") fail("unexpected output transform");
   if(record.output_capture_stage!=="post_stripCalibrationBleed_v1") fail("unexpected output capture stage");
   if(record.status!=="success") fail("Advisory run status is not success");
+  if(typeof record.raw_output!=="string"||!record.raw_output.length) fail("raw_output missing");
+  else if(record.raw_output_sha256!==sha(record.raw_output)) fail("raw_output_sha256 self-check failed");
   if(typeof record.output!=="string"||!record.output.length) fail("output missing");
   else if(record.output_sha256!==sha(record.output)) fail("output_sha256 self-check failed");
 
@@ -66,7 +69,9 @@ export async function verifyAdvisoryProvenance({record,expectedDeployment=null,r
     instruction_source_computed_sha256:sourceComputed,
     system_prompt_sha256:record.system_prompt_sha256||null,
     user_message_sha256:record.user_message_sha256||null,
+    raw_output_sha256:record.raw_output_sha256||null,
     output_sha256:record.output_sha256||null,
+    output_transform:record.output_transform||null,
     output_capture_stage:record.output_capture_stage||null,
     failures
   };
