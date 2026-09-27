@@ -1,0 +1,36 @@
+{
+  "schema": "phdss.participation-status-classifier-v2.cases.v1",
+  "classifier_version": "status_classifier_v2",
+  "cases": [
+    {
+      "id": "negative_direct",
+      "text": "Actual participation in this decision process is not established by the supplied evidence.",
+      "expected": "not_established"
+    },
+    {
+      "id": "positive_direct",
+      "text": "Actual participation in this decision process is established by the supplied record.",
+      "expected": "established"
+    },
+    {
+      "id": "negative_with_scope",
+      "text": "Actual participation was not established by the supplied record, though participation may exist outside this record.",
+      "expected": "not_established"
+    },
+    {
+      "id": "genuinely_ambiguous",
+      "text": "Participation is documented in a prior service review. Actual participation in the current decision process is not established by the supplied record.",
+      "expected": "ambiguous"
+    },
+    {
+      "id": "positive_workshop",
+      "text": "Documented participation in this decision was established through a facilitated workshop with affected consumers and carers.",
+      "expected": "established"
+    },
+    {
+      "id": "missing",
+      "text": "No participation status statement is provided here.",
+      "expected": "ambiguous"
+    }
+  ]
+}
