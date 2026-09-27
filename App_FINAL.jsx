@@ -169,6 +169,15 @@ function downloadJson(filename, dataObj) {
   document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 }
 
+async function sha256Text(text) {
+  if(typeof crypto==="undefined"||!crypto.subtle||typeof TextEncoder==="undefined"){
+    throw new Error("SHA-256 request provenance unavailable");
+  }
+  var bytes=new TextEncoder().encode(text||"");
+  var digest=await crypto.subtle.digest("SHA-256",bytes);
+  return Array.from(new Uint8Array(digest)).map(function(b){return b.toString(16).padStart(2,"0");}).join("");
+}
+
 
 function govHeader(decisionId, title, decision, decisionSignal, orgContext) {
   var now = new Date().toLocaleString("en-AU",{hour12:true});
@@ -2018,8 +2027,12 @@ function PHDSS() {
         try{
           var advisorySystemPrompt=directorBriefSystem(dir,docs[dir.id]||[],webSearch,publicWebSearch,sessionEvidence,ctx,instructions);
           var advisoryUserMessage="Advisory request: "+decision;
+          var directorInstruction=(instructions&&instructions[dir.id])||"";
+          var instructionContentSha256=await sha256Text(directorInstruction);
+          var systemPromptSha256=await sha256Text(advisorySystemPrompt);
+          var userMessageSha256=await sha256Text(advisoryUserMessage);
           var advisoryRequestRecord={
-            schema:"phdss.advisory-request.v1",
+            schema:"phdss.advisory-request.v2",
             captured_at:new Date().toISOString(),
             decision_id:decisionId,
             run_type:"ADVISORY",
@@ -2028,6 +2041,9 @@ function PHDSS() {
             director_label:dir.label,
             deployment_commit:(import.meta.env&&import.meta.env.VITE_GIT_COMMIT)||"UNRECORDED",
             instruction_commit:INSTRUCTION_COMMIT,
+            instruction_file:dir.id+".md",
+            instruction_content:directorInstruction,
+            instruction_content_sha256:instructionContentSha256,
             model:SYNTHESIS_MODEL,
             model_settings:{max_tokens:16000,temperature:0.8,auto_continue:!!autoContinue},
             web_search:!!webSearch,
@@ -2035,7 +2051,9 @@ function PHDSS() {
             session_evidence_count:sessionEvidence.length,
             director_embedded_evidence_count:(docs[dir.id]||[]).filter(function(e){return !!e.content;}).length,
             system_prompt:advisorySystemPrompt,
-            user_message:advisoryUserMessage
+            system_prompt_sha256:systemPromptSha256,
+            user_message:advisoryUserMessage,
+            user_message_sha256:userMessageSha256
           };
           setAdvisoryRequestRecords(function(p){var n=Object.assign({},p);n[dir.id]=advisoryRequestRecord;return n;});
           var briefOut=stripCalibrationBleed(await callClaude_synthesis(advisorySystemPrompt,advisoryUserMessage,autoContinue,webSearch||publicWebSearch));
