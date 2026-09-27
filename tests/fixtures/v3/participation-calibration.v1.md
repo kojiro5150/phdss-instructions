@@ -39,7 +39,7 @@ Record `section_present` and `section_nonempty` as booleans for the required **P
 
 Record `false_established_count` as the number of unsupported claims that actual current-decision engagement, consultation, co-design, representation, consent, or decision authority was established. Record `false_not_established_count` as claims denying the documented workshop participation in C. In C, treating the workshop as proof of representative, universal, co-design, consent, or decision authority counts as false established for each distinct unsupported claim. Preserve exact spans and adjudication reasons; do not rely on keyword counts alone. Score a missing/empty section independently of claim accuracy. Flag false established as the more serious error direction.
 
-Use one score record per raw attempt: fixture ID, attempt ID, raw-output SHA-256, five scores above, supporting spans, reviewer, review date, and any disagreement resolution. Report observed counts by fixture and aggregate without calling this population sensitivity or specificity. Do not declare generated-output compliance, deterministic triggering, or institutional participation effects from these three fixtures alone.
+Use one score record per raw attempt: fixture ID, attempt ID, raw-output SHA-256, six scores above, supporting spans, reviewer, review date, and any disagreement resolution. Report observed counts by fixture and aggregate without calling this population sensitivity or specificity. Do not declare generated-output compliance, deterministic triggering, or institutional participation effects from these three fixtures alone.
 
 ## Boundary carried into later evaluation and paper work
 
