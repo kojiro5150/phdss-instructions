@@ -2,9 +2,12 @@ import fs from "node:fs";
 import crypto from "node:crypto";
 
 const path="tests/fixtures/v3/chair-authority-detector-challenge.v1.json";
-const expectedSha256="3c0d671ec6a600eb5a16da5e16d6aed8987bbf1e3e54d76f7d9e275c351b93a5";
+const expectedSha256="4ad92cf3d27d505593e8b753b49c457c0286fbf51bf36cd3a4c44fc2f2f02437";
 const raw=fs.readFileSync(path);
 const actual=crypto.createHash("sha256").update(raw).digest("hex");
+
+// Metadata correction: the corpus bytes have not changed since PR #29 publication.
+// The original published SHA-256 was incorrect; Git blob 58ae079c1e9a1f08809692b20e11b51d7860da99 is unchanged.
 
 if(actual!==expectedSha256){
   console.error("Frozen Chair detector challenge corpus v1 changed.");
