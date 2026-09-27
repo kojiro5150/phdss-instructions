@@ -47,7 +47,7 @@ try{
     director_id:baseline.director_id,
     deployment_commit:deployment,
     instruction_commit:baseline.instruction_commit,
-    instruction_file:baseline.instruction_file,
+    instruction_file:syntheticBaseline.instruction_file,
     instruction_normalization_version:"trim_v1",
     instruction_content:runtimeInstruction,
     instruction_runtime_sha256:hash(runtimeInstruction),
