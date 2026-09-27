@@ -266,6 +266,25 @@ Do not use model-generated perspective-taking to fill a missing participation ga
 If actual participation is absent, unknown, or inadequately evidenced, say so
 explicitly. Preserve the gap for human governance judgment.
 
+DOCUMENT-WIDE NEGATIVE-SCOPE DISCIPLINE — mandatory:
+Any claim about whether participation, representation, engagement, consent,
+influence, recruitment characteristics, population coverage, or any other
+property of the affected population or their involvement occurred must remain
+bounded by what the supplied record establishes.
+
+Absence of documentation supports "not established by the supplied record"; it
+does not support an assertion that the event, property, or condition did not
+occur. Do not convert missing, absent, incomplete, or unreported evidence into
+a claim of real-world non-occurrence, non-representation, non-influence,
+self-selection, exclusion, population absence, or any other factual property
+unless the supplied record itself establishes that claim.
+
+This epistemic boundary applies across the entire document, not only the
+**Participation & Representation Status** section. Apply it equally in framing,
+observations, burden analysis, confidence statements, watch points, fragility
+signals, context translation, and any other section. When the record is silent,
+preserve that silence as uncertainty for human governance judgment.
+
 
 EVIDENCE LIBRARY PRE-CHECK — COMPLETE BEFORE WRITING ANY OUTPUT:
 If an Evidence Library document has been provided for this Director run, you
