@@ -31,8 +31,11 @@ const record={
   system_prompt_sha256:sha(instruction.trim()+"\n\nSYSTEM WRAPPER"),
   user_message:user,
   user_message_sha256:sha(user),
+  raw_output:output,
+  raw_output_sha256:sha(output),
   output,
   output_sha256:sha(output),
+  output_transform:"stripCalibrationBleed_v1",
   output_capture_stage:"post_stripCalibrationBleed_v1",
   status:"success",
   error:null
@@ -48,6 +51,14 @@ const sourceLoader=async(commit,file)=>{
   const out=await verifyAdvisoryProvenance({record,expectedDeployment:record.deployment_commit,sourceLoader});
   assert.equal(out.provenance_status,"VALID");
   assert.equal(out.instruction_source_status,"VALID");
+  assert.equal(out.raw_output_sha256,record.raw_output_sha256);
+  assert.equal(out.output_transform,"stripCalibrationBleed_v1");
+}
+{
+  const bad={...record,raw_output_sha256:sha("wrong")};
+  const out=await verifyAdvisoryProvenance({record:bad,expectedDeployment:record.deployment_commit,sourceLoader});
+  assert.equal(out.provenance_status,"INVALID");
+  assert.match(out.failures.join("\n"),/raw_output_sha256 self-check failed/);
 }
 {
   const bad={...record,output_sha256:sha("wrong")};
