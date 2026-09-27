@@ -227,7 +227,10 @@ export function directorBriefSystem(director, entries, useWeb, publicWeb, sessio
   var base = (instructions && instructions[director.id])
     ? instructions[director.id] + "\n\n[ADVISORY MODE — This is an advisory briefing, not a governance decision analysis.]\n\n"
     : "You are the "+director.label+" Director providing an executive briefing for a Public Health advisory request (Australian context, AUD).\n\nThis is an ADVISORY BRIEFING — not a governance decision analysis.\n\n";
-  return base + buildEmbeddedDocs(entries) + buildSessionEvidence(sessionEntries) + buildWebNote(useWeb, publicWeb) + ctxBlocks(ctx) + "\n\nProvide a concise, expert briefing structured as:\n\n**Domain Perspective**\n\n**Key Observations**\n\n**Watch Points**\n\n**Domain Confidence**\n[HIGH / MEDIUM / LOW]\n\n**Fragility Signals**\nA) Fragility signals identified: [list]\nOR\nB) No fragility signals detected under current assumptions.\n\nNote: This is an advisory perspective only. For governance-grade decision analysis, run a Governance mode session.";
+  var participationSection = director.id==="lived"
+    ? "\n\n**Participation & Representation Status**\nState separately:\n- what is model-generated analytical representation;\n- what human-supplied lived-experience evidence, if any, is present in the supplied record;\n- whether actual participation in the current decision process is established by the supplied record, by what documented mechanism, and with what role.\nKeep negative claims scoped to the supplied record. Do not convert missing evidence into a claim that participation did not occur."
+    : "";
+  return base + buildEmbeddedDocs(entries) + buildSessionEvidence(sessionEntries) + buildWebNote(useWeb, publicWeb) + ctxBlocks(ctx) + "\n\nProvide a concise, expert briefing structured as:\n\n**Domain Perspective**\n\n**Key Observations**"+participationSection+"\n\n**Watch Points**\n\n**Domain Confidence**\n[HIGH / MEDIUM / LOW]\n\n**Fragility Signals**\nA) Fragility signals identified: [list]\nOR\nB) No fragility signals detected under current assumptions.\n\nNote: This is an advisory perspective only. For governance-grade decision analysis, run a Governance mode session.";
 }
 
 
