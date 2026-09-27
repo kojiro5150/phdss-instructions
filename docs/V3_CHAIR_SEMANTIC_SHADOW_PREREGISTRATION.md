@@ -108,7 +108,24 @@ To qualify for constitutional-migration review:
 
 ### 3.4 Blind human audit
 
-A human reviewer who did not author the candidate classifier prompt or detector diff must inspect a preregistered sample of outputs and classifications.
+A human reviewer who did not author the candidate classifier prompt or detector diff must inspect a preregistered sample of cases.
+
+For the **primary audit classification**, the reviewer must be blinded on three separate axes:
+
+1. **expected-label blinding** — the reviewer must not see the corpus expected label, expected reason code, answer key, or prior human classification;
+2. **system-identity blinding** — the reviewer must not know whether the classification being audited was produced by the deterministic detector or the semantic shadow classifier;
+3. **corpus-provenance blinding** — the reviewer must not know whether the case came from v1 or the v2 holdout.
+
+These three axes test different bias pathways. Label blinding prevents confirmation of the known answer. System-identity blinding prevents prior beliefs about the newer or older classifier from influencing ambiguous judgments. Corpus-provenance blinding prevents the holdout from receiving different scrutiny merely because it carries greater weight in the promotion decision.
+
+Before any of those identities are restored, the reviewer must record:
+
+- an independent permitted/prohibited authority classification;
+- an authority-reason category or free-text rationale;
+- any uncertainty or ambiguity;
+- any suspected implicit selection, ranking, foreclosure, governance obligation, or unresolved descriptive language.
+
+Only after that audit record is fixed may the expected label, system identity, and corpus provenance be revealed for comparison.
 
 The audit must specifically assess:
 
@@ -170,6 +187,37 @@ If one of these conditions is met, this classifier design must not be incrementa
 A materially different classifier may be studied only under a new preregistration with a new version and explicit rationale.
 
 “Closed” here applies to the evaluated classifier design, not to all possible future semantic-classification research.
+
+### 4.3 Evidence preservation at closure
+
+Closure does not erase evidence.
+
+All admissible telemetry, classifications, audit findings, configuration records, operational metrics, prompts/instructions used for classification, model/version identifiers, run-to-run stability records, and derived metrics from a classifier design closed for promotion must remain preserved as historical evaluation evidence, subject to the storage and redaction rules in Section 7.
+
+A negative result must not be deleted, silently superseded, or omitted from longitudinal reporting merely because the classifier design was abandoned.
+
+At the moment a classifier design is closed for promotion, the project must create a **closure evidence snapshot** containing at minimum:
+
+- classifier design/version identifier;
+- preregistration version and commit;
+- v1 corpus version/hash;
+- v2 holdout version/hash and authorship label;
+- model/provider/version and configuration;
+- all admissible case-level classifications;
+- repeated-run stability results;
+- blinded human-audit results;
+- aggregate metrics and subgroup metrics;
+- operational metrics;
+- closure criterion or criteria triggered;
+- a manifest of included evidence files;
+- a cryptographic hash of the closure snapshot or manifest;
+- the Git commit that records the snapshot metadata.
+
+If the underlying evidence is synthetic or already sanitised, the closure snapshot may be committed directly to the repository and hash-pinned there.
+
+If the underlying evidence contains real institutional material that cannot be committed under Section 7, the repository must still preserve a non-identifying closure manifest containing the approved derived metrics, the external evidence-location identifier, and cryptographic hashes sufficient to establish chain of custody without exposing the confidential material.
+
+A later classifier design must reference, not overwrite, the closed design's evidence snapshot.
 
 ## 5. Holdout authorship and contamination rules
 
