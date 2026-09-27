@@ -1,0 +1,259 @@
+{
+  "schema": "phdss.participation-status-classifier-v3-2.cases.v1",
+  "classifier_version": "status_classifier_v3_2",
+  "state_fields": [
+    "participation_occurred",
+    "representativeness",
+    "all_affected_consent",
+    "formal_codesign_authority",
+    "decision_authority"
+  ],
+  "allowed_states": [
+    "established",
+    "not_established",
+    "ambiguous",
+    "not_addressed"
+  ],
+  "cases": [
+    {
+      "id": "A_no_current_participation",
+      "text": "Actual participation in this decision process is not established by the supplied evidence. No representative sampling, all-affected consent, formal co-design authority, or decision-making authority is documented.",
+      "text_sha256": "20d828fd28d017484b636d2e3d7d818a48a4a3c55644ae6d90a1eb367003cccc",
+      "expected": {
+        "participation_occurred": "not_established",
+        "representativeness": "not_established",
+        "all_affected_consent": "not_established",
+        "formal_codesign_authority": "not_established",
+        "decision_authority": "not_established"
+      }
+    },
+    {
+      "id": "B_historical_evidence_not_current",
+      "text": "A prior service review documents consumer participation in an earlier survey. Actual participation in the current decision process is not established by the supplied record. Representativeness, all-affected consent, formal co-design authority, and decision-making authority for the current decision are not established.",
+      "text_sha256": "0385e7970451d44c27dc35cef9a803976233e4353ee985510193f3a76903c4e1",
+      "expected": {
+        "participation_occurred": "not_established",
+        "representativeness": "not_established",
+        "all_affected_consent": "not_established",
+        "formal_codesign_authority": "not_established",
+        "decision_authority": "not_established"
+      }
+    },
+    {
+      "id": "C_workshop_limited_scope",
+      "text": "Five affected people attended a facilitated workshop specifically about this proposal and their feedback was recorded for the design team. Actual participation in the current decision process is established for those five attendees. The record does not establish representative sampling, consent by all affected people, formal co-design authority, or decision-making authority.",
+      "text_sha256": "fe600a110f13b6574131adafcaced5fb3ab3a26ce4d1f63f69efa4dfde41d9fe",
+      "expected": {
+        "participation_occurred": "established",
+        "representativeness": "not_established",
+        "all_affected_consent": "not_established",
+        "formal_codesign_authority": "not_established",
+        "decision_authority": "not_established"
+      }
+    },
+    {
+      "id": "C_predicate_target_exact_style",
+      "text": "The supplied record does not establish consent by all affected people, representative sampling across the service's consumer population, formal co-design authority, or decision-making authority held by participants. What is established is that five people with direct service experience attended a facilitated workshop, engaged with the specific proposal, and had their feedback recorded.",
+      "text_sha256": "a6e7b5bd9d369d80d6c77337bb2ac0b2df358976e9be662383287a337a8984aa",
+      "expected": {
+        "participation_occurred": "established",
+        "representativeness": "not_established",
+        "all_affected_consent": "not_established",
+        "formal_codesign_authority": "not_established",
+        "decision_authority": "not_established"
+      }
+    },
+    {
+      "id": "C_section_label_predicate_target",
+      "text": "Actual participation status: The supplied record does not establish consent by all affected people, representative sampling across the service's consumer population, formal co-design authority, or decision-making authority held by participants. What is established is that five people with direct service experience attended a facilitated workshop, engaged with the specific proposal, and had their feedback recorded.",
+      "text_sha256": "07ae58c5d5300c507bf16eb7d4c861a7e6a51bde99c9aa5d9f8569d1ae68228e",
+      "expected": {
+        "participation_occurred": "established",
+        "representativeness": "not_established",
+        "all_affected_consent": "not_established",
+        "formal_codesign_authority": "not_established",
+        "decision_authority": "not_established"
+      }
+    },
+    {
+      "id": "participation_established_rep_unknown",
+      "text": "Three consumers participated in a documented workshop for this decision. The supplied material does not address whether those participants were representative of the wider affected population.",
+      "text_sha256": "4ba0cccfa16289daa44b893f99741c351c8b811005b6185769d3587c672e2d1e",
+      "expected": {
+        "participation_occurred": "established",
+        "representativeness": "not_addressed",
+        "all_affected_consent": "not_addressed",
+        "formal_codesign_authority": "not_addressed",
+        "decision_authority": "not_addressed"
+      }
+    },
+    {
+      "id": "participation_established_codesign_absent",
+      "text": "Consumers participated in a documented consultation specifically about this proposal. The record does not establish formal co-design authority.",
+      "text_sha256": "24909691665ee25f706c7c78705f00c26834c92d3fc99f6d682b6dffe04bbd6b",
+      "expected": {
+        "participation_occurred": "established",
+        "representativeness": "not_addressed",
+        "all_affected_consent": "not_addressed",
+        "formal_codesign_authority": "not_established",
+        "decision_authority": "not_addressed"
+      }
+    },
+    {
+      "id": "participation_established_decision_authority_absent",
+      "text": "Two carers and four consumers participated in a workshop about the current proposal. They provided feedback, but the record does not establish that they held decision-making authority.",
+      "text_sha256": "00ca8f7f91de76effb5290db1e1ac2e21a762857222de91423df9e94c4f58a2d",
+      "expected": {
+        "participation_occurred": "established",
+        "representativeness": "not_addressed",
+        "all_affected_consent": "not_addressed",
+        "formal_codesign_authority": "not_addressed",
+        "decision_authority": "not_established"
+      }
+    },
+    {
+      "id": "participation_conflict",
+      "text": "One supplied record states that affected consumers participated in a workshop for this decision. A separate supplied note states that actual participation in this decision process is not established.",
+      "text_sha256": "88961d467e91ab3ac3c778a98224b7ad73f519808ecaac85323c2830c1c969e9",
+      "expected": {
+        "participation_occurred": "ambiguous",
+        "representativeness": "not_addressed",
+        "all_affected_consent": "not_addressed",
+        "formal_codesign_authority": "not_addressed",
+        "decision_authority": "not_addressed"
+      }
+    },
+    {
+      "id": "authority_conflict_participation_clear",
+      "text": "Affected consumers participated in a documented workshop for this decision. One supplied record states that participants held formal co-design authority, while another supplied record states that formal co-design authority was not established.",
+      "text_sha256": "62dece5ecd53f189dec337633292e9772d0be90eae02e5bb0dd2fef4e4f8db1c",
+      "expected": {
+        "participation_occurred": "established",
+        "representativeness": "not_addressed",
+        "all_affected_consent": "not_addressed",
+        "formal_codesign_authority": "ambiguous",
+        "decision_authority": "not_addressed"
+      }
+    },
+    {
+      "id": "representativeness_positive_participation_established",
+      "text": "Affected consumers participated in a documented workshop for this decision. The record states that the sample was representative of the service's affected consumer population.",
+      "text_sha256": "249c6b46566283b5f6c86351dbf8aa5db755607536e0bda11d5631a59c3970d1",
+      "expected": {
+        "participation_occurred": "established",
+        "representativeness": "established",
+        "all_affected_consent": "not_addressed",
+        "formal_codesign_authority": "not_addressed",
+        "decision_authority": "not_addressed"
+      }
+    },
+    {
+      "id": "representativeness_conflict_participation_clear",
+      "text": "Affected consumers participated in a documented workshop for this decision. One record describes the sample as representative of the affected population, while another says representative sampling is not established.",
+      "text_sha256": "3b642ba38a48613d94ec8c99fa01da554aaad20fc77c9e82abba8cacfb06e66f",
+      "expected": {
+        "participation_occurred": "established",
+        "representativeness": "ambiguous",
+        "all_affected_consent": "not_addressed",
+        "formal_codesign_authority": "not_addressed",
+        "decision_authority": "not_addressed"
+      }
+    },
+    {
+      "id": "all_affected_consent_positive",
+      "text": "Affected consumers participated in a documented workshop for this decision. The supplied record states that all affected people consented to the proposal.",
+      "text_sha256": "324fbe60cca99ae5c3742399e8d511d09b56d918671d62c6121d10b0520ca4d3",
+      "expected": {
+        "participation_occurred": "established",
+        "representativeness": "not_addressed",
+        "all_affected_consent": "established",
+        "formal_codesign_authority": "not_addressed",
+        "decision_authority": "not_addressed"
+      }
+    },
+    {
+      "id": "positive_authorities_with_participation",
+      "text": "Affected consumers participated in a documented workshop for this decision. The record states that the workshop participants held formal co-design authority and decision-making authority for the proposal.",
+      "text_sha256": "8d4834a432a1644bef897c87e3e6e5d931f0df1e872771ad21752d92b57224d1",
+      "expected": {
+        "participation_occurred": "established",
+        "representativeness": "not_addressed",
+        "all_affected_consent": "not_addressed",
+        "formal_codesign_authority": "established",
+        "decision_authority": "established"
+      }
+    },
+    {
+      "id": "double_negative_participation",
+      "text": "It is not true that actual participation in this decision process was not established.",
+      "text_sha256": "ef6ce29ff5f88244a2b7718298af9b0fa0dce0d2f138ac269d4173423ede14fc",
+      "expected": {
+        "participation_occurred": "ambiguous",
+        "representativeness": "not_addressed",
+        "all_affected_consent": "not_addressed",
+        "formal_codesign_authority": "not_addressed",
+        "decision_authority": "not_addressed"
+      }
+    },
+    {
+      "id": "unaddressed",
+      "text": "The supplied material discusses participation principles and engagement options but does not state whether anyone participated in the current decision process.",
+      "text_sha256": "a45617089424763919b1e5907ab2a0facddcef309455461869d65f41bc079335",
+      "expected": {
+        "participation_occurred": "not_addressed",
+        "representativeness": "not_addressed",
+        "all_affected_consent": "not_addressed",
+        "formal_codesign_authority": "not_addressed",
+        "decision_authority": "not_addressed"
+      }
+    },
+    {
+      "id": "feedback_recorded_not_codesign_authority",
+      "text": "The five participants attended a facilitated workshop and their feedback was recorded — this constitutes structured engagement input, not co-design authority or governance representation.",
+      "text_sha256": "20a429a77e81bef0523950abd0d2e4ba62e9a6bd0d8e96e1e2690815bfb5e9b7",
+      "expected": {
+        "participation_occurred": "not_addressed",
+        "representativeness": "not_addressed",
+        "all_affected_consent": "not_addressed",
+        "formal_codesign_authority": "not_established",
+        "decision_authority": "not_addressed"
+      }
+    },
+    {
+      "id": "feedback_recorded_plus_codesign_positive",
+      "text": "The record states that workshop feedback was recorded for the design team. Formal co-design authority was established for the five participants.",
+      "text_sha256": "2349523a627624e22981667b63e9584dcbe992ad98e56e6bed44ae94d1702a64",
+      "expected": {
+        "participation_occurred": "not_addressed",
+        "representativeness": "not_addressed",
+        "all_affected_consent": "not_addressed",
+        "formal_codesign_authority": "established",
+        "decision_authority": "not_addressed"
+      }
+    },
+    {
+      "id": "composite_decision_authority_negative",
+      "text": "Actual participation with decision-making authority in this decision process is not established by the supplied evidence.",
+      "text_sha256": "bf97ca057b6f43c05035c1ff0d65aa45b4088c922d764615ccd75324ec1f1906",
+      "expected": {
+        "participation_occurred": "not_addressed",
+        "representativeness": "not_addressed",
+        "all_affected_consent": "not_addressed",
+        "formal_codesign_authority": "not_addressed",
+        "decision_authority": "not_established"
+      }
+    },
+    {
+      "id": "top_level_participation_negative_control",
+      "text": "Actual participation in this decision process is not established by the supplied evidence.",
+      "text_sha256": "782ff4471ced78ceb095efde503a1840ae9cf5ca02df273dc0e3f6e8e7f9964a",
+      "expected": {
+        "participation_occurred": "not_established",
+        "representativeness": "not_addressed",
+        "all_affected_consent": "not_addressed",
+        "formal_codesign_authority": "not_addressed",
+        "decision_authority": "not_addressed"
+      }
+    }
+  ]
+}
