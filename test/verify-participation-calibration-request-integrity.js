@@ -9,20 +9,20 @@ const baseline=JSON.parse(fs.readFileSync("tests/fixtures/v3/participation-calib
 const tmp=fs.mkdtempSync(path.join(os.tmpdir(),"phdss-request-integrity-"));
 const instruction="synthetic instruction";
 const syntheticBaseline={...baseline,instruction_content_sha256:crypto.createHash("sha256").update(instruction).digest("hex")};
-const baselinePath="tests/fixtures/v3/participation-calibration-request-integrity.v2.json";
-const originalBaseline=fs.readFileSync(baselinePath,"utf8");
+const baselinePath=path.join(tmp,"baseline.json");
+fs.writeFileSync(baselinePath,JSON.stringify(syntheticBaseline,null,2)+"\n");
 
 function hash(s){ return crypto.createHash("sha256").update(s).digest("hex"); }
 function run(file,commit){
   return spawnSync(process.execPath,[
     "scripts/verify-participation-calibration-request.mjs",
     "--request",file,
-    "--expected-deployment-commit",commit
+    "--expected-deployment-commit",commit,
+    "--baseline",baselinePath
   ],{encoding:"utf8"});
 }
 
 try{
-  fs.writeFileSync(baselinePath,JSON.stringify(syntheticBaseline,null,2)+"\n");
   const deployment="a".repeat(40);
   const systemPrompt=instruction+"\n\n**Participation & Representation Status**\nTest";
   const userMessage="Advisory request: fixture";
@@ -62,7 +62,6 @@ try{
   const missingSection=run(missingSectionPath,deployment);
   assert.notEqual(missingSection.status,0);
 }finally{
-  fs.writeFileSync(baselinePath,originalBaseline);
   fs.rmSync(tmp,{recursive:true,force:true});
 }
 
