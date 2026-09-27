@@ -78,6 +78,8 @@ function targetSignal(s,targetPatterns,positivePatterns=[],negativePatterns=[]){
 
   const negative=
     negativePatterns.some(p=>p.test(s)) ||
+    /\bnot\s+(?:established|documented|evidenced|recorded)\b/i.test(s) ||
+    /\b(?:does|do|did|is|was|has|have|had)\s+not\b[^.!?\n]{0,100}\b(?:establish|document|evidence|record|show)\b/i.test(s) ||
     /^\s*no\b/i.test(s) ||
     /\bnone\s+of\b/i.test(s) ||
     /\b(?:absent|lacking|unknown|unclear)\b/i.test(s);
