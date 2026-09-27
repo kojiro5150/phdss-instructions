@@ -9,6 +9,7 @@ function parseArgs(argv){
     if(a==="--json"){ out.json=true; continue; }
     if(a==="--request"){ out.request=argv[++i]; continue; }
     if(a==="--expected-deployment-commit"){ out.expectedDeploymentCommit=argv[++i]; continue; }
+    if(a==="--baseline"){ out.baseline=argv[++i]; continue; }
     throw new Error("Unknown argument: "+a);
   }
   if(!out.request) throw new Error("--request is required");
@@ -32,7 +33,8 @@ function fail(errors, json){
 }
 
 const args=parseArgs(process.argv);
-const baseline=JSON.parse(fs.readFileSync("tests/fixtures/v3/participation-calibration-request-integrity.v2.json","utf8"));
+const baselinePath=args.baseline||"tests/fixtures/v3/participation-calibration-request-integrity.v2.json";
+const baseline=JSON.parse(fs.readFileSync(baselinePath,"utf8"));
 const request=JSON.parse(fs.readFileSync(args.request,"utf8"));
 const errors=[];
 
