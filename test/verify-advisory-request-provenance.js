@@ -18,8 +18,11 @@ const required=[
   'system_prompt_sha256:systemPromptSha256',
   'user_message:advisoryUserMessage',
   'user_message_sha256:userMessageSha256',
+  'raw_output:null',
+  'raw_output_sha256:null',
   'output:null',
   'output_sha256:null',
+  'output_transform:"stripCalibrationBleed_v1"',
   'output_capture_stage:"post_stripCalibrationBleed_v1"',
   'status:"pending"',
   'session_evidence_count:sessionEvidence.length',
@@ -43,8 +46,11 @@ if(!hashesBeforeRecord) failures.push("Request hashes are not computed before pr
 if(!buildBeforeCall) failures.push("Request provenance record is not constructed before the synthesis call");
 
 const responseHashAfterCall=
-  app.indexOf("var briefOutSha256=await sha256Text(briefOut);") >
+  app.indexOf("var rawBriefOutSha256=await sha256Text(rawBriefOut);") >
   app.indexOf("callClaude_synthesis(advisorySystemPrompt,advisoryUserMessage") &&
+  app.indexOf("var briefOutSha256=await sha256Text(briefOut);") >
+  app.indexOf("var rawBriefOutSha256=await sha256Text(rawBriefOut);") &&
+  app.includes("raw_output_sha256:rawBriefOutSha256") &&
   app.includes("output_sha256:briefOutSha256") &&
   app.includes('status:"success"');
 if(!responseHashAfterCall) failures.push("Advisory response hash/status are not finalized after synthesis");
