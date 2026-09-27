@@ -416,6 +416,12 @@ It must include at minimum:
 - refusal, red-line, and HALT mechanisms must not be conflated; Ethics and Behaviour both claim active refusal semantics in their instruction text, but current runtime inspection shows no separately verified non-aggregable refusal/veto channel for either, so Ethics' uniqueness claim and the stronger runtime-refusal claim both require resolution before transfer claims are made;
 - canonical rationale: `docs/CORE_ACTIVATION_POLICY.md`.
 
+### Output transformation
+
+- `stripCalibrationBleed_v1` deterministically truncates output at known calibration/instruction-artifact markers before display/export/provenance of the transformed output;
+- the transform is not intended as semantic filtering, but because truncation could remove later substantive text, transfer-facing provenance must preserve both raw and transformed outputs where the transform is in-path;
+- the pre-Gate negative-scope tranche explicitly records whether the transform changed content and preserves the removed suffix for review.
+
 ### General
 
 - stochastic model behaviour;
