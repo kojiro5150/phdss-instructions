@@ -19,6 +19,12 @@ import { authorityBoundaryPrompt, assessAuthorityBoundary } from "./authority-co
 import { INSTRUCTION_COMMIT } from "./runtime/instruction-loader.js";
 import { apiCall, callClaude_synthesis } from "./runtime/anthropic-client.js";
 import {
+  createGovernanceStageRequest,
+  finalizeGovernanceStage,
+  createSkippedGovernanceStage,
+  createGovernanceManifest,
+} from "./runtime/governance-provenance.js";
+import {
   compressDirectorOutput,
   deterministicDirectorBrief,
   compressSynthesisOutput,
@@ -418,7 +424,8 @@ export async function runGovernancePipeline(config,runtime,emit) {
     activeDir:activeDir,omittedDir:omittedDir,results:[],dirBriefs:{},synthesisBriefs:{},
     metaOut:"",surfaceMapOut:"",realityAnchorOut:"",stressOut:"",chairOut:"",
     epistemicOut:"",probeOut:"",comparatorData:null,stageErrors:[],stressDecision:null,
-    synthesisStageStatus:{},authorityRepairEvents:authorityRepairEvents
+    synthesisStageStatus:{},authorityRepairEvents:authorityRepairEvents,
+    governanceProvenance:{manifest:null,stages:{}}
   };
 
   emit("active-directors",{activeDir:activeDir,omittedDir:omittedDir});
@@ -436,6 +443,56 @@ export async function runGovernancePipeline(config,runtime,emit) {
     state.stageErrors.push(message);
     setSynthesisStageStatus(stage,"failed",error);
     return message;
+  }
+
+  async function beginProvenance(stageId,stageKind,directorId,systemPrompt,userMessage,useWeb){
+    var record=await createGovernanceStageRequest({
+      decision_id:config.decisionId,
+      stage_id:stageId,
+      stage_kind:stageKind,
+      director_id:directorId||null,
+      captured_at:runtimeNow(runtime),
+      deployment_commit:config.deploymentCommit||"UNRECORDED",
+      instruction_commit:INSTRUCTION_COMMIT,
+      instructions:config.instructions||{},
+      auto_continue:config.autoContinue,
+      web_search:!!useWeb,
+      system_prompt:systemPrompt,
+      user_message:userMessage
+    });
+    state.governanceProvenance.stages[stageId]=record;
+    emit("governance-provenance-stage",{stage_id:stageId,record:record});
+    return record;
+  }
+
+  async function finishProvenance(stageId,output,status,error){
+    var current=state.governanceProvenance.stages[stageId];
+    if(!current) return null;
+    var finalRecord=await finalizeGovernanceStage(current,{
+      output:output,
+      status:status||"success",
+      error:error?errorText(error):null,
+      authority_repair_events:authorityRepairEvents
+    });
+    state.governanceProvenance.stages[stageId]=finalRecord;
+    emit("governance-provenance-stage",{stage_id:stageId,record:finalRecord});
+    return finalRecord;
+  }
+
+  function skipProvenance(stageId,reason){
+    var record=createSkippedGovernanceStage({
+      decision_id:config.decisionId,
+      stage_id:stageId,
+      stage_kind:"synthesis",
+      captured_at:runtimeNow(runtime),
+      deployment_commit:config.deploymentCommit||"UNRECORDED",
+      instruction_commit:INSTRUCTION_COMMIT,
+      auto_continue:config.autoContinue,
+      reason:reason
+    });
+    state.governanceProvenance.stages[stageId]=record;
+    emit("governance-provenance-stage",{stage_id:stageId,record:record});
+    return record;
   }
 
   async function storeSynthesisBrief(key,moduleLabel,output) {
@@ -457,23 +514,26 @@ export async function runGovernancePipeline(config,runtime,emit) {
       if(di>0) await sleep(3000);
       try {
         var sysPrompt=directorSystem(dirI,(config.docs&&config.docs[dirId])||[],config.webSearch,config.ctx,config.publicWebSearch,config.sessionEvidence,config.analysisMode,activeDir,config.instructions);
+        var directorUser="Decision under review: "+config.decision;
+        await beginProvenance("director:"+dirId,"director",dirId,sysPrompt,directorUser,config.webSearch||config.publicWebSearch);
         var dirOut;
         var isServerErr=function(e){return /internal server error|500|server error/i.test(e.message);};
-        try { dirOut=await callClaude(sysPrompt,"Decision under review: "+config.decision,config.autoContinue,config.webSearch||config.publicWebSearch); }
+        try { dirOut=await callClaude(sysPrompt,directorUser,config.autoContinue,config.webSearch||config.publicWebSearch); }
         catch(err1){
           if(isServerErr(err1)){
             await sleep(10000);
-            try { dirOut=await callClaude(sysPrompt,"Decision under review: "+config.decision,config.autoContinue,config.webSearch||config.publicWebSearch); }
+            try { dirOut=await callClaude(sysPrompt,directorUser,config.autoContinue,config.webSearch||config.publicWebSearch); }
             catch(err2){
               if(isServerErr(err2)){
                 await sleep(15000);
-                dirOut=await callClaude(sysPrompt,"Decision under review: "+config.decision,config.autoContinue,config.webSearch||config.publicWebSearch);
+                dirOut=await callClaude(sysPrompt,directorUser,config.autoContinue,config.webSearch||config.publicWebSearch);
               } else { throw err2; }
             }
           } else { throw err1; }
         }
         var cOut=deduplicateSections(stripCalibrationBleed(dirOut+""));
         cOut=await rescueDirectorSignal(sysPrompt,cOut,Object.assign({},runtime,{decision:config.decision}));
+        await finishProvenance("director:"+dirId,cOut,"success",null);
         emit("director-output",{id:dirId,output:cOut});
         emit("director-loading",{id:dirId,loading:false});
         results_seq.push(Object.assign({},dirI,{output:cOut}));
@@ -488,6 +548,7 @@ export async function runGovernancePipeline(config,runtime,emit) {
         }
       } catch(dirErr) {
         var errMsg="[Director failed: "+dirErr.message+"]";
+        await finishProvenance("director:"+dirId,null,"failed",dirErr);
         emit("director-loading",{id:dirId,loading:false});
         emit("director-output",{id:dirId,output:errMsg});
         state.stageErrors.push(dirI.label+" failed");
@@ -514,11 +575,15 @@ export async function runGovernancePipeline(config,runtime,emit) {
 
     try {
       stageEmitter(emit,"surface_map",true);
-      state.surfaceMapOut=await runGoverned("surface_map",surfaceMapperSystem(config.analysisMode,activeDir,config.instructions),"Decision: "+config.decision+"\n\nAll Director Governance Briefs:\n"+briefSummary+signalCountNote,config.autoContinue);
+      var surfaceSystem=surfaceMapperSystem(config.analysisMode,activeDir,config.instructions);
+      var surfaceUser="Decision: "+config.decision+"\n\nAll Director Governance Briefs:\n"+briefSummary+signalCountNote;
+      await beginProvenance("surface_map","synthesis",null,surfaceSystem+authorityBoundaryPrompt("surface_map"),surfaceUser,false);
+      state.surfaceMapOut=await runGoverned("surface_map",surfaceSystem,surfaceUser,config.autoContinue);
+      await finishProvenance("surface_map",state.surfaceMapOut,"success",null);
       emit("stage-output",{stage:"surface_map",output:state.surfaceMapOut});
       await storeSynthesisBrief("surfacemap","Decision Surface Map",state.surfaceMapOut);
       setSynthesisStageStatus("surface_map","success");
-    } catch(e){ recordStageFailure("surface_map","Surface Mapper",e); }
+    } catch(e){ await finishProvenance("surface_map",null,"failed",e); recordStageFailure("surface_map","Surface Mapper",e); }
     stageEmitter(emit,"surface_map",false); emit("stages-done",{value:2});
 
     var fullDirSummary=state.results.map(function(d){return "### "+d.label+"\n"+d.output;}).join("\n\n");
@@ -535,6 +600,7 @@ export async function runGovernancePipeline(config,runtime,emit) {
       stageEmitter(emit,"epistemic_audit",true);
       var epistemicPrompt=epistemicAuditorSystem(config.analysisMode,activeDir,config.instructions);
       var epistemicUser="Decision: "+config.decision+"\n\nDirector Governance Briefs (with confidence ratings):\n"+epistemicBriefSummary;
+      await beginProvenance("epistemic_audit","synthesis",null,epistemicPrompt+authorityBoundaryPrompt("epistemic_audit"),epistemicUser,false);
       state.epistemicOut=await runGoverned("epistemic_audit",epistemicPrompt,epistemicUser,config.autoContinue);
       if(state.epistemicOut&&state.epistemicOut.length<2000){
         console.warn("PHDSS: Epistemic output short ("+state.epistemicOut.length+" chars), retry 1 of 2...");
@@ -547,28 +613,37 @@ export async function runGovernancePipeline(config,runtime,emit) {
         }
       }
       state.epistemicOut=state.epistemicOut?stripCalibrationBleed(state.epistemicOut):state.epistemicOut;
+      await finishProvenance("epistemic_audit",state.epistemicOut,"success",null);
       emit("stage-output",{stage:"epistemic_audit",output:state.epistemicOut});
       await storeSynthesisBrief("epistemic","Epistemic Confidence Audit",state.epistemicOut);
       setSynthesisStageStatus("epistemic_audit","success");
-    } catch(e){ recordStageFailure("epistemic_audit","Epistemic",e); }
+    } catch(e){ await finishProvenance("epistemic_audit",null,"failed",e); recordStageFailure("epistemic_audit","Epistemic",e); }
     stageEmitter(emit,"epistemic_audit",false); emit("stages-done",{value:3});
 
     try {
       stageEmitter(emit,"meta",true);
-      state.metaOut=await runGoverned("cross_domain_tension_analysis",metaSystem((config.docs&&config.docs.meta)||[],config.webSearch,config.publicWebSearch,config.sessionEvidence,config.analysisMode,activeDir,config.instructions),"Decision: "+config.decision+"\n\nDecision Surface Map:\n"+state.surfaceMapOut+"\n\nDirector Governance Briefs:\n"+briefSummary+(state.epistemicOut?"\n\nEpistemic Audit:\n"+state.epistemicOut:""),config.autoContinue,config.webSearch||config.publicWebSearch);
+      var metaPrompt=metaSystem((config.docs&&config.docs.meta)||[],config.webSearch,config.publicWebSearch,config.sessionEvidence,config.analysisMode,activeDir,config.instructions);
+      var metaUser="Decision: "+config.decision+"\n\nDecision Surface Map:\n"+state.surfaceMapOut+"\n\nDirector Governance Briefs:\n"+briefSummary+(state.epistemicOut?"\n\nEpistemic Audit:\n"+state.epistemicOut:"");
+      await beginProvenance("cross_domain_tension_analysis","synthesis",null,metaPrompt+authorityBoundaryPrompt("cross_domain_tension_analysis"),metaUser,config.webSearch||config.publicWebSearch);
+      state.metaOut=await runGoverned("cross_domain_tension_analysis",metaPrompt,metaUser,config.autoContinue,config.webSearch||config.publicWebSearch);
+      await finishProvenance("cross_domain_tension_analysis",state.metaOut,"success",null);
       emit("stage-output",{stage:"meta",output:state.metaOut});
       await storeSynthesisBrief("meta","Cross-Domain Tension Analysis",state.metaOut);
       setSynthesisStageStatus("meta","success");
-    } catch(e){ recordStageFailure("meta","META",e); }
+    } catch(e){ await finishProvenance("cross_domain_tension_analysis",null,"failed",e); recordStageFailure("meta","META",e); }
     stageEmitter(emit,"meta",false); emit("stages-done",{value:4});
 
     try {
       stageEmitter(emit,"reality_anchor",true);
-      state.realityAnchorOut=await runGoverned("reality_anchor",realityAnchorSystem(config.analysisMode,activeDir,config.instructions),"Decision: "+config.decision+"\n\nDirector Governance Briefs:\n"+briefSummary+"\n\nDecision Surface Map:\n"+state.surfaceMapOut+"\n\nMETA Synthesis:\n"+state.metaOut,config.autoContinue);
+      var realityPrompt=realityAnchorSystem(config.analysisMode,activeDir,config.instructions);
+      var realityUser="Decision: "+config.decision+"\n\nDirector Governance Briefs:\n"+briefSummary+"\n\nDecision Surface Map:\n"+state.surfaceMapOut+"\n\nMETA Synthesis:\n"+state.metaOut;
+      await beginProvenance("reality_anchor","synthesis",null,realityPrompt+authorityBoundaryPrompt("reality_anchor"),realityUser,false);
+      state.realityAnchorOut=await runGoverned("reality_anchor",realityPrompt,realityUser,config.autoContinue);
+      await finishProvenance("reality_anchor",state.realityAnchorOut,"success",null);
       emit("stage-output",{stage:"reality_anchor",output:state.realityAnchorOut});
       await storeSynthesisBrief("reality","Reality Anchor",state.realityAnchorOut);
       setSynthesisStageStatus("reality_anchor","success");
-    } catch(e){ recordStageFailure("reality_anchor","Reality Anchor",e); }
+    } catch(e){ await finishProvenance("reality_anchor",null,"failed",e); recordStageFailure("reality_anchor","Reality Anchor",e); }
     stageEmitter(emit,"reality_anchor",false); emit("stages-done",{value:5});
 
     try {
@@ -576,11 +651,15 @@ export async function runGovernancePipeline(config,runtime,emit) {
       var sigs=state.results.map(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(PROCEED|CAUTION|HALT)/,1);}).filter(Boolean);
       var sigCounts=sigs.reduce(function(a,s){return Object.assign({},a,{[s]:(a[s]||0)+1});},{});
       var dominantSignal=(Object.entries(sigCounts).sort(function(a,b){return b[1]-a[1];})[0]||[])[0]||"UNKNOWN";
-      state.probeOut=await runGoverned("adversarial_probe",adversarialProbeSystem(dominantSignal,config.analysisMode,activeDir,config.instructions),"Decision: "+config.decision+"\n\nAll Director Governance Briefs:\n"+briefSummary+"\n\nMETA-AUTHOR Synthesis:\n"+state.metaOut+"\n\nReality Anchor:\n"+state.realityAnchorOut,config.autoContinue);
+      var probePrompt=adversarialProbeSystem(dominantSignal,config.analysisMode,activeDir,config.instructions);
+      var probeUser="Decision: "+config.decision+"\n\nAll Director Governance Briefs:\n"+briefSummary+"\n\nMETA-AUTHOR Synthesis:\n"+state.metaOut+"\n\nReality Anchor:\n"+state.realityAnchorOut;
+      await beginProvenance("adversarial_probe","synthesis",null,probePrompt+authorityBoundaryPrompt("adversarial_probe"),probeUser,false);
+      state.probeOut=await runGoverned("adversarial_probe",probePrompt,probeUser,config.autoContinue);
+      await finishProvenance("adversarial_probe",state.probeOut,"success",null);
       emit("stage-output",{stage:"probe",output:state.probeOut});
       await storeSynthesisBrief("probe","Adversarial Probe",state.probeOut);
       setSynthesisStageStatus("probe","success");
-    } catch(e){ recordStageFailure("probe","Probe",e); }
+    } catch(e){ await finishProvenance("adversarial_probe",null,"failed",e); recordStageFailure("probe","Probe",e); }
     stageEmitter(emit,"probe",false); emit("stages-done",{value:6});
 
     var probeVerdict=findSignal(state.probeOut,["BOARD REASONING SOUND","SIGNIFICANT GAPS","CONCLUSION CHALLENGED"]);
@@ -589,14 +668,19 @@ export async function runGovernancePipeline(config,runtime,emit) {
     if(state.stressDecision.run){
       try {
         stageEmitter(emit,"stress",true);
-        state.stressOut=await runGoverned("stress_test",stressSystem((config.docs&&config.docs.stress)||[],config.webSearch,config.publicWebSearch,config.sessionEvidence,config.analysisMode,activeDir,config.instructions),"Decision: "+config.decision+"\n\nDecision Surface Map:\n"+state.surfaceMapOut+"\n\nMETA-AUTHOR:\n"+state.metaOut+"\n\nReality Anchor:\n"+state.realityAnchorOut,config.autoContinue,config.webSearch||config.publicWebSearch);
+        var stressPrompt=stressSystem((config.docs&&config.docs.stress)||[],config.webSearch,config.publicWebSearch,config.sessionEvidence,config.analysisMode,activeDir,config.instructions);
+        var stressUser="Decision: "+config.decision+"\n\nDecision Surface Map:\n"+state.surfaceMapOut+"\n\nMETA-AUTHOR:\n"+state.metaOut+"\n\nReality Anchor:\n"+state.realityAnchorOut;
+        await beginProvenance("stress_test","synthesis",null,stressPrompt+authorityBoundaryPrompt("stress_test"),stressUser,config.webSearch||config.publicWebSearch);
+        state.stressOut=await runGoverned("stress_test",stressPrompt,stressUser,config.autoContinue,config.webSearch||config.publicWebSearch);
+        await finishProvenance("stress_test",state.stressOut,"success",null);
         emit("stage-output",{stage:"stress",output:state.stressOut});
         await storeSynthesisBrief("stress","Decision Stress Test",state.stressOut);
         setSynthesisStageStatus("stress","success");
-      } catch(e){ recordStageFailure("stress","Stress",e); }
+      } catch(e){ await finishProvenance("stress_test",null,"failed",e); recordStageFailure("stress","Stress",e); }
       stageEmitter(emit,"stress",false);
     } else {
       setSynthesisStageStatus("stress","skipped",null,"stress trigger not met");
+      skipProvenance("stress_test","stress trigger not met");
     }
     emit("stages-done",{value:7});
 
@@ -612,18 +696,21 @@ export async function runGovernancePipeline(config,runtime,emit) {
       stageEmitter(emit,"chair",true);
       var chairPrompt=chairSystem((config.docs&&config.docs.chair)||[],config.webSearch,config.publicWebSearch,config.sessionEvidence,config.analysisMode,activeDir,failedDirLabels,config.instructions);
       var chairUser="Decision: "+config.decision+"\n\nDecision Surface Map:\n"+state.surfaceMapOut+"\n\nMETA-AUTHOR:\n"+state.metaOut+"\n\nReality Anchor:\n"+state.realityAnchorOut+(state.stressOut?"\n\nStress Test:\n"+state.stressOut:"")+(state.probeOut?"\n\nAdversarial Bias Probe:\n"+state.probeOut:"")+probeInjection;
+      await beginProvenance("chair","synthesis",null,chairPrompt+authorityBoundaryPrompt("chair"),chairUser,config.webSearch||config.publicWebSearch);
       state.chairOut=await runGoverned("chair",chairPrompt,chairUser,config.autoContinue,config.webSearch||config.publicWebSearch);
       state.chairOut=await repairChair(state.chairOut,chairPrompt,chairUser);
+      await finishProvenance("chair",state.chairOut,"success",null);
       emit("stage-output",{stage:"chair",output:state.chairOut});
       await storeSynthesisBrief("chair","Chair Decision",state.chairOut);
       setSynthesisStageStatus("chair","success");
-    } catch(e){ recordStageFailure("chair","Chair",e); }
+    } catch(e){ await finishProvenance("chair",null,"failed",e); recordStageFailure("chair","Chair",e); }
     stageEmitter(emit,"chair",false); emit("stages-done",{value:8});
 
     if(!state.synthesisStageStatus.chair||state.synthesisStageStatus.chair.status!=="success"){
       state.comparatorData=null;
       setSynthesisStageStatus("comparator","skipped",null,"required upstream stage chair failed");
       emit("comparator-skipped",{reason:"required upstream stage chair failed"});
+      skipProvenance("comparator","required upstream stage chair failed");
     } else {
       try {
         var pCount=state.results.filter(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(PROCEED)/,1)==="PROCEED";}).length;
@@ -642,7 +729,10 @@ export async function runGovernancePipeline(config,runtime,emit) {
           if(hints.length===0) return "";
           return "\n\nKILL SWITCH REQUIREMENT: Each kill_switch entry must contain a measurable indicator + specific threshold + timeframe. Examples from Director analyses:\n"+hints.map(function(h){return "- "+h;}).join("\n")+"\nFormat each kill switch as: \"[indicator] exceeds/falls below [threshold] [timeframe].\"";
         })();
-        var compRaw=await runGoverned("comparator",comparatorJsonSystem(config.decisionId,config.decisionSignal,state.results,config.analysisMode,activeDir,state.chairOut,config.instructions,pCount,cCount,hCount),"Run comparator now."+killSwitchHints,config.autoContinue);
+        var comparatorPrompt=comparatorJsonSystem(config.decisionId,config.decisionSignal,state.results,config.analysisMode,activeDir,state.chairOut,config.instructions,pCount,cCount,hCount);
+        var comparatorUser="Run comparator now."+killSwitchHints;
+        await beginProvenance("comparator","comparator",null,comparatorPrompt+authorityBoundaryPrompt("comparator"),comparatorUser,false);
+        var compRaw=await runGoverned("comparator",comparatorPrompt,comparatorUser,config.autoContinue);
         var compParsed=validateComparatorSchema(extractFirstJsonObject(compRaw));
         if(compParsed&&compParsed.summary&&typeof compParsed.summary.decision_signal_interpretation==="string"){
           var interp=compParsed.summary.decision_signal_interpretation;
@@ -650,16 +740,37 @@ export async function runGovernancePipeline(config,runtime,emit) {
             compParsed.summary.decision_signal_interpretation="[Signal tally: "+pCount+" PROCEED / "+cCount+" CAUTION / "+hCount+" HALT] "+interp;
           }
         }
+        await finishProvenance("comparator",compRaw,"success",null);
         state.comparatorData={raw:compRaw,parsed:compParsed,created_at:runtimeNow(runtime)};
         emit("comparator",{comparatorData:state.comparatorData});
         setSynthesisStageStatus("comparator","success");
-      } catch(e){ recordStageFailure("comparator","Comparator",e); }
+      } catch(e){ await finishProvenance("comparator",null,"failed",e); recordStageFailure("comparator","Comparator",e); }
     }
 
     if(state.results.length>0){
       var record=buildLedgerRecord(makeLedgerInput(config,state,state.stressDecision),runtime);
       emit("ledger-record",{record:record});
       state.ledgerRecord=record;
+      var stageRecords=Object.keys(state.governanceProvenance.stages).map(function(key){return state.governanceProvenance.stages[key];});
+      var embeddedCounts={};
+      activeDir.forEach(function(dir){embeddedCounts[dir.id]=((config.docs&&config.docs[dir.id])||[]).length;});
+      state.governanceProvenance.manifest=await createGovernanceManifest({
+        decision_id:config.decisionId,
+        captured_at:runtimeNow(runtime),
+        deployment_commit:config.deploymentCommit||"UNRECORDED",
+        instruction_commit:INSTRUCTION_COMMIT,
+        analysis_mode:config.analysisMode,
+        auto_continue:config.autoContinue,
+        web_search:config.webSearch,
+        public_web_search:config.publicWebSearch,
+        session_evidence_count:(config.sessionEvidence||[]).length,
+        director_embedded_evidence_counts:embeddedCounts,
+        active_directors:activeDir.map(function(d){return d.id;}),
+        omitted_directors:omittedDir.map(function(d){return d.id;}),
+        stages:stageRecords,
+        final_ledger:record
+      });
+      emit("governance-provenance-manifest",{manifest:state.governanceProvenance.manifest,stages:state.governanceProvenance.stages});
     }
   } catch(fatalErr) {
     state.fatalError=fatalErr;
@@ -668,6 +779,15 @@ export async function runGovernancePipeline(config,runtime,emit) {
         var fatalRecord=buildLedgerRecord(makeLedgerInput(config,state,config.priorStressTestResult),runtime);
         emit("ledger-record",{record:fatalRecord});
         state.ledgerRecord=fatalRecord;
+        var fatalStages=Object.keys(state.governanceProvenance.stages).map(function(key){return state.governanceProvenance.stages[key];});
+        state.governanceProvenance.manifest=await createGovernanceManifest({
+          decision_id:config.decisionId,captured_at:runtimeNow(runtime),deployment_commit:config.deploymentCommit||"UNRECORDED",
+          instruction_commit:INSTRUCTION_COMMIT,analysis_mode:config.analysisMode,auto_continue:config.autoContinue,
+          web_search:config.webSearch,public_web_search:config.publicWebSearch,session_evidence_count:(config.sessionEvidence||[]).length,
+          active_directors:activeDir.map(function(d){return d.id;}),omitted_directors:omittedDir.map(function(d){return d.id;}),
+          stages:fatalStages,final_ledger:fatalRecord
+        });
+        emit("governance-provenance-manifest",{manifest:state.governanceProvenance.manifest,stages:state.governanceProvenance.stages});
       } catch(e) {}
     }
   }
