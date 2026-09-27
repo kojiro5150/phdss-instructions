@@ -14,40 +14,144 @@ const sha=v=>crypto.createHash("sha256").update(Buffer.from(String(v??""),"utf8"
 const sameSet=(a,b)=>a.length===b.length&&a.every(x=>b.includes(x));
 function adaptive(text){const s=String(text||"").toLowerCase();if(AI.some(k=>s.includes(k)))return"digital";const d=DIGITAL.some(k=>s.includes(k));const e=ECON.some(k=>s.includes(k));if(d&&e)return"economics";if(d)return"digital";if(POLICY.some(k=>s.includes(k)))return"policy";if(e)return"economics";return"behaviour";}
 
-export async function verifyGovernanceProvenance({manifest,stageRecords,expectedDeployment=null,repoSlug="kojiro5150/phdss-instructions",sourceLoader=null}){
+export async function verifyGovernanceProvenance({manifest,stageRecords,expectedDeployment=null,repoSlug="kojiro5150/phdss-instructions",sourceLoader=null,ledgerDocument=null}){
   const failures=[],stages=[],fail=m=>failures.push(m);
   const by={};for(const r of stageRecords){if(by[r.stage_id]){fail("duplicate stage record: "+r.stage_id);continue;}by[r.stage_id]=r;}
-  function decisionText(){if(typeof manifest.decision_text==="string"&&manifest.decision_text.trim())return manifest.decision_text.trim();const r=stageRecords.find(x=>String(x.stage_id||"").startsWith("director:")&&typeof x.user_message==="string");const p="Decision under review: ";return r&&r.user_message.startsWith(p)?r.user_message.slice(p.length).trim():"";}
-  function expectedDirectors(){if(manifest.analysis_mode==="FULL")return ALL.slice();if(manifest.analysis_mode==="CORE"){const d=decisionText();if(!d)throw new Error("CORE mode requires decision text");return[...new Set(CORE_REQUIRED.concat([adaptive(d)]))];}if(manifest.analysis_mode==="CHAIR_SPECIFIED"){if(!Array.isArray(manifest.chair_selected_directors))throw new Error("CHAIR_SPECIFIED requires chair_selected_directors");return[...new Set(CHAIR_REQUIRED.concat(manifest.chair_selected_directors))];}throw new Error("unsupported analysis_mode "+String(manifest.analysis_mode));}
-  async function sourceHash(record,file){if(record.instruction_normalization_version!=="trim_v1")throw new Error("unsupported normalization");let text;if(sourceLoader)text=await sourceLoader(record.instruction_commit,file);else{const res=await fetch("https://raw.githubusercontent.com/"+repoSlug+"/"+record.instruction_commit+"/"+file);if(!res.ok)throw new Error("source unavailable");text=await res.text();}return sha(String(text).trim());}
 
-  if(manifest.schema!=="phdss.governance-provenance.v1")fail("unsupported manifest schema");
-  if(manifest.run_type!=="GOVERNANCE")fail("manifest run_type must be GOVERNANCE");
-  if(expectedDeployment&&manifest.deployment_commit!==expectedDeployment)fail("deployment commit mismatch");
+  function recoverDecisionText(){
+    if(typeof manifest.decision_text==="string"&&manifest.decision_text.trim()) return {text:manifest.decision_text.trim(),source:"manifest.decision_text"};
+    const r=stageRecords.find(x=>String(x.stage_id||"").startsWith("director:")&&typeof x.user_message==="string");
+    const p="Decision under review: ";
+    if(r&&r.user_message.startsWith(p)) return {text:r.user_message.slice(p.length).trim(),source:"director_request_fallback:"+r.stage_id};
+    return {text:"",source:"unavailable"};
+  }
 
-  for(const ref of(manifest.stages||[])){const r=by[ref.stage_id];if(!r){stages.push({stage_id:ref.stage_id,stage_provenance_status:"INVALID",reason:"missing record"});fail("manifest references missing stage record: "+ref.stage_id);continue;}let reason=null;if(r.schema!=="phdss.governance-stage-provenance.v1")reason="unsupported stage schema";else if(r.decision_id!==manifest.decision_id)reason="decision_id mismatch";else if(r.deployment_commit!==manifest.deployment_commit)reason="deployment commit mismatch";else if(r.instruction_commit!==manifest.instruction_commit)reason="instruction commit mismatch";else if(r.instruction_normalization_version!==manifest.instruction_normalization_version)reason="instruction normalization mismatch";
-  if(!reason&&r.status==="skipped"){if(!r.error||!String(r.error).trim())reason="skipped stage missing reason";if(reason){stages.push({stage_id:r.stage_id,stage_provenance_status:"INVALID",reason});fail("stage "+r.stage_id+" invalid: "+reason);}else stages.push({stage_id:r.stage_id,stage_provenance_status:"SKIPPED",reason:String(r.error)});continue;}
-  if(!reason&&r.system_prompt_sha256!==sha(r.system_prompt))reason="system prompt hash mismatch";if(!reason&&r.user_message_sha256!==sha(r.user_message))reason="user message hash mismatch";if(!reason&&r.output_sha256!==(r.output==null?null:sha(r.output)))reason="output hash mismatch";if(!reason&&ref.output_sha256!==(r.output_sha256||null))reason="manifest output hash mismatch";if(!reason&&ref.status!==r.status)reason="manifest stage status mismatch";if(!reason&&r.stage_id==="chair"&&!r.authority_repair)reason="Chair authority repair metadata missing";if(!reason&&(!Array.isArray(r.instruction_files)||!Array.isArray(r.instruction_runtime_sha256)||r.instruction_files.length===0||r.instruction_files.length!==r.instruction_runtime_sha256.length))reason="instruction provenance incomplete";
-  if(!reason){for(let i=0;i<r.instruction_files.length;i++){try{if(await sourceHash(r,r.instruction_files[i])!==r.instruction_runtime_sha256[i]){reason="instruction source hash mismatch for "+r.instruction_files[i];break;}}catch(e){reason="instruction source unavailable at declared commit for "+r.instruction_files[i];break;}}}
-  if(reason){stages.push({stage_id:r.stage_id,stage_provenance_status:"INVALID",reason});fail("stage "+r.stage_id+" invalid: "+reason);}else stages.push({stage_id:r.stage_id,stage_provenance_status:"VALID",reason:r.status==="failed"?"execution failed but provenance is valid":"hashes, source identity and metadata valid"});}
+  const recovered=recoverDecisionText();
+  let adaptiveFifth=null,expectedActive=null,expectedOmitted=null,modeDerivationError=null;
+  try{
+    if(manifest.analysis_mode==="FULL") expectedActive=ALL.slice();
+    else if(manifest.analysis_mode==="CORE"){
+      if(!recovered.text) throw new Error("CORE mode requires decision text");
+      adaptiveFifth=adaptive(recovered.text);
+      expectedActive=[...new Set(CORE_REQUIRED.concat([adaptiveFifth]))];
+    }else if(manifest.analysis_mode==="CHAIR_SPECIFIED"){
+      if(!Array.isArray(manifest.chair_selected_directors)) throw new Error("CHAIR_SPECIFIED requires chair_selected_directors");
+      expectedActive=[...new Set(CHAIR_REQUIRED.concat(manifest.chair_selected_directors))];
+    }else throw new Error("unsupported analysis_mode "+String(manifest.analysis_mode));
+    expectedOmitted=ALL.filter(id=>!expectedActive.includes(id));
+  }catch(e){modeDerivationError=e.message;}
 
-  for(const id of Object.keys(by))if(!(manifest.stages||[]).some(r=>r.stage_id===id))fail("unreferenced stage record: "+id);
-  try{const exp=expectedDirectors();const act=(manifest.active_directors||[]).slice();const expOmit=ALL.filter(id=>!exp.includes(id));const actOmit=(manifest.omitted_directors||[]).slice();if(!sameSet(act,exp))fail("analysis-mode Director set mismatch: expected ["+exp.join(", ")+"] got ["+act.join(", ")+"]");if(!sameSet(actOmit,expOmit))fail("analysis-mode omitted Director set mismatch");}catch(e){fail("analysis-mode consistency could not be verified: "+e.message);}
+  async function sourceHash(record,file){
+    if(record.instruction_normalization_version!=="trim_v1") throw new Error("unsupported normalization");
+    let text;
+    if(sourceLoader) text=await sourceLoader(record.instruction_commit,file);
+    else{
+      const res=await fetch("https://raw.githubusercontent.com/"+repoSlug+"/"+record.instruction_commit+"/"+file);
+      if(!res.ok) throw new Error("source unavailable");
+      text=await res.text();
+    }
+    return sha(String(text).trim());
+  }
+
+  if(manifest.schema!=="phdss.governance-provenance.v1") fail("unsupported manifest schema");
+  if(manifest.run_type!=="GOVERNANCE") fail("manifest run_type must be GOVERNANCE");
+  if(expectedDeployment&&manifest.deployment_commit!==expectedDeployment) fail("deployment commit mismatch");
+
+  let sourceVerifiedCount=0;
+  for(const ref of(manifest.stages||[])){
+    const r=by[ref.stage_id];
+    if(!r){stages.push({stage_id:ref.stage_id,stage_provenance_status:"INVALID",reason:"missing record"});fail("manifest references missing stage record: "+ref.stage_id);continue;}
+    let reason=null;
+    if(r.schema!=="phdss.governance-stage-provenance.v1") reason="unsupported stage schema";
+    else if(r.decision_id!==manifest.decision_id) reason="decision_id mismatch";
+    else if(r.deployment_commit!==manifest.deployment_commit) reason="deployment commit mismatch";
+    else if(r.instruction_commit!==manifest.instruction_commit) reason="instruction commit mismatch";
+    else if(r.instruction_normalization_version!==manifest.instruction_normalization_version) reason="instruction normalization mismatch";
+
+    if(!reason&&r.status==="skipped"){
+      if(!r.error||!String(r.error).trim()) reason="skipped stage missing reason";
+      if(reason){stages.push({stage_id:r.stage_id,stage_provenance_status:"INVALID",reason});fail("stage "+r.stage_id+" invalid: "+reason);}
+      else stages.push({stage_id:r.stage_id,stage_provenance_status:"SKIPPED",reason:String(r.error)});
+      continue;
+    }
+
+    if(!reason&&r.system_prompt_sha256!==sha(r.system_prompt)) reason="system prompt hash mismatch";
+    if(!reason&&r.user_message_sha256!==sha(r.user_message)) reason="user message hash mismatch";
+    if(!reason&&r.output_sha256!==(r.output==null?null:sha(r.output))) reason="output hash mismatch";
+    if(!reason&&ref.output_sha256!==(r.output_sha256||null)) reason="manifest output hash mismatch";
+    if(!reason&&ref.status!==r.status) reason="manifest stage status mismatch";
+    if(!reason&&r.stage_id==="chair"&&!r.authority_repair) reason="Chair authority repair metadata missing";
+    if(!reason&&(!Array.isArray(r.instruction_files)||!Array.isArray(r.instruction_runtime_sha256)||r.instruction_files.length===0||r.instruction_files.length!==r.instruction_runtime_sha256.length)) reason="instruction provenance incomplete";
+    if(!reason){
+      for(let i=0;i<r.instruction_files.length;i++){
+        try{
+          if(await sourceHash(r,r.instruction_files[i])!==r.instruction_runtime_sha256[i]){reason="instruction source hash mismatch for "+r.instruction_files[i];break;}
+          sourceVerifiedCount++;
+        }catch(e){reason="instruction source unavailable at declared commit for "+r.instruction_files[i];break;}
+      }
+    }
+    if(reason){stages.push({stage_id:r.stage_id,stage_provenance_status:"INVALID",reason});fail("stage "+r.stage_id+" invalid: "+reason);}
+    else stages.push({stage_id:r.stage_id,stage_provenance_status:"VALID",reason:r.status==="failed"?"execution failed but provenance is valid":"hashes, source identity and metadata valid"});
+  }
+
+  for(const id of Object.keys(by)) if(!(manifest.stages||[]).some(r=>r.stage_id===id)) fail("unreferenced stage record: "+id);
+
+  if(modeDerivationError) fail("analysis-mode consistency could not be verified: "+modeDerivationError);
+  else{
+    const act=(manifest.active_directors||[]).slice(),actOmit=(manifest.omitted_directors||[]).slice();
+    if(!sameSet(act,expectedActive)) fail("analysis-mode Director set mismatch: expected ["+expectedActive.join(", ")+"] got ["+act.join(", ")+"]");
+    if(!sameSet(actOmit,expectedOmitted)) fail("analysis-mode omitted Director set mismatch");
+  }
+
   for(const id of(manifest.active_directors||[])){const sid="director:"+id;if(!by[sid])fail("active Director missing provenance record: "+id);else if(by[sid].status==="skipped")fail("active Director incorrectly skipped: "+id);}
   for(const id of(manifest.omitted_directors||[])){const sid="director:"+id;if(by[sid]&&by[sid].status!=="skipped")fail("omitted Director was invoked: "+id);}
   for(const sid of["surface_map","epistemic_audit","cross_domain_tension_analysis","adversarial_probe","chair"]){if(!by[sid])fail("mandatory stage missing: "+sid);else if(by[sid].status==="skipped")fail("mandatory stage incorrectly skipped: "+sid);}
-  for(const sid of["reality_anchor","stress_test","comparator"])if(!by[sid])fail("conditional/degradable stage missing explicit record: "+sid);
+  for(const sid of["reality_anchor","stress_test","comparator"]) if(!by[sid]) fail("conditional/degradable stage missing explicit record: "+sid);
 
-  return {schema:"phdss.governance-provenance-verification.v2",decision_id:manifest.decision_id,run_provenance_status:failures.length?"INVALID":"VALID",stages,failures};
+  let ledgerVerification={provided:false,status:"NOT_CHECKED",method:"SHA-256 over UTF-8 bytes of JSON.stringify(decision_record)",expected_sha256:manifest.final_ledger_sha256||null,computed_sha256:null};
+  if(ledgerDocument){
+    const decisions=Array.isArray(ledgerDocument.decisions)?ledgerDocument.decisions:[];
+    const record=decisions.find(x=>x&&x.decision_id===manifest.decision_id);
+    if(!record){
+      ledgerVerification={...ledgerVerification,provided:true,status:"INVALID",reason:"decision record not found"};
+      fail("final ledger decision record not found");
+    }else{
+      const computed=sha(JSON.stringify(record));
+      const ok=!!manifest.final_ledger_sha256&&computed===manifest.final_ledger_sha256;
+      ledgerVerification={...ledgerVerification,provided:true,status:ok?"VALID":"INVALID",computed_sha256:computed};
+      if(!ok) fail("final ledger hash mismatch");
+    }
+  }
+
+  const actualActive=(manifest.active_directors||[]).slice();
+  const actualOmitted=(manifest.omitted_directors||[]).slice();
+  const modeConsistency=!modeDerivationError&&sameSet(actualActive,expectedActive||[])&&sameSet(actualOmitted,expectedOmitted||[]);
+  const verificationContext={
+    analysis_mode:manifest.analysis_mode,
+    decision_text_source:recovered.source,
+    decision_text_sha256:recovered.text?sha(recovered.text):null,
+    adaptive_fifth:adaptiveFifth,
+    expected_active_directors:expectedActive,
+    recorded_active_directors:actualActive,
+    expected_omitted_directors:expectedOmitted,
+    recorded_omitted_directors:actualOmitted,
+    mode_consistency_status:modeConsistency?"VALID":"INVALID",
+    instruction_source_checks_verified:sourceVerifiedCount,
+    instruction_commit:manifest.instruction_commit,
+    deployment_commit:manifest.deployment_commit
+  };
+
+  return {schema:"phdss.governance-provenance-verification.v2",decision_id:manifest.decision_id,run_provenance_status:failures.length?"INVALID":"VALID",verification_context:verificationContext,ledger_verification:ledgerVerification,stages,failures};
 }
 
 const invoked=process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href;
 if(invoked){
-  const manifestPath=process.argv[2],stagesDir=process.argv[3],expectedDeployment=process.argv[4]||null,repoSlug=process.argv[5]||"kojiro5150/phdss-instructions";
-  if(!manifestPath||!stagesDir){console.error("Usage: node scripts/verify-governance-provenance-v2.mjs <manifest.json> <stages-dir> [expected-deployment-sha] [repo-slug]");process.exit(2);}
+  const manifestPath=process.argv[2],stagesDir=process.argv[3],expectedDeployment=process.argv[4]||null,repoSlug=process.argv[5]||"kojiro5150/phdss-instructions",ledgerPath=process.argv[6]||null;
+  if(!manifestPath||!stagesDir){console.error("Usage: node scripts/verify-governance-provenance-v2.mjs <manifest.json> <stages-dir> [expected-deployment-sha] [repo-slug] [ledger.json]");process.exit(2);}
   const manifest=JSON.parse(fs.readFileSync(manifestPath,"utf8"));
   const stageRecords=fs.readdirSync(stagesDir).filter(n=>n.endsWith(".json")).map(n=>JSON.parse(fs.readFileSync(stagesDir+"/"+n,"utf8")));
-  const result=await verifyGovernanceProvenance({manifest,stageRecords,expectedDeployment,repoSlug});
+  const ledgerDocument=ledgerPath?JSON.parse(fs.readFileSync(ledgerPath,"utf8")):null;
+  const result=await verifyGovernanceProvenance({manifest,stageRecords,expectedDeployment,repoSlug,ledgerDocument});
   console.log(JSON.stringify(result,null,2));
-  if(result.failures.length)process.exit(1);
+  if(result.failures.length) process.exit(1);
 }

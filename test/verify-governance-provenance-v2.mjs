@@ -21,16 +21,24 @@ function fixture(mode="CORE"){
   const records=active.map(id=>stage("director:"+id,decision)).concat(SYNTH.map(id=>stage(id,decision)));
   return {manifest:{schema:"phdss.governance-provenance.v1",decision_id:"DR-TEST",run_type:"GOVERNANCE",captured_at:"2026-09-27T00:00:00.000Z",deployment_commit:"abc123",instruction_commit:INSTRUCTION_COMMIT,instruction_normalization_version:"trim_v1",analysis_mode:mode,decision_text:decision,chair_selected_directors:[],model:"claude-sonnet-4-6",model_settings:{max_tokens:16000,temperature:0.8,auto_continue:true},web_search:false,public_web_search:false,session_evidence_count:0,director_embedded_evidence_counts:{},active_directors:active,omitted_directors:ALL.filter(x=>!active.includes(x)),stages:records.map(r=>({stage_id:r.stage_id,status:r.status,output_sha256:r.output_sha256})),final_ledger_sha256:null},records};
 }
-async function check(name,make,mutate,status,pattern){
-  const d=make();mutate(d);const out=await verifyGovernanceProvenance({manifest:d.manifest,stageRecords:d.records,expectedDeployment:"abc123",sourceLoader});
+async function check(name,make,mutate,status,pattern,ledgerDocument=null){
+  const d=make();mutate(d);const out=await verifyGovernanceProvenance({manifest:d.manifest,stageRecords:d.records,expectedDeployment:"abc123",sourceLoader,ledgerDocument});
   assert.equal(out.run_provenance_status,status,name);
   assert.match(JSON.stringify(out),new RegExp(pattern),name);
 }
-await check("valid CORE",()=>fixture("CORE"),()=>{},"VALID","VALID");
-await check("legacy CORE decision fallback",()=>fixture("CORE"),d=>{delete d.manifest.decision_text;},"VALID","VALID");
+await check("valid CORE",()=>fixture("CORE"),()=>{},"VALID","\"adaptive_fifth\":\"digital\"");
+await check("legacy CORE decision fallback",()=>fixture("CORE"),d=>{delete d.manifest.decision_text;},"VALID","director_request_fallback:director:systems");
 await check("instruction hash corruption",()=>fixture("CORE"),d=>{d.records.find(x=>x.stage_id==="director:lived").instruction_runtime_sha256[0]=sha("wrong");},"INVALID","instruction source hash mismatch");
 await check("CORE wrong adaptive fifth",()=>fixture("CORE"),d=>{d.manifest.active_directors=d.manifest.active_directors.map(x=>x==="digital"?"behaviour":x);d.manifest.omitted_directors=ALL.filter(x=>!d.manifest.active_directors.includes(x));},"INVALID","analysis-mode Director set mismatch");
 await check("CORE missing mandatory Director",()=>fixture("CORE"),d=>{d.manifest.active_directors=d.manifest.active_directors.filter(x=>x!=="equity");d.manifest.omitted_directors=ALL.filter(x=>!d.manifest.active_directors.includes(x));},"INVALID","analysis-mode Director set mismatch");
 await check("FULL missing Director",()=>fixture("FULL"),d=>{d.manifest.active_directors=d.manifest.active_directors.filter(x=>x!=="innovation");d.manifest.omitted_directors=["innovation"];},"INVALID","analysis-mode Director set mismatch");
 await check("CHAIR_SPECIFIED mismatch",()=>{const d=fixture("CORE");d.manifest.analysis_mode="CHAIR_SPECIFIED";d.manifest.chair_selected_directors=["digital"];d.manifest.active_directors=["systems","safety"];d.manifest.omitted_directors=ALL.filter(x=>!d.manifest.active_directors.includes(x));return d;},()=>{},"INVALID","analysis-mode Director set mismatch");
+{
+  const d=fixture("CORE");
+  const ledgerRecord={decision_id:"DR-TEST",value:"fixture"};
+  d.manifest.final_ledger_sha256=sha(JSON.stringify(ledgerRecord));
+  const out=await verifyGovernanceProvenance({manifest:d.manifest,stageRecords:d.records,expectedDeployment:"abc123",sourceLoader,ledgerDocument:{decisions:[ledgerRecord]}});
+  assert.equal(out.ledger_verification.status,"VALID","ledger hash method");
+  assert.equal(out.ledger_verification.method,"SHA-256 over UTF-8 bytes of JSON.stringify(decision_record)");
+}
 console.log("Governance provenance v2 source/mode regressions passed.");
