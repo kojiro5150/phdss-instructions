@@ -4,7 +4,7 @@ const app=fs.readFileSync("App_FINAL.jsx","utf8");
 const failures=[];
 
 const required=[
-  'schema:"phdss.advisory-request.v3"',
+  'schema:"phdss.advisory-request.v4"',
   'run_type:"ADVISORY"',
   'advisory_mode:"DIRECTOR_BRIEF"',
   'deployment_commit:(import.meta.env&&import.meta.env.VITE_GIT_COMMIT)||"UNRECORDED"',
@@ -18,6 +18,10 @@ const required=[
   'system_prompt_sha256:systemPromptSha256',
   'user_message:advisoryUserMessage',
   'user_message_sha256:userMessageSha256',
+  'output:null',
+  'output_sha256:null',
+  'output_capture_stage:"post_stripCalibrationBleed_v1"',
+  'status:"pending"',
   'session_evidence_count:sessionEvidence.length',
   'director_embedded_evidence_count:',
   'downloadJson("PHDSS_"+decisionId+"_"+dir.id+"_request.json",advisoryRequestRecords[dir.id])'
@@ -37,6 +41,17 @@ const hashesBeforeRecord=
   app.indexOf("var advisoryRequestRecord={");
 if(!hashesBeforeRecord) failures.push("Request hashes are not computed before provenance record construction");
 if(!buildBeforeCall) failures.push("Request provenance record is not constructed before the synthesis call");
+
+const responseHashAfterCall=
+  app.indexOf("var briefOutSha256=await sha256Text(briefOut);") >
+  app.indexOf("callClaude_synthesis(advisorySystemPrompt,advisoryUserMessage") &&
+  app.includes("output_sha256:briefOutSha256") &&
+  app.includes('status:"success"');
+if(!responseHashAfterCall) failures.push("Advisory response hash/status are not finalized after synthesis");
+
+if(!app.includes('status:"failed"')||!app.includes("error:e&&e.message?e.message:String(e)")){
+  failures.push("Advisory failed response is not preserved in provenance");
+}
 
 if(failures.length){
   console.error("Advisory request provenance verification failed:");
