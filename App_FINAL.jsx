@@ -2113,6 +2113,7 @@ function PHDSS() {
 
   var hasStarted=(running||done||Object.keys(dirOutputs).length>0)&&modeFamily==="GOVERNANCE";
   var advisoryStarted=(running||advisoryDone||Object.keys(dirOutputs).length>0)&&modeFamily==="ADVISORY";
+  var participationDisclosureVisible=hasStarted&&activeDirectorsRef.some(function(d){return d.id==="lived";});
   var chairResolvedIds=resolveChairDirectors(chairSelectedIds).map(function(d){return d.id;});
   var chairAutoAdded=MANDATORY_DIRECTOR_IDS.filter(function(id){return chairSelectedIds.indexOf(id)===-1;});
 
@@ -2202,6 +2203,11 @@ function PHDSS() {
 
 
       <div style={{maxWidth:1100,margin:"0 auto",padding:"20px 16px"}}>
+
+        {participationDisclosureVisible&&<div data-governance-notice="participation-verification" style={{marginBottom:14,padding:"10px 14px",borderRadius:10,background:"#FFF7ED",border:"1px solid #FED7AA",borderLeft:"4px solid #F97316",fontSize:11,color:"#9A3412",lineHeight:1.55}}>
+          <div style={{fontWeight:800,marginBottom:3}}>Participation verification required</div>
+          <div>Participation status is currently inferred by the model from supplied evidence and is not independently verified. Before relying on a claim that affected people participated, a human reviewer must verify it against the documented engagement record.</div>
+        </div>}
 
 
         {tab==="dashboard"&&

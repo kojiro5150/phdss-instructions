@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "validate": "node .github/scripts/validate-v2.mjs && node .github/scripts/authority-regression.mjs && node test/verify-chair-non-substitution.js && node .github/scripts/reality-instruction-contract.mjs && node test/verify.js && node test/verify-governance-contracts.js && node test/verify-runtime-orchestration.js && node test/verify-governance-compression.js && node test/verify-comparator-contract.js && node test/verify-prompt-builders.js && node test/verify-pipeline.js && node test/verify-stage-replay.js && node test/verify-orientation.js && node test/verify-chair-authority-detector-corpus.js && node test/verify-participation-non-substitution.js && node test/verify-participation-calibration-scorer.js && node test/verify-advisory-request-provenance.js && node test/verify-advisory-lived-participation-structure.js",
+    "validate": "node .github/scripts/validate-v2.mjs && node .github/scripts/authority-regression.mjs && node test/verify-chair-non-substitution.js && node .github/scripts/reality-instruction-contract.mjs && node test/verify.js && node test/verify-governance-contracts.js && node test/verify-runtime-orchestration.js && node test/verify-governance-compression.js && node test/verify-comparator-contract.js && node test/verify-prompt-builders.js && node test/verify-pipeline.js && node test/verify-stage-replay.js && node test/verify-orientation.js && node test/verify-chair-authority-detector-corpus.js && node test/verify-participation-non-substitution.js && node test/verify-participation-calibration-scorer.js && node test/verify-advisory-request-provenance.js && node test/verify-advisory-lived-participation-structure.js && node test/verify-participation-disclosure-ui.js",
     "verify:equivalence": "node test/verify.js",
     "verify:governance-contracts": "node test/verify-governance-contracts.js",
     "verify:runtime-orchestration": "node test/verify-runtime-orchestration.js",
@@ -23,7 +23,8 @@
     "verify:participation-non-substitution": "node test/verify-participation-non-substitution.js",
     "verify:participation-calibration-scorer": "node test/verify-participation-calibration-scorer.js",
     "verify:advisory-request-provenance": "node test/verify-advisory-request-provenance.js",
-    "verify:advisory-lived-participation-structure": "node test/verify-advisory-lived-participation-structure.js"
+    "verify:advisory-lived-participation-structure": "node test/verify-advisory-lived-participation-structure.js",
+    "verify:participation-disclosure-ui": "node test/verify-participation-disclosure-ui.js"
   },
   "dependencies": {
     "react": "^19.1.1",
