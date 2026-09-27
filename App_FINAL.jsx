@@ -2061,17 +2061,24 @@ function PHDSS() {
             system_prompt_sha256:systemPromptSha256,
             user_message:advisoryUserMessage,
             user_message_sha256:userMessageSha256,
+            raw_output:null,
+            raw_output_sha256:null,
             output:null,
             output_sha256:null,
+            output_transform:"stripCalibrationBleed_v1",
             output_capture_stage:"post_stripCalibrationBleed_v1",
             status:"pending",
             error:null
           };
           setAdvisoryRequestRecords(function(p){var n=Object.assign({},p);n[dir.id]=advisoryRequestRecord;return n;});
-          var briefOut=stripCalibrationBleed(await callClaude_synthesis(advisorySystemPrompt,advisoryUserMessage,autoContinue,webSearch||publicWebSearch));
+          var rawBriefOut=await callClaude_synthesis(advisorySystemPrompt,advisoryUserMessage,autoContinue,webSearch||publicWebSearch);
+          var rawBriefOutSha256=await sha256Text(rawBriefOut);
+          var briefOut=stripCalibrationBleed(rawBriefOut);
           var briefOutSha256=await sha256Text(briefOut);
           advisoryRequestRecord=Object.assign({},advisoryRequestRecord,{
             response_captured_at:new Date().toISOString(),
+            raw_output:rawBriefOut,
+            raw_output_sha256:rawBriefOutSha256,
             output:briefOut,
             output_sha256:briefOutSha256,
             status:"success",
