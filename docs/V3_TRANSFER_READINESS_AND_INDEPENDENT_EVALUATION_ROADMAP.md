@@ -201,6 +201,12 @@ The set should vary at least the following conditions:
 
 Do not make all probes paraphrases of the original C fixture.
 
+The prospective six-case set, provenance eligibility floor, split-category recurrence rule, and frozen run order are preregistered in:
+
+`docs/V3_NEGATIVE_SCOPE_BEHAVIOURAL_CHARACTERISATION_PREREGISTRATION.md`
+
+For this tranche, unsupported presence, unsupported absence, and motive/internal-state inference are tracked as separate recurrence categories and must not be pooled.
+
 ### 6.3 Measures
 
 For each run record:
