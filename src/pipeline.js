@@ -761,6 +761,7 @@ export async function runGovernancePipeline(config,runtime,emit) {
         instruction_commit:INSTRUCTION_COMMIT,
         analysis_mode:config.analysisMode,
         decision_text:config.decision,
+        chair_selected_directors:config.chairSelectedIds||[],
         auto_continue:config.autoContinue,
         web_search:config.webSearch,
         public_web_search:config.publicWebSearch,
