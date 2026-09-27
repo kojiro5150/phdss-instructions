@@ -18,7 +18,10 @@ const requiredContractPhrases=[
   "human-supplied lived-experience evidence",
   "actual participation status",
   "These categories must not collapse into one another.",
-  "silently fill a participation gap with synthetic or inferred perspective-taking"
+  "silently fill a participation gap with synthetic or inferred perspective-taking",
+  "participation status is currently inferred by the model from supplied evidence",
+  "A false claim of established participation is treated as the more serious failure mode of the two.",
+  "a human reviewer must verify that claim against the documented engagement record"
 ];
 for(const phrase of requiredContractPhrases){
   if(!contract.includes(phrase)) failures.push("V3 contract missing participation boundary phrase: "+phrase);

@@ -72,6 +72,23 @@ A future feature that allows PHDSS to collect, authenticate, or route direct par
 
 This invariant applies across the product surface, including Director outputs, orientation, Decision Briefs, dashboards, exports, and Decision Ledger records.
 
+### Interim external-use disclosure and asymmetric verification
+
+Until participation-status handling has been runtime-tested and an independently verifiable participation-state mechanism is implemented, PHDSS must not imply that the Lived Experience Director's participation-status statement has been independently verified.
+
+For external demonstrations, pilots, or governance use, the system must state in substance that participation status is currently inferred by the model from supplied evidence and requires human verification against the actual engagement record.
+
+The two error directions are not institutionally equivalent:
+
+- a false **not established** claim may under-credit real engagement and should be corrected when the engagement record is checked;
+- a false **established** claim manufactures evidentiary standing for participation that may not have occurred.
+
+**A false claim of established participation is treated as the more serious failure mode of the two.**
+
+Before any externally used governance artefact states or relies on a claim that affected people participated, a human reviewer must verify that claim against the documented engagement record.
+
+Human verification is a compensating control. It is not evidence that runtime participation-status enforcement exists.
+
 ## 3. Evidence claims in v3
 
 v3 development and evaluation must distinguish three evidence classes.
