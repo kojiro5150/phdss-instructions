@@ -64,6 +64,18 @@
       }
     },
     {
+      "id": "C_section_label_predicate_target",
+      "text": "Actual participation status: The supplied record does not establish consent by all affected people, representative sampling across the service's consumer population, formal co-design authority, or decision-making authority held by participants. What is established is that five people with direct service experience attended a facilitated workshop, engaged with the specific proposal, and had their feedback recorded.",
+      "text_sha256": "07ae58c5d5300c507bf16eb7d4c861a7e6a51bde99c9aa5d9f8569d1ae68228e",
+      "expected": {
+        "participation_occurred": "established",
+        "representativeness": "not_established",
+        "all_affected_consent": "not_established",
+        "formal_codesign_authority": "not_established",
+        "decision_authority": "not_established"
+      }
+    },
+    {
       "id": "participation_established_rep_unknown",
       "text": "Three consumers participated in a documented workshop for this decision. The supplied material does not address whether those participants were representative of the wider affected population.",
       "text_sha256": "4ba0cccfa16289daa44b893f99741c351c8b811005b6185769d3587c672e2d1e",
