@@ -6,9 +6,15 @@
   "base_v3_commit": "123b12baba22395a23dca135d4db0fb52760aed7",
   "corpus": {
     "version": "1.0.0",
-    "sha256": "3c0d671ec6a600eb5a16da5e16d6aed8987bbf1e3e54d76f7d9e275c351b93a5",
+    "sha256": "4ad92cf3d27d505593e8b753b49c457c0286fbf51bf36cd3a4c44fc2f2f02437",
     "git_blob_sha": "58ae079c1e9a1f08809692b20e11b51d7860da99",
-    "case_count": 36
+    "case_count": 36,
+    "hash_metadata_correction": {
+      "corrected_date": "2026-09-27",
+      "previous_recorded_sha256": "3c0d671ec6a600eb5a16da5e16d6aed8987bbf1e3e54d76f7d9e275c351b93a5",
+      "git_blob_sha_unchanged": "58ae079c1e9a1f08809692b20e11b51d7860da99",
+      "corpus_bytes_modified": false
+    }
   },
   "detector": {
     "path": "src/authority-contract.js",
