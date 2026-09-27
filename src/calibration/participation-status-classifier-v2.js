@@ -21,7 +21,8 @@ function isNegativeClause(clause){
 function isPositiveClause(clause){
   if(isNegativeClause(clause)) return false;
   const patterns=[
-    /\b(?:actual\s+)?participation\b[^.!?\n]{0,140}\b(?:is|was|has\s+been|had\s+been)\s+(?:established|documented|evidenced)\b/i,
+    /\bactual\s+participation\b[^.!?\n]{0,140}\b(?:is|was|has\s+been|had\s+been)\s+(?:established|documented|evidenced)\b/i,
+    /\bparticipation\b[^.!?\n]{0,100}\b(?:in|for)\s+(?:this|the\s+current)\s+(?:decision|proposal|decision\s+process)\b[^.!?\n]{0,100}\b(?:is|was|has\s+been|had\s+been)\s+(?:established|documented|evidenced)\b/i,
     /\bdocumented\b[^.!?\n]{0,100}\b(?:workshop|engagement|participation)\b[^.!?\n]{0,100}\b(?:for|in)\s+(?:this|the\s+current)\s+decision\b/i,
     /\b(?:consumers?|carers?|affected\s+people)\b[^.!?\n]{0,100}\bparticipated\b[^.!?\n]{0,100}\b(?:in|on)\s+(?:this|the\s+current)\s+(?:decision|proposal)\b/i,
   ];
