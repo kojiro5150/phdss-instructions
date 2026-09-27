@@ -407,7 +407,7 @@ It must include at minimum:
 - PHDSS is a Public Health Decision Stewardship System built from first principles; its governance architecture has been deliberately stress-tested outside health in housing-policy and geopolitical contexts, where the structural pipeline held;
 - that structural-transfer evidence is separate from the Equity/Lived necessary-condition rationale, which remains a substantive design judgment grounded in public health, digital health, and mental health practice and has not itself been established as universal across sectors;
 - inclusion of Equity and Lived Experience in CORE is specified, but special downstream enforcement of the necessary-condition rationale remains unverified;
-- refusal, red-line, and HALT mechanisms must not be conflated; the current instruction corpus contains a documented inconsistency between Ethics' uniqueness claim and Behaviour's explicit refusal obligation;
+- refusal, red-line, and HALT mechanisms must not be conflated; Ethics and Behaviour both claim active refusal semantics in their instruction text, but current runtime inspection shows no separately verified non-aggregable refusal/veto channel for either, so Ethics' uniqueness claim and the stronger runtime-refusal claim both require resolution before transfer claims are made;
 - canonical rationale: `docs/CORE_ACTIVATION_POLICY.md`.
 
 ### General
