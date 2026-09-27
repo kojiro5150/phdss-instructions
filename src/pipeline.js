@@ -740,7 +740,8 @@ export async function runGovernancePipeline(config,runtime,emit) {
             compParsed.summary.decision_signal_interpretation="[Signal tally: "+pCount+" PROCEED / "+cCount+" CAUTION / "+hCount+" HALT] "+interp;
           }
         }
-        await finishProvenance("comparator",compRaw,"success",null);\n        state.comparatorData={raw:compRaw,parsed:compParsed,created_at:runtimeNow(runtime)};
+        await finishProvenance("comparator",compRaw,"success",null);
+        state.comparatorData={raw:compRaw,parsed:compParsed,created_at:runtimeNow(runtime)};
         emit("comparator",{comparatorData:state.comparatorData});
         setSynthesisStageStatus("comparator","success");
       } catch(e){ await finishProvenance("comparator",null,"failed",e); recordStageFailure("comparator","Comparator",e); }
