@@ -148,6 +148,7 @@ export async function createGovernanceManifest(input){
     instruction_normalization_version:"trim_v1",
     analysis_mode:input.analysis_mode,
     decision_text:input.decision_text||null,
+    chair_selected_directors:(input.chair_selected_directors||[]).slice(),
     model:SYNTHESIS_MODEL,
     model_settings:{max_tokens:16000,temperature:0.8,auto_continue:!!input.auto_continue},
     web_search:!!input.web_search,
