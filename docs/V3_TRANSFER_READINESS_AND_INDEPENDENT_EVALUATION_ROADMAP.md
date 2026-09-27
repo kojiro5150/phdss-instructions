@@ -400,6 +400,15 @@ It must include at minimum:
 - rule-based measurement ceiling;
 - post-intervention characterisation state.
 
+### CORE activation policy
+
+- CORE comprises two globally mandatory Directors (Systems, Safety), two additional CORE-fixed Directors (Equity, Lived Experience), and one adaptive fifth Director;
+- the rationale for fixing Equity and Lived Experience is an attributed design judgment grounded in public health, digital health, and mental health practice;
+- the same CORE composition currently extends to other sectors as an architectural default, not as evidence that the necessary-condition rationale has been established universally;
+- inclusion of Equity and Lived Experience in CORE is specified, but special downstream enforcement of the necessary-condition rationale remains unverified;
+- refusal, red-line, and HALT mechanisms must not be conflated; the current instruction corpus contains a documented inconsistency between Ethics' uniqueness claim and Behaviour's explicit refusal obligation;
+- canonical rationale: `docs/CORE_ACTIVATION_POLICY.md`.
+
 ### General
 
 - stochastic model behaviour;
