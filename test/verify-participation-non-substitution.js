@@ -40,7 +40,12 @@ const requiredLivedPhrases=[
   "Human-supplied lived-experience evidence",
   "Actual participation status",
   "Do not treat this Director's presence as evidence that affected people participated.",
-  "Actual participation in this decision process is not established by the supplied evidence."
+  "Actual participation in this decision process is not established by the supplied evidence.",
+  "DOCUMENT-WIDE NEGATIVE-SCOPE DISCIPLINE — mandatory:",
+  "Any claim about whether participation, representation, engagement, consent, influence, recruitment characteristics, population coverage, or any other property of the affected population or their involvement occurred must remain bounded by what the supplied record establishes.",
+  "Absence of documentation supports \"not established by the supplied record\"; it does not support an assertion that the event, property, or condition did not occur.",
+  "This epistemic boundary applies across the entire document, not only the **Participation & Representation Status** section.",
+  "When the record is silent, preserve that silence as uncertainty for human governance judgment."
 ];
 for(const phrase of requiredLivedPhrases){
   if(!normalizedLived.includes(normalizeWhitespace(phrase))) failures.push("lived.md missing participation boundary phrase: "+phrase);
@@ -81,4 +86,5 @@ if(failures.length){
 console.log("PHDSS participation non-substitution verification passed.");
 console.log("Invariant present in V3 contract and Lived Experience Director: PASS");
 console.log("Representation / evidence / participation categories remain distinct: PASS");
+console.log("Document-wide negative-scope discipline present: PASS");
 console.log("Stale Chair adjudication language absent from lived.md: PASS");
