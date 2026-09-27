@@ -9,7 +9,7 @@ import {
 const SCORER_VERSION="participation_calibration_scorer_v2";
 
 function usage(){
-  console.error("Usage: node scripts/score-participation-calibration.mjs --fixture A|B|C --raw <output.md> --annotation <annotation.json> [--json]");
+  console.error("Usage: node scripts/score-participation-calibration-v2.mjs --fixture A|B|C --raw <output.md> --annotation <annotation.json> [--json]");
   process.exit(2);
 }
 
