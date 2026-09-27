@@ -80,7 +80,12 @@ function targetSignal(s,targetPatterns,positivePatterns=[]){
     positivePatterns.some(p=>p.test(s)) ||
     /\b(?:is|was|has\s+been|had\s+been)\s+(?:established|documented|evidenced|recorded)\b/i.test(s);
 
-  if(negative&&positive) return "ambiguous";
+  const explicitConflict=
+    /\bwhile\s+another\b/i.test(s) ||
+    /\bone\s+(?:supplied\s+)?record\b[^.!?\n]{0,180}\banother\b/i.test(s) ||
+    /\bseparate\s+(?:supplied\s+)?(?:record|note)\b/i.test(s);
+
+  if(negative&&positive&&explicitConflict) return "ambiguous";
   if(negative) return "not_established";
   if(positive) return "established";
   return null;
