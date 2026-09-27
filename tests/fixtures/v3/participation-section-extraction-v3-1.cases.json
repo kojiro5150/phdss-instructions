@@ -1,0 +1,18 @@
+{
+  "schema": "phdss.participation-section-extraction-v3-1.cases.v1",
+  "scorer_version": "participation_calibration_scorer_v3_1",
+  "cases": [
+    {
+      "id": "standalone_bold_headings",
+      "raw_markdown": "**Participation & Representation Status**\n\n**Model-generated analytical representation:** Inference only.\n\n**Human-supplied lived-experience evidence:** Five consumers attended a documented workshop about this proposal.\n\n**Actual participation status:** Five consumers attended one workshop specifically about this proposal. The record does not establish representative sampling, formal co-design authority, or decision-making authority.\n\n**Watch Points**\n\n**Self-selection assumption.** This later section must not be included in the participation section extraction.\n",
+      "raw_sha256": "6bb3ab5739d5c628926311133682547d01844809c367dfe1bb4dd0237c41414d",
+      "forbidden_in_extracted_section": "Self-selection assumption."
+    },
+    {
+      "id": "atx_headings",
+      "raw_markdown": "## Participation & Representation Status\n\n**Model-generated analytical representation:** Inference only.\n\n**Human-supplied lived-experience evidence:** Five consumers attended a documented workshop about this proposal.\n\n**Actual participation status:** Five consumers attended one workshop specifically about this proposal. The record does not establish representative sampling, formal co-design authority, or decision-making authority.\n\n## Watch Points\n\n**Self-selection assumption.** This later section must not be included in the participation section extraction.\n",
+      "raw_sha256": "328dfec391b29748374ff85f8550bc6862af7fa239845125ed6240896620a343",
+      "forbidden_in_extracted_section": "Self-selection assumption."
+    }
+  ]
+}
