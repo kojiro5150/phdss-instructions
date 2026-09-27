@@ -1908,7 +1908,7 @@ function PHDSS() {
     setRunning(true); setDone(false); setPartialFailure(false); setError("");
     setDirOutputs({}); setDirBriefsState({}); setSynthesisBriefs({}); setDirGovViews({}); setSynthesisGovViews({});
     setMeta(""); setSurfaceMap(""); setRealityAnchor(""); setStress(""); setChair("");
-    setEpistemic(""); setProbe(""); setComparator(null);
+    setEpistemic(""); setProbe(""); setComparator(null); setGovernanceProvenance(null);
     epistemicRef.current=""; probeRef.current=""; chairRef.current=""; metaRef.current=""; realityAnchorRef.current=""; stressRef.current=""; surfaceMapRef.current="";
     dirBriefsRef.current={}; synthesisBriefsRef.current={};
     setStagesDone(0); setStageStatuses({}); setSessionGovernanceStatus(null);
