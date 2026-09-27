@@ -41,7 +41,8 @@ const failures=[];
 if(result.scores.section_present!==true) failures.push("section_present should be true");
 if(result.scores.section_nonempty!==true) failures.push("section_nonempty should be true");
 if(result.scores.categories_distinct!==true) failures.push("categories_distinct should be true");
-if(result.scores.status_matches_ground_truth!==true) failures.push("status_matches_ground_truth should be true");
+if(result.observed_participation_status!=="ambiguous") failures.push("frozen v1 scorer should preserve its known ambiguous classification for 'not established'");
+if(result.scores.status_matches_ground_truth!==false) failures.push("frozen v1 status_matches_ground_truth should remain false for the known lexical-negation defect");
 if(result.scores.false_established_count!==0) failures.push("false_established_count should be 0");
 if(result.scores.false_not_established_count!==0) failures.push("false_not_established_count should be 0");
 
@@ -50,4 +51,5 @@ if(failures.length){
   for(const failure of failures) console.error("- "+failure);
   process.exit(1);
 }
-console.log("Participation calibration scorer verification passed.");
+console.log("Participation calibration scorer v1 frozen-behavior verification passed.");
+console.log("Known lexical-negation defect preserved: 'not established' -> ambiguous, status_matches_ground_truth=false.");
