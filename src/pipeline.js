@@ -784,7 +784,7 @@ export async function runGovernancePipeline(config,runtime,emit) {
         var fatalStages=Object.keys(state.governanceProvenance.stages).map(function(key){return state.governanceProvenance.stages[key];});
         state.governanceProvenance.manifest=await createGovernanceManifest({
           decision_id:config.decisionId,captured_at:runtimeNow(runtime),deployment_commit:config.deploymentCommit||"UNRECORDED",
-          instruction_commit:INSTRUCTION_COMMIT,analysis_mode:config.analysisMode,auto_continue:config.autoContinue,
+          instruction_commit:INSTRUCTION_COMMIT,analysis_mode:config.analysisMode,decision_text:config.decision,chair_selected_directors:config.chairSelectedIds||[],auto_continue:config.autoContinue,
           web_search:config.webSearch,public_web_search:config.publicWebSearch,session_evidence_count:(config.sessionEvidence||[]).length,
           active_directors:activeDir.map(function(d){return d.id;}),omitted_directors:omittedDir.map(function(d){return d.id;}),
           stages:fatalStages,final_ledger:fatalRecord
