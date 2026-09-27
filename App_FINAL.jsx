@@ -1798,6 +1798,7 @@ function PHDSS() {
   var synthesisBriefsRef=useRef({});
   var [comparator,setComparator]=useState(null);
   var [ledger,setLedger]=useState([]);
+  var [governanceProvenance,setGovernanceProvenance]=useState(null);
   var [autoContinue,setAutoContinue]=useState(true);
   var [stagesDone,setStagesDone]=useState(0);
   var [stageStatuses,setStageStatuses]=useState({});
@@ -1986,8 +1987,13 @@ function PHDSS() {
         analysisMode:analysisMode,chairSelectedIds:chairSelectedIds,docs:docs,instructions:instructions,
         webSearch:webSearch,publicWebSearch:publicWebSearch,sessionEvidence:sessionEvidence,
         autoContinue:autoContinue,totalLoadedDocs:totalLoadedDocs,instrLoadState:instrLoadState,
-        ctx:getSessionContext(),priorStressTestResult:stressTestResult
+        ctx:getSessionContext(),priorStressTestResult:stressTestResult,
+        deploymentCommit:(import.meta.env&&import.meta.env.VITE_GIT_COMMIT)||"UNRECORDED"
       },{},eventHandler);
+
+      if(pipelineState&&pipelineState.governanceProvenance&&pipelineState.governanceProvenance.manifest){
+        setGovernanceProvenance(pipelineState.governanceProvenance);
+      }
 
       if(pipelineState.fatalError){
         setError("Session error: "+pipelineState.fatalError.message);
@@ -2253,7 +2259,17 @@ function PHDSS() {
           <div style={{animation:"fadeIn 0.3s ease"}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
               <div><div style={{fontSize:13,fontWeight:700,color:"#0F172A",marginBottom:3}}>Decision Ledger</div><div style={{fontSize:12,color:"#64748B"}}>{ledger.length} decision{ledger.length!==1?"s":""} recorded this session.</div></div>
-              {ledger.length>0&&<button onClick={function(){downloadJson("phdss-ledger_"+new Date().toISOString().slice(0,10)+(ledger.length>1?"__"+ledger.length+"_":"")+".json",{schema_version:LEDGER_SCHEMA,generated_at:new Date().toISOString(),record_count:ledger.length,decisions:ledger});}} style={{padding:"8px 18px",borderRadius:8,border:"none",background:"linear-gradient(135deg,#A78BFA,#7C3AED)",color:"#FFFFFF",fontSize:12,fontWeight:600,cursor:"pointer"}}>Export JSON</button>}
+              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                {governanceProvenance&&governanceProvenance.manifest&&<button onClick={function(){
+                  var manifest=governanceProvenance.manifest;
+                  downloadJson("PHDSS_"+manifest.decision_id+"_governance_manifest.json",manifest);
+                  Object.keys(governanceProvenance.stages||{}).forEach(function(stageId){
+                    var safeStage=stageId.replace(/[^A-Za-z0-9_-]+/g,"_");
+                    downloadJson("PHDSS_"+manifest.decision_id+"_"+safeStage+"_request.json",governanceProvenance.stages[stageId]);
+                  });
+                }} style={{padding:"8px 18px",borderRadius:8,border:"1px solid #C4B5FD",background:"#F5F3FF",color:"#6D28D9",fontSize:12,fontWeight:600,cursor:"pointer"}}>Export Provenance</button>}
+                {ledger.length>0&&<button onClick={function(){downloadJson("phdss-ledger_"+new Date().toISOString().slice(0,10)+(ledger.length>1?"__"+ledger.length+"_":"")+".json",{schema_version:LEDGER_SCHEMA,generated_at:new Date().toISOString(),record_count:ledger.length,decisions:ledger});}} style={{padding:"8px 18px",borderRadius:8,border:"none",background:"linear-gradient(135deg,#A78BFA,#7C3AED)",color:"#FFFFFF",fontSize:12,fontWeight:600,cursor:"pointer"}}>Export JSON</button>}
+              </div>
             </div>
             {ledger.length===0?<div style={{textAlign:"center",padding:"60px 20px"}}><div style={{fontSize:13,color:"#94A3B8"}}>No decisions recorded yet.</div></div>
             :ledger.map(function(rec){
