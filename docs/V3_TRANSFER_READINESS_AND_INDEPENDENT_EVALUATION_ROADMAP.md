@@ -404,7 +404,8 @@ It must include at minimum:
 
 - CORE comprises two globally mandatory Directors (Systems, Safety), two additional CORE-fixed Directors (Equity, Lived Experience), and one adaptive fifth Director;
 - the rationale for fixing Equity and Lived Experience is an attributed design judgment grounded in public health, digital health, and mental health practice;
-- the same CORE composition currently extends to other sectors as an architectural default, not as evidence that the necessary-condition rationale has been established universally;
+- PHDSS is a Public Health Decision Stewardship System built from first principles; its governance architecture has been deliberately stress-tested outside health in housing-policy and geopolitical contexts, where the structural pipeline held;
+- that structural-transfer evidence is separate from the Equity/Lived necessary-condition rationale, which remains a substantive design judgment grounded in public health, digital health, and mental health practice and has not itself been established as universal across sectors;
 - inclusion of Equity and Lived Experience in CORE is specified, but special downstream enforcement of the necessary-condition rationale remains unverified;
 - refusal, red-line, and HALT mechanisms must not be conflated; the current instruction corpus contains a documented inconsistency between Ethics' uniqueness claim and Behaviour's explicit refusal obligation;
 - canonical rationale: `docs/CORE_ACTIVATION_POLICY.md`.
