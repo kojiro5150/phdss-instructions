@@ -34,15 +34,21 @@ The fifth CORE Director remains adaptive so that the architecture can add contex
 
 ## 3. Scope boundary - load-bearing
 
-The necessary-condition rationale above is grounded in the domains for which PHDSS was designed and in which its creator works: **public health, digital health, and mental health**.
+PHDSS is a **Public Health Decision Stewardship System built from first principles**. Its core governance architecture is intended to express general structural properties of rigorous deliberation rather than to depend on health-specific subject matter.
 
-The current runtime applies the same CORE composition to every CORE run, including use outside those domains.
+The generality of that architecture has been deliberately stress-tested outside public health. Housing-policy and geopolitical decision runs were used specifically to test whether independent Director analysis, staged synthesis, adversarial challenge, epistemic auditing, falsification discipline, and the wider reasoning pipeline retained structural integrity when the subject matter changed. Those runs provide evidence that the machinery can transfer structurally beyond health; they were not incidental drift outside the intended research program.
 
-> **That extension should be understood as an architectural default rather than evidence that the necessary-condition rationale has been independently established for every sector.**
+That architectural-transfer finding is separate from the rationale for fixing Equity and Lived Experience in CORE.
 
-This sentence is load-bearing. It preserves the distinction between a scoped professional design judgment and a universal empirical claim. It should not be shortened into language implying that the necessary-condition rationale has been validated across all sectors.
+The necessary-condition rationale for Equity and Lived Experience remains a substantive design judgment grounded in the design decision-maker's professional practice in **public health, digital health, and mental health**:
 
-Cross-domain use may support, challenge, or ultimately motivate revision of the default, but such evidence must be established prospectively rather than inferred from the existence of the rule.
+> **If Equity or Lived Experience materially falters, the proposal is not sound, regardless of what the other domains find.**
+
+The housing and geopolitical transfer runs did not test whether that necessary-condition claim should itself be universalised to every sector. They tested whether the architecture held when transferred to different subject matter.
+
+> **The generality of the PHDSS architecture and the domain scope of the Equity/Lived necessary-condition rationale are separate claims. Structural transfer outside health does not, by itself, establish that the necessary-condition rationale applies universally.**
+
+This distinction is load-bearing. Future edits must not collapse a demonstrated structural-transfer result into an unbounded normative claim about the necessary status of particular Directors in every possible domain.
 
 ## 4. Inclusion rationale is not downstream enforcement
 
