@@ -356,3 +356,4 @@ Passing deterministic schema tests alone earns only:
 A successful live Governance run with independently verified hashes is required before claiming:
 
 > **Governance provenance has been demonstrated on a live runtime execution.**
+
