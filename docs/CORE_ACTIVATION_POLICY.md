@@ -87,19 +87,36 @@ This is a strong red-line architecture, but it is **not written as an explicit a
 
 ### Ethics & Influence Risk
 
-Ethics contains an explicit **Ethical Refusal Protocol**. It can directly refuse endorsement where a proposal enables manipulation, reduces agency, obscures intent, or concentrates influence without oversight.
+Ethics contains an explicit **Ethical Refusal Protocol**. Its instruction text says that, where the trigger condition is met, the Director must refuse endorsement, state the ethical failure mode, and reframe toward defensive or transparent consent-based approaches. The same file also says this is "not a recommendation to the Chair" but a "direct ethical refusal."
+
+However, current runtime inspection does **not** show a separate non-aggregable refusal channel, veto field, or Director-identity-specific enforcement path for Ethics. The Ethics Director is still required to emit the standard `Recommendation Signal`, and downstream runtime logic parses and aggregates that signal in the same generic signal machinery used for other Directors.
+
+Therefore the instruction-level claim that Ethics refusal sits outside normal aggregation is **not yet demonstrated as a runtime property**.
 
 ### Behaviour & Implementation
 
-Behaviour also contains an explicit **Ethics & Safety Lock** with an active refusal obligation for covert influence, manipulation, deception, coercion, and dark patterns.
+Behaviour contains an explicit **Ethics & Safety Lock** that says the Director has an "active refusal obligation" for covert influence, manipulation, deception, coercion, and dark patterns, and explicitly describes this as "the same structural feature as the Ethics Director."
 
-This means the current instruction corpus contains a documentation inconsistency: `ethics.md` states that Ethics is "the only Director in PHDSS" with an active refusal obligation, while `behaviour.md` explicitly describes itself as having "the same structural feature as the Ethics Director."
+But Behaviour is likewise routed through the normal Director `Recommendation Signal` contract and generic downstream aggregation. Current runtime inspection does not show a separate non-aggregable Behaviour veto or refusal transport.
 
-That inconsistency should be resolved as a documentation/instruction-contract question before either uniqueness claim is repeated in transfer materials or working papers.
+### Corpus-level inconsistency and narrower runtime finding
+
+The instruction corpus therefore contains a real self-description inconsistency:
+
+- `ethics.md` says Ethics is **"the only Director in PHDSS"** with an active refusal obligation;
+- `behaviour.md` says Behaviour has an active refusal obligation with **"the same structural feature as the Ethics Director."**
+
+At the same time, neither instruction's refusal wording is currently represented as a separately verified runtime authority mechanism. The runtime treats both Directors through the standard signal pathway.
+
+The present finding is therefore narrower and more precise than "two Directors have equivalent categorical veto authority":
+
+> **Two Director instruction files claim active refusal semantics, but the runtime currently exposes no separately verified non-aggregable refusal/veto channel for either one. Ethics' uniqueness claim is contradicted by Behaviour's instruction text, while the stronger claim that either refusal operates outside ordinary signal aggregation remains unverified and appears inconsistent with current runtime routing.**
+
+This should be resolved prospectively as an instruction-contract/runtime-design question before transfer materials or papers describe categorical refusal as a uniquely enforced architectural property.
 
 ### Lived Experience
 
-Lived Experience contains specific HALT-level escalation rules, including a documented re-traumatisation condition. This is a domain-specific HALT trigger, not an active refusal protocol.
+Lived Experience contains specific HALT-level escalation rules, including a documented re-traumatisation condition. This is a domain-specific HALT trigger routed through the normal signal pathway, not an explicit active refusal protocol.
 
 ## 6. Transfer-readiness implication
 
