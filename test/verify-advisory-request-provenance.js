@@ -4,14 +4,15 @@ const app=fs.readFileSync("App_FINAL.jsx","utf8");
 const failures=[];
 
 const required=[
-  'schema:"phdss.advisory-request.v2"',
+  'schema:"phdss.advisory-request.v3"',
   'run_type:"ADVISORY"',
   'advisory_mode:"DIRECTOR_BRIEF"',
   'deployment_commit:(import.meta.env&&import.meta.env.VITE_GIT_COMMIT)||"UNRECORDED"',
   'instruction_commit:INSTRUCTION_COMMIT',
   'instruction_file:dir.id+".md"',
+  'instruction_normalization_version:"trim_v1"',
   'instruction_content:directorInstruction',
-  'instruction_content_sha256:instructionContentSha256',
+  'instruction_runtime_sha256:instructionContentSha256',
   'model:SYNTHESIS_MODEL',
   'system_prompt:advisorySystemPrompt',
   'system_prompt_sha256:systemPromptSha256',

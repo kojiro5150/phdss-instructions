@@ -2032,7 +2032,7 @@ function PHDSS() {
           var systemPromptSha256=await sha256Text(advisorySystemPrompt);
           var userMessageSha256=await sha256Text(advisoryUserMessage);
           var advisoryRequestRecord={
-            schema:"phdss.advisory-request.v2",
+            schema:"phdss.advisory-request.v3",
             captured_at:new Date().toISOString(),
             decision_id:decisionId,
             run_type:"ADVISORY",
@@ -2042,8 +2042,9 @@ function PHDSS() {
             deployment_commit:(import.meta.env&&import.meta.env.VITE_GIT_COMMIT)||"UNRECORDED",
             instruction_commit:INSTRUCTION_COMMIT,
             instruction_file:dir.id+".md",
+            instruction_normalization_version:"trim_v1",
             instruction_content:directorInstruction,
-            instruction_content_sha256:instructionContentSha256,
+            instruction_runtime_sha256:instructionContentSha256,
             model:SYNTHESIS_MODEL,
             model_settings:{max_tokens:16000,temperature:0.8,auto_continue:!!autoContinue},
             web_search:!!webSearch,
