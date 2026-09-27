@@ -44,12 +44,30 @@ Each eligible probe must preserve:
 - instruction commit and instruction-runtime SHA-256;
 - full composed system prompt and SHA-256;
 - full user message and SHA-256;
-- final post-`stripCalibrationBleed_v1` output and SHA-256;
+- raw model output and SHA-256;
+- declared output transform: `stripCalibrationBleed_v1`;
+- final post-transform output and SHA-256;
 - run status/error state;
 - exported human-readable Lived Experience output;
 - manual annotation record.
 
 The sidecar is chain-of-custody evidence. It does not establish semantic correctness.
+
+### Output-transform note
+
+`stripCalibrationBleed_v1` is a deterministic truncation transform. It searches the model output for a fixed set of calibration/instruction-artifact markers (for example `CALIBRATION NOTE`, `Analytical standard:`, explicit analysis-mode coverage lines, and related calibration boilerplate) and, if a marker is found, returns only the text before the earliest marker.
+
+It is **not** a semantic negative-scope filter and does not target participation, uncertainty, representativeness, influence, motive, or epistemic-scoping language.
+
+However, because it truncates everything after a matched marker, it could in principle remove substantive text if the model emitted a calibration marker before later substantive content. For that reason this tranche preserves and hashes both the raw model output and the post-transform output.
+
+For every probe:
+- inspect whether the raw and transformed outputs differ;
+- if they differ, record the exact removed suffix;
+- do not treat the transform as semantically neutral merely because it is deterministic;
+- behavioural scoring is performed on the post-transform output actually presented by the application, while the raw output remains preserved for transformation-integrity review.
+
+A transform difference is not automatically a behavioural failure, but an evidentiary record of the difference is mandatory.
 
 ## 3. Tracked behavioural categories
 
@@ -110,7 +128,10 @@ For every eligible probe record:
 - provenance_status;
 - deployment_commit;
 - instruction_commit;
+- raw_output_sha256;
 - output_sha256;
+- output_transform_changed_content: YES / NO;
+- removed_suffix_exact_span;
 - participation_distinction: PASS / FAIL;
 - unsupported_presence: PRESENT / ABSENT;
 - unsupported_presence_exact_span;
