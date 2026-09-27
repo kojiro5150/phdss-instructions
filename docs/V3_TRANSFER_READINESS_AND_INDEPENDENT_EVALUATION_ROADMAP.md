@@ -201,6 +201,12 @@ The set should vary at least the following conditions:
 
 Do not make all probes paraphrases of the original C fixture.
 
+The prospective six-case set, provenance eligibility floor, split-category recurrence rule, and frozen run order are preregistered in:
+
+`docs/V3_NEGATIVE_SCOPE_BEHAVIOURAL_CHARACTERISATION_PREREGISTRATION.md`
+
+For this tranche, unsupported presence, unsupported absence, and motive/internal-state inference are tracked as separate recurrence categories and must not be pooled.
+
 ### 6.3 Measures
 
 For each run record:
@@ -409,6 +415,12 @@ It must include at minimum:
 - inclusion of Equity and Lived Experience in CORE is specified, but special downstream enforcement of the necessary-condition rationale remains unverified;
 - refusal, red-line, and HALT mechanisms must not be conflated; Ethics and Behaviour both claim active refusal semantics in their instruction text, but current runtime inspection shows no separately verified non-aggregable refusal/veto channel for either, so Ethics' uniqueness claim and the stronger runtime-refusal claim both require resolution before transfer claims are made;
 - canonical rationale: `docs/CORE_ACTIVATION_POLICY.md`.
+
+### Output transformation
+
+- `stripCalibrationBleed_v1` deterministically truncates output at known calibration/instruction-artifact markers before display/export/provenance of the transformed output;
+- the transform is not intended as semantic filtering, but because truncation could remove later substantive text, transfer-facing provenance must preserve both raw and transformed outputs where the transform is in-path;
+- the pre-Gate negative-scope tranche explicitly records whether the transform changed content and preserves the removed suffix for review.
 
 ### General
 

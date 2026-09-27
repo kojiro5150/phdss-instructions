@@ -2038,7 +2038,7 @@ function PHDSS() {
           var systemPromptSha256=await sha256Text(advisorySystemPrompt);
           var userMessageSha256=await sha256Text(advisoryUserMessage);
           var advisoryRequestRecord={
-            schema:"phdss.advisory-request.v3",
+            schema:"phdss.advisory-request.v4",
             captured_at:new Date().toISOString(),
             decision_id:decisionId,
             run_type:"ADVISORY",
@@ -2060,14 +2060,41 @@ function PHDSS() {
             system_prompt:advisorySystemPrompt,
             system_prompt_sha256:systemPromptSha256,
             user_message:advisoryUserMessage,
-            user_message_sha256:userMessageSha256
+            user_message_sha256:userMessageSha256,
+            raw_output:null,
+            raw_output_sha256:null,
+            output:null,
+            output_sha256:null,
+            output_transform:"stripCalibrationBleed_v1",
+            output_capture_stage:"post_stripCalibrationBleed_v1",
+            status:"pending",
+            error:null
           };
           setAdvisoryRequestRecords(function(p){var n=Object.assign({},p);n[dir.id]=advisoryRequestRecord;return n;});
-          var briefOut=stripCalibrationBleed(await callClaude_synthesis(advisorySystemPrompt,advisoryUserMessage,autoContinue,webSearch||publicWebSearch));
+          var rawBriefOut=await callClaude_synthesis(advisorySystemPrompt,advisoryUserMessage,autoContinue,webSearch||publicWebSearch);
+          var rawBriefOutSha256=await sha256Text(rawBriefOut);
+          var briefOut=stripCalibrationBleed(rawBriefOut);
+          var briefOutSha256=await sha256Text(briefOut);
+          advisoryRequestRecord=Object.assign({},advisoryRequestRecord,{
+            response_captured_at:new Date().toISOString(),
+            raw_output:rawBriefOut,
+            raw_output_sha256:rawBriefOutSha256,
+            output:briefOut,
+            output_sha256:briefOutSha256,
+            status:"success",
+            error:null
+          });
+          setAdvisoryRequestRecords(function(p){var n=Object.assign({},p);n[dir.id]=advisoryRequestRecord;return n;});
           setDirOutputs(function(p){var n=Object.assign({},p); n[dir.id]=briefOut; return n;});
           setDirectorResultsRef([Object.assign({},dir,{output:briefOut})]);
           setAdvisoryOutput(function(p){return Object.assign({},p,{[dir.id]:briefOut});});
-        }catch(e){stageErrors.push(dir.label+" brief failed");}
+        }catch(e){
+          if(typeof advisoryRequestRecord!=="undefined"&&advisoryRequestRecord){
+            advisoryRequestRecord=Object.assign({},advisoryRequestRecord,{response_captured_at:new Date().toISOString(),status:"failed",error:e&&e.message?e.message:String(e)});
+            setAdvisoryRequestRecords(function(p){var n=Object.assign({},p);n[dir.id]=advisoryRequestRecord;return n;});
+          }
+          stageErrors.push(dir.label+" brief failed");
+        }
         var cl={}; cl[dir.id]=false; setDirLoading(cl); setStagesDone(1);
       } else if(advisoryMode==="DUAL_LENS"){
         var dirA=DIRECTORS.find(function(d){return d.id===lensAId;})||DIRECTORS[0];
