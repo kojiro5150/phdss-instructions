@@ -147,6 +147,25 @@ This distinction must not be confused in any external transfer artefact. A gover
 
 ---
 
+## L-09 — Governance provenance: transformation-integrity boundary
+
+**Component:** `src/runtime/governance-provenance.js`, `scripts/verify-governance-provenance-v2.mjs`  
+**Discovered:** Gate A.1 — Governance-mode provenance parity repair, October 2026  
+**Evidence:** PR #80 Protocol Authority review
+
+**Limitation:** The v2 Governance stage provenance schema captures `raw_output` (the initial model response), `raw_output_sha256`, `output_transform` (named transform sequence), and `output_capture_stage`. The verifier confirms that `raw_output_sha256` and `output_sha256` are each internally consistent with the text they hash. It does not and cannot prove that applying the declared `output_transform` to `raw_output` would reproduce `output`. The relationship between raw and final output is asserted by the pipeline, not independently verified.
+
+Two sub-boundaries are documented in code but not mechanically enforced:
+
+- Epistemic audit retries: `raw_output` records the initial model response only. If the retry loop ran, subsequent raw responses are not individually preserved. `output_transform` records the attempt count for audit purposes.
+- Chair's second authority-repair pass (`repairChair`): `raw_output` is the initial model response from the first governed call. Replacement responses generated inside the `repairChair` authority-repair loop — if triggered — are internal to the authority contract layer and are not separately captured in the stage record.
+
+**Current status:** Documented structural boundary. The schema and verifier accurately represent what is and is not established. The transform name encodes the declared sequence and any known sub-boundaries; it is an audit record, not a cryptographic proof of transformation.
+
+**Transfer implication:** A governance artefact's raw/final output pair establishes that two specific model responses were captured and hashed. It does not establish that the final output is a deterministic function of the raw output via the named transform. Audit of transformation integrity requires access to the pipeline source at the declared deployment commit.
+
+---
+
 ## Register maintenance
 
 This register is a living document through Gate A. Known limitations not yet listed must be added before Gate A can close.

@@ -94,6 +94,17 @@ export async function finalizeGovernanceStage(record,input){
   out.error=input.error||null;
   // raw_output: the model response text before any transformation.
   // Callers supply this separately; null means the stage failed or was skipped.
+  // For epistemic_audit with retries, raw_output is the initial attempt only;
+  // output_transform records the attempt count for audit purposes.
+  // For chair, raw_output is the initial model response; replacement responses
+  // generated inside the authority-repair loop of the second repairChair pass
+  // are internal to the authority contract layer and are not captured here.
+  //
+  // Transformation-integrity boundary: output_transform names the declared
+  // sequence; the verifier confirms raw_output_sha256 and output_sha256 are
+  // internally consistent but cannot prove the declared sequence produced
+  // output from raw_output. This is a documented structural limit of the
+  // schema, not a gap to be closed within the schema itself.
   if(Object.prototype.hasOwnProperty.call(input,"raw_output")){
     out.raw_output=input.raw_output==null?null:String(input.raw_output);
     out.raw_output_sha256=input.raw_output==null?null:await sha256Text(input.raw_output);

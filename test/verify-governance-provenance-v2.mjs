@@ -83,6 +83,7 @@ function fixtureV2(mode="CORE"){
 }
 
 await check("v2 schema valid CORE",()=>fixtureV2("CORE"),()=>{},"VALID","\"adaptive_fifth\":\"digital\"");
+await check("v2 raw_output null on success rejected",()=>fixtureV2("CORE"),d=>{const r=d.records.find(x=>x.stage_id==="surface_map");r.raw_output=null;r.raw_output_sha256=null;},"INVALID","null raw_output|has null raw_output");
 await check("v2 raw_output hash corruption",()=>fixtureV2("CORE"),d=>{const r=d.records.find(x=>x.stage_id==="surface_map");r.raw_output_sha256=sha("wrong");},"INVALID","raw_output hash mismatch");
 await check("v2 missing output_transform",()=>fixtureV2("CORE"),d=>{const r=d.records.find(x=>x.stage_id==="surface_map");r.output_transform=null;},"INVALID","v2 stage missing output_transform");
 await check("v2 missing output_capture_stage",()=>fixtureV2("CORE"),d=>{const r=d.records.find(x=>x.stage_id==="surface_map");r.output_capture_stage=null;},"INVALID","v2 stage missing output_capture_stage");

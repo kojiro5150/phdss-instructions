@@ -84,10 +84,13 @@ export async function verifyGovernanceProvenance({manifest,stageRecords,expected
     if(!reason&&r.stage_id==="chair"&&!r.authority_repair) reason="Chair authority repair metadata missing";
     if(!reason&&(!Array.isArray(r.instruction_files)||!Array.isArray(r.instruction_runtime_sha256)||r.instruction_files.length===0||r.instruction_files.length!==r.instruction_runtime_sha256.length)) reason="instruction provenance incomplete";
     // v2 schema: validate raw_output hash and transform fields on successful stages.
+    // raw_output must not be null on a successful stage — null is only valid for
+    // skipped or failed stages where output capture did not occur.
     if(!reason&&stageSchema==="phdss.governance-stage-provenance.v2"&&r.status==="success"){
-      if(r.raw_output_sha256!==(r.raw_output==null?null:sha(r.raw_output))) reason="raw_output hash mismatch";
-      else if(!reason&&r.output_transform==null) reason="v2 stage missing output_transform";
-      else if(!reason&&r.output_capture_stage==null) reason="v2 stage missing output_capture_stage";
+      if(r.raw_output==null) reason="v2 successful stage has null raw_output";
+      else if(r.raw_output_sha256!==sha(r.raw_output)) reason="raw_output hash mismatch";
+      else if(r.output_transform==null) reason="v2 stage missing output_transform";
+      else if(r.output_capture_stage==null) reason="v2 stage missing output_capture_stage";
     }
     if(!reason){
       for(let i=0;i<r.instruction_files.length;i++){

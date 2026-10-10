@@ -641,25 +641,30 @@ export async function runGovernancePipeline(config,runtime,emit) {
       await beginProvenance("epistemic_audit","synthesis",null,epistemicPrompt+authorityBoundaryPrompt("epistemic_audit"),epistemicUser,false);
       var epistemicResult=await runGovernedWithRaw("epistemic_audit",epistemicPrompt,epistemicUser,config.autoContinue);
       state.epistemicOut=epistemicResult.output;
+      // Preserve the initial raw response. If retries occur, raw_output records attempt 1
+      // and output_transform records the attempt count. Retry raw responses are not
+      // individually preserved; the stage record holds initial custody only.
       var epistemicRawOut=epistemicResult.rawOutput;
+      var epistemicAttempts=1;
       if(state.epistemicOut&&state.epistemicOut.length<2000){
         console.warn("PHDSS: Epistemic output short ("+state.epistemicOut.length+" chars), retry 1 of 2...");
         await sleep(2000);
         epistemicResult=await runGovernedWithRaw("epistemic_audit",epistemicPrompt,epistemicUser,config.autoContinue);
         state.epistemicOut=epistemicResult.output;
-        epistemicRawOut=epistemicResult.rawOutput;
+        epistemicAttempts=2;
         if(state.epistemicOut&&state.epistemicOut.length<2000){
           console.warn("PHDSS: Epistemic still short ("+state.epistemicOut.length+" chars), retry 2 of 2...");
           await sleep(4000);
           epistemicResult=await runGovernedWithRaw("epistemic_audit",epistemicPrompt,epistemicUser,config.autoContinue);
           state.epistemicOut=epistemicResult.output;
-          epistemicRawOut=epistemicResult.rawOutput;
+          epistemicAttempts=3;
         }
       }
       state.epistemicOut=state.epistemicOut?stripCalibrationBleed(state.epistemicOut):state.epistemicOut;
+      var epistemicTransform="stripCalibrationBleed_v1+authority_repair+stripCalibrationBleed_v1"+(epistemicAttempts>1?"[attempt_count="+epistemicAttempts+";raw_output=attempt_1]":"");
       await finishProvenance("epistemic_audit",state.epistemicOut,"success",null,
         epistemicRawOut,
-        "stripCalibrationBleed_v1+authority_repair+stripCalibrationBleed_v1",
+        epistemicTransform,
         "post_authority_repair+stripCalibrationBleed_v1"
       );
       emit("stage-output",{stage:"epistemic_audit",output:state.epistemicOut});
@@ -767,10 +772,14 @@ export async function runGovernancePipeline(config,runtime,emit) {
       await beginProvenance("chair","synthesis",null,chairPrompt+authorityBoundaryPrompt("chair"),chairUser,config.webSearch||config.publicWebSearch);
       var chairResult=await runGovernedWithRaw("chair",chairPrompt,chairUser,config.autoContinue,config.webSearch||config.publicWebSearch);
       state.chairOut=await repairChair(chairResult.output,chairPrompt,chairUser);
+      // raw_output: initial model response (attempt 1). The repairChair pass is a second
+      // enforceSynthesisAuthority invocation; if it generates replacement responses via
+      // the authority-repair loop, those responses are internal to the authority contract
+      // layer and are not separately captured here. The transform name records this boundary.
       await finishProvenance("chair",state.chairOut,"success",null,
         chairResult.rawOutput,
-        "stripCalibrationBleed_v1+authority_repair+authority_repair",
-        "post_authority_repair"
+        "stripCalibrationBleed_v1+authority_repair[pass=1]+authority_repair[pass=2;repair_responses=not_captured]",
+        "post_authority_repair[pass=2]"
       );
       emit("stage-output",{stage:"chair",output:state.chairOut});
       await storeSynthesisBrief("chair","Chair Decision",state.chairOut);
