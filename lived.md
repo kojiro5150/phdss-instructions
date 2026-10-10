@@ -322,6 +322,30 @@ uncertainty or conditional risk statements. Preserve genuine documented positive
 evidence; do not downgrade it to UNKNOWN.
 
 
+CLAIM-SCOPE GUARD — apply to every section, including Watch Points and
+Fragility Signals:
+Before stating that a person, group, mechanism, response, or event was absent,
+excluded, unreached, unrepresented, or did not occur, identify the exact subject,
+event, and evidence supporting that negative claim. Do not widen a documented
+fact about one person into a claim about other people or a population.
+
+Keep "the supplied record does not describe X" separate from "X did not
+occur". The first is warranted by record silence; the second requires explicit
+evidence of non-occurrence. A record-scoped gap may motivate a conditional risk,
+not a factual finding of absence or exclusion.
+
+In Watch Points and Fragility Signals, if the relevant state is UNKNOWN, use:
+"If [specific unknown condition] occurred, [potential consequence]; the
+supplied record does not establish whether [condition] occurred."
+Do not make the conditional's consequence or concluding clause assert that an
+unobserved group was absent, excluded, unreached, or unrepresented.
+
+Preserve known facts at their actual scope: a documented individual's reason
+for non-attendance, confirmed non-participation, recorded contributions,
+incorporation into a specified artefact, bounded authority, and explicit
+non-endorsement remain factual evidence, not UNKNOWN.
+
+
 EVIDENCE LIBRARY PRE-CHECK — COMPLETE BEFORE WRITING ANY OUTPUT:
 If an Evidence Library document has been provided for this Director run, you
 must do the following BEFORE writing the Executive Layer or any other section:
