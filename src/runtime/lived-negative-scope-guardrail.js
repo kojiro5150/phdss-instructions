@@ -10,7 +10,7 @@ const SECTION = /^\s{0,3}(?:#{1,6}\s+|\*\*|__)?Participation\s*(?:&|and)\s*Repre
 const HEADING = /^\s{0,3}(?:#{1,6}\s+|\*\*[^*]+\*\*\s*$|__[^_]+__\s*$)/;
 const UNKNOWN = /\b(?:unknown|not\s+(?:established|documented|verified)|no\s+(?:supplied\s+)?evidence\s+(?:in\s+the\s+record\s+)?(?:establishes|confirms)|record\s+does\s+not\s+(?:establish|confirm))\b/i;
 const HYPOTHETICAL = /\b(?:if|could|might|may|would|risk\s+of|potential(?:ly)?|hypothetical|for\s+example|should\s+the)\b/i;
-const RECORD_SCOPED = /\b(?:the\s+)?(?:supplied|available|provided|reviewed)\s+(?:record|material|evidence|documents?)\b|\bnot\s+documented\b|\bno\s+evidence\s+(?:of|that)\b/i;
+const RECORD_SCOPED = /\b(?:the\s+)?(?:supplied|available|provided|reviewed)\s+(?:record|material|evidence|documents?)\s+(?:says|states|establishes|confirms|documents)\b|\bnot\s+documented\b|\bno\s+evidence\s+(?:of|that)\b/i;
 function lineAt(text, offset) {
   const before = text.slice(0, offset);
   return before.split("\n").length;
@@ -38,11 +38,18 @@ export function scanLivedNegativeScope(output) {
       const lineEndIndex = text.indexOf("\n", end);
       const line = text.slice(lineStart, lineEndIndex < 0 ? text.length : lineEndIndex);
       const prefix = line.slice(0, start - lineStart);
-      const suffix = line.slice(end - lineStart);
-      const local = (prefix + " " + match[0] + " " + suffix).replace(/^[#* _-]+/, "").trim();
-      // These are review triggers, not semantic determinations. Avoid obvious conditional
-      // and explicit record-scoped uncertainty, without claiming to parse all English.
-      if (HYPOTHETICAL.test(prefix) || RECORD_SCOPED.test(local)) continue;
+      // Suppression applies only to the clause containing the matched claim.
+      // An unrelated "may" or "supplied record" earlier in a long line must
+      // not silence a later categorical assertion or presupposition.
+      const clauseStart = Math.max(prefix.lastIndexOf("."), prefix.lastIndexOf(";"), prefix.lastIndexOf("—"), prefix.lastIndexOf("–"));
+      const clausePrefix = prefix.slice(clauseStart + 1);
+      const clauseEndCandidates = [line.indexOf(".", end - lineStart), line.indexOf(";", end - lineStart), line.indexOf("—", end - lineStart), line.indexOf("–", end - lineStart)].filter(i => i >= 0);
+      const clauseEnd = clauseEndCandidates.length ? Math.min(...clauseEndCandidates) : line.length;
+      const clause = line.slice(clauseStart + 1, clauseEnd);
+      // This is an advisory pattern heuristic, not a grammar or evidence parser.
+      // Suppress explicit conditional framing and directly attributed assertions,
+      // but not generic "the record is silent" preceding an unqualified noun phrase.
+      if (HYPOTHETICAL.test(clausePrefix) || RECORD_SCOPED.test(clause)) continue;
       const key = rule.id + ":" + start;
       if (seen.has(key)) continue;
       seen.add(key);
