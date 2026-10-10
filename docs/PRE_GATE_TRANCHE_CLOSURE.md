@@ -23,11 +23,11 @@ The preregistered stopping rule of 5–8 probes was not satisfied.
 
 ### F01 finding
 
-The negative-scope scanner produced no warning on F01 despite an identified candidate unsupported-absence assertion in the Lived Experience Director output. The candidate assertion converted absence of documentation in the supplied record into an implied real-world non-occurrence without a supply-record qualifier.
+The negative-scope scanner produced no warning on F01 despite an identified candidate unsupported-absence assertion in the Lived Experience Director output. The candidate assertion was identified through model-assisted exploratory review and accepted by the Protocol Authority; it was not independently adjudicated against the frozen A-D rubric.
 
-The scanner did not flag this assertion. The miss was not a borderline case; it was a structurally representative instance of the core defect pattern the scanner was designed to detect.
+The candidate assertion converted absence of documentation in the supplied record into an implied real-world non-occurrence without a supply-record qualifier. The scanner did not flag it. This is recorded as a candidate scanner miss relative to the exploratory adjudication, not as an established detection failure with independent confirmation.
 
-**This establishes that an empty warning set cannot be treated as assurance of negative-scope compliance.**
+**This candidate miss establishes that an empty warning set cannot be treated as assurance of negative-scope compliance.**
 
 ### Post-F01 repair
 

@@ -41,26 +41,34 @@ The `npm run validate` suite covers: authority regression, Chair non-substitutio
 
 Gate A exit requires this suite to pass on a clean frozen build.
 
-### 1.5 Governance provenance hardened
+### 1.5 Advisory and deployment provenance hardened
 
-Deployment provenance verification (`verify-deployment-provenance.mjs`) and advisory provenance v4 (`verify-advisory-provenance-v4.mjs`) are in the test suite and passing. The provenance sidecar schema is `phdss.advisory-request.v4`.
+Deployment provenance verification (`verify-deployment-provenance.mjs`) and Advisory provenance v4 (`verify-advisory-provenance-v4.mjs`) are in the test suite and passing. The Advisory provenance sidecar schema is `phdss.advisory-request.v4`.
+
+Advisory provenance tests do not on their own establish Governance-mode provenance parity. Governance-mode provenance parity is listed as an outstanding Gate A requirement below and requires specific verification before Gate A can close.
 
 ---
 
 ## 2. Outstanding Gate A requirements
 
-These are required before Gate A can be closed. Status as at entry:
+**Gate A requirements** (required before Gate A closes):
 
 | Requirement | Status | Notes |
 |---|---|---|
 | Frozen build (tagged release) | NOT YET | v2.0.0 tag exists; no post-v2 release tag |
 | Limitations register complete | IN PROGRESS | `docs/LIMITATIONS_REGISTER.md` opened with this PR |
 | Synthetic-only test-data policy documented | NOT YET | Policy must be written and explicit |
-| Operator Guide v1 | NOT YET | Required before stranger test |
-| Evaluator Protocol v1 | NOT YET | Required before stranger test |
 | Transfer-candidate validation run | NOT YET | Clean `npm run validate` on frozen tagged build |
 | Known limitations disclosed in UI | PARTIAL | Scanner warning semantics disclosed; participation status interim disclosure in place |
 | `npm run validate` passing on frozen build | NOT VERIFIED | Must be verified at the tagged commit |
+| Governance-mode provenance parity | NOT VERIFIED | Advisory provenance tests do not establish Governance parity; requires specific verification |
+
+**Gate B requirements** (not Gate A blockers; required before Gate B closes):
+
+| Requirement | Status | Notes |
+|---|---|---|
+| Operator Guide v1 | NOT YET | Required before stranger test |
+| Evaluator Protocol v1 | NOT YET | Required before stranger test |
 
 ---
 

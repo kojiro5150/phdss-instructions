@@ -132,6 +132,21 @@ This is a deliberate deviation, not a data-collection failure. The deviation is 
 
 ---
 
+## L-08 — Refusal enforcement: instruction-level claims are not a runtime veto channel
+
+**Component:** Ethics and Behaviour Directors (`ethics.md`, `behaviour.md`), runtime  
+**Status:** Architectural boundary
+
+**Limitation:** The Ethics and Behaviour Directors may identify risks, ethical concerns, or conditions under which a pathway should not proceed. These outputs are analytical findings within the governance record. They are not a verified, non-aggregable runtime veto channel.
+
+Instruction-level refusal language in Director outputs — statements that a proposal should not, must not, or ought not proceed — expresses a reasoned analytical position. It does not constitute a technical enforcement action. The human decision-maker retains adjudication authority. A Director finding against a pathway does not prevent that pathway from being selected by the authorised human.
+
+This distinction must not be confused in any external transfer artefact. A governance record that contains a strong Ethics Director caution is not evidence that the system blocked the proposal.
+
+**Transfer implication:** Facilitators, evaluators, and any operator guide must make clear that Director outputs are inputs to human decision-making, not runtime enforcement. An Ethics or Behaviour Director finding does not substitute for institutional governance authority over the decision.
+
+---
+
 ## Register maintenance
 
 This register is a living document through Gate A. Known limitations not yet listed must be added before Gate A can close.
