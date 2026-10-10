@@ -3,7 +3,9 @@ import fs from "node:fs";
 
 import {
   INSTRUCTION_COMMIT,
+  BASELINE_INSTRUCTION_COMMIT,
   GITHUB_BASE,
+  LIVED_GITHUB_BASE,
   INSTRUCTION_FILES,
   fetchInstructionFile,
   loadAllInstructions,
@@ -24,8 +26,13 @@ async function check(label,fn){
 }
 
 await check("instruction pin and manifest",async function(){
-  assert.equal(INSTRUCTION_COMMIT,"22b662999e01462fc4008446885a38df2cf735ad");
-  assert.equal(GITHUB_BASE,"https://cdn.jsdelivr.net/gh/kojiro5150/phdss-instructions@22b662999e01462fc4008446885a38df2cf735ad/");
+  const baseline = "22b662999e01462fc4008446885a38df2cf735ad";
+  const livedV2 = "94c5851146d849957af9610935a85f674c6ab05d";
+  const cdn = "https://cdn.jsdelivr.net/gh/kojiro5150/phdss-instructions@";
+  assert.equal(BASELINE_INSTRUCTION_COMMIT,baseline);
+  assert.equal(INSTRUCTION_COMMIT,livedV2);
+  assert.equal(GITHUB_BASE,cdn+baseline+"/");
+  assert.equal(LIVED_GITHUB_BASE,cdn+livedV2+"/");
   assert.equal(Object.keys(INSTRUCTION_FILES).length,21);
   assert.equal(INSTRUCTION_FILES.systems,"systems.md");
   assert.equal(INSTRUCTION_FILES.chair,"chair.md");
@@ -41,6 +48,22 @@ await check("instruction fetch trims successful content",async function(){
   const result=await fetchInstructionFile("systems",fetchImpl);
   assert.equal(result,"instruction text");
   assert.deepStrictEqual(calls,[GITHUB_BASE+"systems.md"]);
+});
+
+await check("lived v2 routing preserves baseline directors",async function(){
+  const calls=[];
+  const fetchImpl=async function(url){
+    calls.push(url);
+    return {ok:true,text:async function(){return "instruction text";}};
+  };
+  await fetchInstructionFile("lived",fetchImpl);
+  for (const key of Object.keys(INSTRUCTION_FILES).filter(key=>key!=="lived")) {
+    await fetchInstructionFile(key,fetchImpl);
+  }
+  assert.deepStrictEqual(calls,[
+    LIVED_GITHUB_BASE+"lived.md",
+    ...Object.keys(INSTRUCTION_FILES).filter(key=>key!=="lived").map(key=>GITHUB_BASE+INSTRUCTION_FILES[key]),
+  ]);
 });
 
 await check("instruction fetch fails closed",async function(){
