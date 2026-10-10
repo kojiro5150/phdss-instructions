@@ -1,5 +1,9 @@
-export const INSTRUCTION_COMMIT = "22b662999e01462fc4008446885a38df2cf735ad";
-export const GITHUB_BASE = "https://cdn.jsdelivr.net/gh/kojiro5150/phdss-instructions@"+INSTRUCTION_COMMIT+"/";
+// Experimental v2 negative-scope retest: only lived.md uses the v2 candidate.
+// INSTRUCTION_COMMIT identifies the Lived Experience advisory instruction in sidecars.
+export const INSTRUCTION_COMMIT = "94c5851146d849957af9610935a85f674c6ab05d";
+export const BASELINE_INSTRUCTION_COMMIT = "22b662999e01462fc4008446885a38df2cf735ad";
+export const GITHUB_BASE = "https://cdn.jsdelivr.net/gh/kojiro5150/phdss-instructions@"+BASELINE_INSTRUCTION_COMMIT+"/";
+export const LIVED_GITHUB_BASE = "https://cdn.jsdelivr.net/gh/kojiro5150/phdss-instructions@"+INSTRUCTION_COMMIT+"/";
 
 export const INSTRUCTION_FILES = Object.freeze({
   systems:        "systems.md",
@@ -34,7 +38,7 @@ function runtimeFetch(fetchImpl) {
 }
 
 export async function fetchInstructionFile(key, fetchImpl) {
-  var url = GITHUB_BASE + INSTRUCTION_FILES[key];
+  var url = (key === "lived" ? LIVED_GITHUB_BASE : GITHUB_BASE) + INSTRUCTION_FILES[key];
   try {
     var res = await runtimeFetch(fetchImpl)(url);
     if (!res.ok) return null;

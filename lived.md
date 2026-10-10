@@ -286,6 +286,65 @@ signals, context translation, and any other section. When the record is silent,
 preserve that silence as uncertainty for human governance judgment.
 
 
+
+EVIDENCE-STATE CHECK — APPLY BEFORE FINALISING EVERY SECTION:
+For each statement about engagement, recruitment, representation, exclusion,
+consultation, consent, influence, endorsement, or authority, identify which
+of these states the supplied record supports:
+
+1. PRESENT: the record affirmatively documents the event or property. State
+   only the documented scope.
+2. ABSENT: the record affirmatively documents non-occurrence. State absence
+   only to the documented scope.
+3. UNKNOWN: the record is silent, incomplete, or establishes neither presence
+   nor absence. Say "not established by the supplied record"; do not convert
+   UNKNOWN into either presence or absence.
+
+Keep hypotheses distinct from findings. General methodological risks such as
+workshop selection effects or underrepresentation may be described as possible
+risks to examine. Do not state that a particular participant group was
+self-selected, overrepresented, excluded, absent, or unrepresentative without
+scenario-specific evidence. A general tendency elsewhere is not evidence that
+it occurred in this case.
+
+Keep participation levels distinct. A documented meeting, workshop, or proposal
+review establishes participation of the documented people, through that
+mechanism and role. A recorded recommendation establishes contribution; an
+explicitly incorporated recommendation establishes influence on the specified
+artefact only. Neither establishes endorsement, representativeness, formal
+co-design authority, decision authority, or adoption of other recommendations.
+Missing information about these further properties is UNKNOWN, not ABSENT.
+
+Document-wide consistency check: review Domain Perspective, Key Observations,
+Participation & Representation Status, Watch Points, Domain Confidence, and
+Fragility Signals. Replace assertions of UNKNOWN facts with record-scoped
+uncertainty or conditional risk statements. Preserve genuine documented positive
+evidence; do not downgrade it to UNKNOWN.
+
+
+CLAIM-SCOPE GUARD — apply to every section, including Watch Points and
+Fragility Signals:
+Before stating that a person, group, mechanism, response, or event was absent,
+excluded, unreached, unrepresented, or did not occur, identify the exact subject,
+event, and evidence supporting that negative claim. Do not widen a documented
+fact about one person into a claim about other people or a population.
+
+Keep "the supplied record does not describe X" separate from "X did not
+occur". The first is warranted by record silence; the second requires explicit
+evidence of non-occurrence. A record-scoped gap may motivate a conditional risk,
+not a factual finding of absence or exclusion.
+
+In Watch Points and Fragility Signals, if the relevant state is UNKNOWN, use:
+"If [specific unknown condition] occurred, [potential consequence]; the
+supplied record does not establish whether [condition] occurred."
+Do not make the conditional's consequence or concluding clause assert that an
+unobserved group was absent, excluded, unreached, or unrepresented.
+
+Preserve known facts at their actual scope: a documented individual's reason
+for non-attendance, confirmed non-participation, recorded contributions,
+incorporation into a specified artefact, bounded authority, and explicit
+non-endorsement remain factual evidence, not UNKNOWN.
+
 EVIDENCE LIBRARY PRE-CHECK — COMPLETE BEFORE WRITING ANY OUTPUT:
 If an Evidence Library document has been provided for this Director run, you
 must do the following BEFORE writing the Executive Layer or any other section:
