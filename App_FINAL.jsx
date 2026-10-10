@@ -10,6 +10,7 @@
 // "**Multi-Hypothesis Frame**" in Sovereignty).
 // Strategy: split on heading boundaries, fingerprint each block, drop duplicates.
 import { useState, useRef, useEffect } from "react";
+import { scanLivedNegativeScope } from "./src/runtime/lived-negative-scope-guardrail.js";
 import {
   TRUSTED_DOMAINS,
   ANALYSIS_MODES,
@@ -1484,6 +1485,7 @@ function DirectorCard({director,output,loading,expanded,onToggle,confidence,onEx
   var sigBg=signal==="PROCEED"?"#D1FAE5":signal==="CAUTION"?"#FEF3C7":signal==="HALT"?"#FEE2E2":signal==="NOT APPLICABLE"?"#F1F5F9":isFailed?"#FEF2F2":null;
   var hasOutput=typeof output==="string"&&output.length>10;
   var isClickable=hasOutput&&!loading;
+  var negativeScope = director.id==="lived" && hasOutput ? scanLivedNegativeScope(output) : null;
   return (
     <div style={{background:expanded?"#FAFBFF":"#FFFFFF",border:"1px solid "+(expanded?director.color+"66":hasOutput?"#CBD5E1":"#E2E8F0"),borderRadius:12,padding:"12px 15px",marginBottom:8,transition:"all 0.2s"}}>
       <div onClick={isClickable?onToggle:undefined} style={{display:"flex",alignItems:"center",justifyContent:"space-between",cursor:isClickable?"pointer":"default"}}>
@@ -1500,12 +1502,20 @@ function DirectorCard({director,output,loading,expanded,onToggle,confidence,onEx
         <div style={{display:"flex",alignItems:"center",gap:6}}>
           {loading&&<Spinner color={director.color}/>}
           {isFailed&&<span style={{fontSize:10,fontWeight:700,padding:"3px 9px",borderRadius:20,background:"#FEF2F2",color:"#DC2626",border:"1px solid #FECACA"}}>FAILED</span>}
+          {negativeScope&&negativeScope.flags.length>0&&<span style={{fontSize:10,fontWeight:700,padding:"3px 9px",borderRadius:20,background:"#FFFBEB",color:"#92400E",border:"1px solid #FDE68A"}}>Review suggested ({negativeScope.flags.length})</span>}
           {sigColor&&!isFailed&&isClickable&&<span style={{fontSize:10,fontWeight:700,padding:"3px 9px",borderRadius:20,background:sigBg,color:sigColor}}>{signal}</span>}
           {isClickable&&typeof onExport==="function"&&<button onClick={function(e){e.stopPropagation();onExport();}} style={{fontSize:10,padding:"3px 10px",borderRadius:7,border:"1px solid #E2E8F0",background:"#FFFFFF",color:"#64748B",cursor:"pointer"}}>Export</button>}
           {isClickable&&<span style={{color:director.color,fontSize:13,fontWeight:700,width:14,textAlign:"center",display:"inline-block",transform:expanded?"rotate(90deg)":"rotate(0deg)",transition:"transform 0.2s"}}>▶</span>}
         </div>
       </div>
       {expanded&&hasOutput&&<div style={{marginTop:12,paddingTop:12,borderTop:"2px solid "+director.color+"22"}}>
+        {negativeScope&&negativeScope.flags.length>0&&<details style={{marginBottom:12,padding:12,background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:8,fontSize:11,color:"#78350F"}}>
+          <summary style={{fontWeight:700,cursor:"pointer"}}>Review suggested — {negativeScope.flags.length} pattern flag(s)</summary>
+          <p>Automated pattern flag, not a confirmed Category B failure. Check the underlying record.</p>
+          <p>No source verification, prospective sensitivity estimate or human adjudication has occurred. Unflagged output is not verified.</p>
+          <ul>{negativeScope.flags.map(function(flag,i){return <li key={flag.rule_id+"-"+flag.start} style={{marginBottom:7}}><strong>{flag.rule_id}</strong> (line {flag.line}): “{flag.match}” — {flag.review_question}{flag.cross_section_unknown?" Canonical section expresses uncertainty; check cross-section consistency.":""}</li>;})}</ul>
+        </details>}
+
         {govRecord&&govView&&setGovView&&<GovToggle view={govView} setView={setGovView} hasContent={true}/>}
         {(!govRecord||govView==="technical")&&<div style={{fontSize:12,lineHeight:1.8,color:"#334155"}} dangerouslySetInnerHTML={{__html:renderMd(output,director.color)}}/>}
         {govRecord&&govView==="governance"&&govRecord}
