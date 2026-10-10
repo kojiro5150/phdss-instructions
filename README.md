@@ -87,6 +87,12 @@ npm run build
 # deploy dist/ to your hosting provider
 ```
 
+Production builds now record the exact checked-out Git commit as `VITE_GIT_COMMIT` for Advisory and Governance provenance. The build fails if Git cannot supply a full SHA, the working tree is dirty, or an externally supplied `VITE_GIT_COMMIT` disagrees with HEAD. Build from a clean, committed checkout. This records the **source commit used for the build**, not the separate publishing-branch commit.
+
+The publishing process must deploy the `dist/` produced by this command without rebuilding or replacing its assets. Record the source SHA and deployed asset identity in the release record. After publishing, perform a non-experimental Advisory diagnostic export and verify that `deployment_commit` equals the recorded source SHA. A passing build or test does not by itself prove which assets the live host serves.
+
+Run `npm run verify:deployment-provenance` to check the build identity contract. Do not start preregistered Pre-Gate probes until the live provenance record is independently verified.
+
 ## Key documents
 
 | Document | Purpose |
