@@ -62,7 +62,8 @@ export async function verifyGovernanceProvenance({manifest,stageRecords,expected
     const r=by[ref.stage_id];
     if(!r){stages.push({stage_id:ref.stage_id,stage_provenance_status:"INVALID",reason:"missing record"});fail("manifest references missing stage record: "+ref.stage_id);continue;}
     let reason=null;
-    if(r.schema!=="phdss.governance-stage-provenance.v1") reason="unsupported stage schema";
+    const stageSchema=r.schema;
+    if(stageSchema!=="phdss.governance-stage-provenance.v1"&&stageSchema!=="phdss.governance-stage-provenance.v2") reason="unsupported stage schema";
     else if(r.decision_id!==manifest.decision_id) reason="decision_id mismatch";
     else if(r.deployment_commit!==manifest.deployment_commit) reason="deployment commit mismatch";
     else if(r.instruction_commit!==manifest.instruction_commit) reason="instruction commit mismatch";
@@ -82,6 +83,12 @@ export async function verifyGovernanceProvenance({manifest,stageRecords,expected
     if(!reason&&ref.status!==r.status) reason="manifest stage status mismatch";
     if(!reason&&r.stage_id==="chair"&&!r.authority_repair) reason="Chair authority repair metadata missing";
     if(!reason&&(!Array.isArray(r.instruction_files)||!Array.isArray(r.instruction_runtime_sha256)||r.instruction_files.length===0||r.instruction_files.length!==r.instruction_runtime_sha256.length)) reason="instruction provenance incomplete";
+    // v2 schema: validate raw_output hash and transform fields on successful stages.
+    if(!reason&&stageSchema==="phdss.governance-stage-provenance.v2"&&r.status==="success"){
+      if(r.raw_output_sha256!==(r.raw_output==null?null:sha(r.raw_output))) reason="raw_output hash mismatch";
+      else if(!reason&&r.output_transform==null) reason="v2 stage missing output_transform";
+      else if(!reason&&r.output_capture_stage==null) reason="v2 stage missing output_capture_stage";
+    }
     if(!reason){
       for(let i=0;i<r.instruction_files.length;i++){
         try{

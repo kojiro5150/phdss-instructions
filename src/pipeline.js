@@ -218,6 +218,16 @@ export async function callGovernedSynthesis(layer,systemPrompt,userPrompt,autoCo
   return enforceSynthesisAuthority(layer,output,governedSystem,userPrompt,runtime);
 }
 
+// Like callGovernedSynthesis but returns {output, rawOutput} for provenance.
+// rawOutput: the model response text before any transform or authority repair.
+// output: the final text after stripCalibrationBleed and any authority-repair passes.
+export async function callGovernedSynthesisWithRaw(layer,systemPrompt,userPrompt,autoContinue,useWeb,runtime) {
+  var governedSystem=systemPrompt+authorityBoundaryPrompt(layer);
+  var rawOutput=String(await runtimeClaude(runtime)(governedSystem,userPrompt,autoContinue,useWeb)||"");
+  var output=await enforceSynthesisAuthority(layer,rawOutput,governedSystem,userPrompt,runtime);
+  return {output:output,rawOutput:rawOutput};
+}
+
 export function chairDecisionBoundaryLeak(text) {
   return assessAuthorityBoundary("chair",text).violates;
 }
@@ -414,6 +424,17 @@ export async function runGovernancePipeline(config,runtime,emit) {
   var runGoverned=runtime.callGovernedSynthesisImpl||function(layer,systemPrompt,userPrompt,autoContinue,useWeb){
     return callGovernedSynthesis(layer,systemPrompt,userPrompt,autoContinue,useWeb,governedRuntime);
   };
+  // runGovernedWithRaw: returns {output, rawOutput} for provenance capture.
+  // When callGovernedSynthesisImpl is injected (tests), falls back to wrapping the
+  // injected impl with rawOutput=output since the injected impl owns its transforms.
+  var runGovernedWithRaw=runtime.callGovernedSynthesisImpl
+    ? async function(layer,systemPrompt,userPrompt,autoContinue,useWeb){
+        var output=await runtime.callGovernedSynthesisImpl(layer,systemPrompt,userPrompt,autoContinue,useWeb);
+        return {output:output,rawOutput:output};
+      }
+    : function(layer,systemPrompt,userPrompt,autoContinue,useWeb){
+        return callGovernedSynthesisWithRaw(layer,systemPrompt,userPrompt,autoContinue,useWeb,governedRuntime);
+      };
   var repairChair=runtime.repairChairDecisionBoundaryImpl||function(text,systemPrompt,userPrompt){
     return repairChairDecisionBoundary(text,systemPrompt,userPrompt,governedRuntime);
   };
@@ -465,10 +486,17 @@ export async function runGovernancePipeline(config,runtime,emit) {
     return record;
   }
 
-  async function finishProvenance(stageId,output,status,error){
+  // rawOutput: the model response text before any transform (null on failure/skip).
+  // outputTransform: named transform sequence applied (e.g. "stripCalibrationBleed_v1").
+  // outputCaptureStage: logical capture point (e.g. "post_stripCalibrationBleed_v1",
+  //   "post_authority_repair", "post_authority_repair+stripCalibrationBleed_v1").
+  async function finishProvenance(stageId,output,status,error,rawOutput,outputTransform,outputCaptureStage){
     var current=state.governanceProvenance.stages[stageId];
     if(!current) return null;
     var finalRecord=await finalizeGovernanceStage(current,{
+      raw_output:rawOutput!=null?rawOutput:null,
+      output_transform:outputTransform||null,
+      output_capture_stage:outputCaptureStage||null,
       output:output,
       status:status||"success",
       error:error?errorText(error):null,
@@ -531,9 +559,14 @@ export async function runGovernancePipeline(config,runtime,emit) {
             }
           } else { throw err1; }
         }
-        var cOut=deduplicateSections(stripCalibrationBleed(dirOut+""));
+        var rawDirOut=String(dirOut||"");
+        var cOut=deduplicateSections(stripCalibrationBleed(rawDirOut));
         cOut=await rescueDirectorSignal(sysPrompt,cOut,Object.assign({},runtime,{decision:config.decision}));
-        await finishProvenance("director:"+dirId,cOut,"success",null);
+        await finishProvenance("director:"+dirId,cOut,"success",null,
+          rawDirOut,
+          "stripCalibrationBleed_v1+deduplicateSections+rescueDirectorSignal",
+          "post_stripCalibrationBleed_v1+deduplicateSections+rescueDirectorSignal"
+        );
         emit("director-output",{id:dirId,output:cOut});
         emit("director-loading",{id:dirId,loading:false});
         results_seq.push(Object.assign({},dirI,{output:cOut}));
@@ -548,7 +581,7 @@ export async function runGovernancePipeline(config,runtime,emit) {
         }
       } catch(dirErr) {
         var errMsg="[Director failed: "+dirErr.message+"]";
-        await finishProvenance("director:"+dirId,null,"failed",dirErr);
+        await finishProvenance("director:"+dirId,null,"failed",dirErr,null,null,null);
         emit("director-loading",{id:dirId,loading:false});
         emit("director-output",{id:dirId,output:errMsg});
         state.stageErrors.push(dirI.label+" failed");
@@ -578,12 +611,17 @@ export async function runGovernancePipeline(config,runtime,emit) {
       var surfaceSystem=surfaceMapperSystem(config.analysisMode,activeDir,config.instructions);
       var surfaceUser="Decision: "+config.decision+"\n\nAll Director Governance Briefs:\n"+briefSummary+signalCountNote;
       await beginProvenance("surface_map","synthesis",null,surfaceSystem+authorityBoundaryPrompt("surface_map"),surfaceUser,false);
-      state.surfaceMapOut=await runGoverned("surface_map",surfaceSystem,surfaceUser,config.autoContinue);
-      await finishProvenance("surface_map",state.surfaceMapOut,"success",null);
+      var surfaceResult=await runGovernedWithRaw("surface_map",surfaceSystem,surfaceUser,config.autoContinue);
+      state.surfaceMapOut=surfaceResult.output;
+      await finishProvenance("surface_map",state.surfaceMapOut,"success",null,
+        surfaceResult.rawOutput,
+        "stripCalibrationBleed_v1+authority_repair",
+        "post_authority_repair"
+      );
       emit("stage-output",{stage:"surface_map",output:state.surfaceMapOut});
       await storeSynthesisBrief("surfacemap","Decision Surface Map",state.surfaceMapOut);
       setSynthesisStageStatus("surface_map","success");
-    } catch(e){ await finishProvenance("surface_map",null,"failed",e); recordStageFailure("surface_map","Surface Mapper",e); }
+    } catch(e){ await finishProvenance("surface_map",null,"failed",e,null,null,null); recordStageFailure("surface_map","Surface Mapper",e); }
     stageEmitter(emit,"surface_map",false); emit("stages-done",{value:2});
 
     var fullDirSummary=state.results.map(function(d){return "### "+d.label+"\n"+d.output;}).join("\n\n");
@@ -601,23 +639,33 @@ export async function runGovernancePipeline(config,runtime,emit) {
       var epistemicPrompt=epistemicAuditorSystem(config.analysisMode,activeDir,config.instructions);
       var epistemicUser="Decision: "+config.decision+"\n\nDirector Governance Briefs (with confidence ratings):\n"+epistemicBriefSummary;
       await beginProvenance("epistemic_audit","synthesis",null,epistemicPrompt+authorityBoundaryPrompt("epistemic_audit"),epistemicUser,false);
-      state.epistemicOut=await runGoverned("epistemic_audit",epistemicPrompt,epistemicUser,config.autoContinue);
+      var epistemicResult=await runGovernedWithRaw("epistemic_audit",epistemicPrompt,epistemicUser,config.autoContinue);
+      state.epistemicOut=epistemicResult.output;
+      var epistemicRawOut=epistemicResult.rawOutput;
       if(state.epistemicOut&&state.epistemicOut.length<2000){
         console.warn("PHDSS: Epistemic output short ("+state.epistemicOut.length+" chars), retry 1 of 2...");
         await sleep(2000);
-        state.epistemicOut=await runGoverned("epistemic_audit",epistemicPrompt,epistemicUser,config.autoContinue);
+        epistemicResult=await runGovernedWithRaw("epistemic_audit",epistemicPrompt,epistemicUser,config.autoContinue);
+        state.epistemicOut=epistemicResult.output;
+        epistemicRawOut=epistemicResult.rawOutput;
         if(state.epistemicOut&&state.epistemicOut.length<2000){
           console.warn("PHDSS: Epistemic still short ("+state.epistemicOut.length+" chars), retry 2 of 2...");
           await sleep(4000);
-          state.epistemicOut=await runGoverned("epistemic_audit",epistemicPrompt,epistemicUser,config.autoContinue);
+          epistemicResult=await runGovernedWithRaw("epistemic_audit",epistemicPrompt,epistemicUser,config.autoContinue);
+          state.epistemicOut=epistemicResult.output;
+          epistemicRawOut=epistemicResult.rawOutput;
         }
       }
       state.epistemicOut=state.epistemicOut?stripCalibrationBleed(state.epistemicOut):state.epistemicOut;
-      await finishProvenance("epistemic_audit",state.epistemicOut,"success",null);
+      await finishProvenance("epistemic_audit",state.epistemicOut,"success",null,
+        epistemicRawOut,
+        "stripCalibrationBleed_v1+authority_repair+stripCalibrationBleed_v1",
+        "post_authority_repair+stripCalibrationBleed_v1"
+      );
       emit("stage-output",{stage:"epistemic_audit",output:state.epistemicOut});
       await storeSynthesisBrief("epistemic","Epistemic Confidence Audit",state.epistemicOut);
       setSynthesisStageStatus("epistemic_audit","success");
-    } catch(e){ await finishProvenance("epistemic_audit",null,"failed",e); recordStageFailure("epistemic_audit","Epistemic",e); }
+    } catch(e){ await finishProvenance("epistemic_audit",null,"failed",e,null,null,null); recordStageFailure("epistemic_audit","Epistemic",e); }
     stageEmitter(emit,"epistemic_audit",false); emit("stages-done",{value:3});
 
     try {
@@ -625,12 +673,17 @@ export async function runGovernancePipeline(config,runtime,emit) {
       var metaPrompt=metaSystem((config.docs&&config.docs.meta)||[],config.webSearch,config.publicWebSearch,config.sessionEvidence,config.analysisMode,activeDir,config.instructions);
       var metaUser="Decision: "+config.decision+"\n\nDecision Surface Map:\n"+state.surfaceMapOut+"\n\nDirector Governance Briefs:\n"+briefSummary+(state.epistemicOut?"\n\nEpistemic Audit:\n"+state.epistemicOut:"");
       await beginProvenance("cross_domain_tension_analysis","synthesis",null,metaPrompt+authorityBoundaryPrompt("cross_domain_tension_analysis"),metaUser,config.webSearch||config.publicWebSearch);
-      state.metaOut=await runGoverned("cross_domain_tension_analysis",metaPrompt,metaUser,config.autoContinue,config.webSearch||config.publicWebSearch);
-      await finishProvenance("cross_domain_tension_analysis",state.metaOut,"success",null);
+      var metaResult=await runGovernedWithRaw("cross_domain_tension_analysis",metaPrompt,metaUser,config.autoContinue,config.webSearch||config.publicWebSearch);
+      state.metaOut=metaResult.output;
+      await finishProvenance("cross_domain_tension_analysis",state.metaOut,"success",null,
+        metaResult.rawOutput,
+        "stripCalibrationBleed_v1+authority_repair",
+        "post_authority_repair"
+      );
       emit("stage-output",{stage:"meta",output:state.metaOut});
       await storeSynthesisBrief("meta","Cross-Domain Tension Analysis",state.metaOut);
       setSynthesisStageStatus("meta","success");
-    } catch(e){ await finishProvenance("cross_domain_tension_analysis",null,"failed",e); recordStageFailure("meta","META",e); }
+    } catch(e){ await finishProvenance("cross_domain_tension_analysis",null,"failed",e,null,null,null); recordStageFailure("meta","META",e); }
     stageEmitter(emit,"meta",false); emit("stages-done",{value:4});
 
     try {
@@ -638,12 +691,17 @@ export async function runGovernancePipeline(config,runtime,emit) {
       var realityPrompt=realityAnchorSystem(config.analysisMode,activeDir,config.instructions);
       var realityUser="Decision: "+config.decision+"\n\nDirector Governance Briefs:\n"+briefSummary+"\n\nDecision Surface Map:\n"+state.surfaceMapOut+"\n\nMETA Synthesis:\n"+state.metaOut;
       await beginProvenance("reality_anchor","synthesis",null,realityPrompt+authorityBoundaryPrompt("reality_anchor"),realityUser,false);
-      state.realityAnchorOut=await runGoverned("reality_anchor",realityPrompt,realityUser,config.autoContinue);
-      await finishProvenance("reality_anchor",state.realityAnchorOut,"success",null);
+      var realityResult=await runGovernedWithRaw("reality_anchor",realityPrompt,realityUser,config.autoContinue);
+      state.realityAnchorOut=realityResult.output;
+      await finishProvenance("reality_anchor",state.realityAnchorOut,"success",null,
+        realityResult.rawOutput,
+        "stripCalibrationBleed_v1+authority_repair",
+        "post_authority_repair"
+      );
       emit("stage-output",{stage:"reality_anchor",output:state.realityAnchorOut});
       await storeSynthesisBrief("reality","Reality Anchor",state.realityAnchorOut);
       setSynthesisStageStatus("reality_anchor","success");
-    } catch(e){ await finishProvenance("reality_anchor",null,"failed",e); recordStageFailure("reality_anchor","Reality Anchor",e); }
+    } catch(e){ await finishProvenance("reality_anchor",null,"failed",e,null,null,null); recordStageFailure("reality_anchor","Reality Anchor",e); }
     stageEmitter(emit,"reality_anchor",false); emit("stages-done",{value:5});
 
     try {
@@ -654,12 +712,17 @@ export async function runGovernancePipeline(config,runtime,emit) {
       var probePrompt=adversarialProbeSystem(dominantSignal,config.analysisMode,activeDir,config.instructions);
       var probeUser="Decision: "+config.decision+"\n\nAll Director Governance Briefs:\n"+briefSummary+"\n\nMETA-AUTHOR Synthesis:\n"+state.metaOut+"\n\nReality Anchor:\n"+state.realityAnchorOut;
       await beginProvenance("adversarial_probe","synthesis",null,probePrompt+authorityBoundaryPrompt("adversarial_probe"),probeUser,false);
-      state.probeOut=await runGoverned("adversarial_probe",probePrompt,probeUser,config.autoContinue);
-      await finishProvenance("adversarial_probe",state.probeOut,"success",null);
+      var probeResult=await runGovernedWithRaw("adversarial_probe",probePrompt,probeUser,config.autoContinue);
+      state.probeOut=probeResult.output;
+      await finishProvenance("adversarial_probe",state.probeOut,"success",null,
+        probeResult.rawOutput,
+        "stripCalibrationBleed_v1+authority_repair",
+        "post_authority_repair"
+      );
       emit("stage-output",{stage:"probe",output:state.probeOut});
       await storeSynthesisBrief("probe","Adversarial Probe",state.probeOut);
       setSynthesisStageStatus("probe","success");
-    } catch(e){ await finishProvenance("adversarial_probe",null,"failed",e); recordStageFailure("probe","Probe",e); }
+    } catch(e){ await finishProvenance("adversarial_probe",null,"failed",e,null,null,null); recordStageFailure("probe","Probe",e); }
     stageEmitter(emit,"probe",false); emit("stages-done",{value:6});
 
     var probeVerdict=findSignal(state.probeOut,["BOARD REASONING SOUND","SIGNIFICANT GAPS","CONCLUSION CHALLENGED"]);
@@ -671,12 +734,17 @@ export async function runGovernancePipeline(config,runtime,emit) {
         var stressPrompt=stressSystem((config.docs&&config.docs.stress)||[],config.webSearch,config.publicWebSearch,config.sessionEvidence,config.analysisMode,activeDir,config.instructions);
         var stressUser="Decision: "+config.decision+"\n\nDecision Surface Map:\n"+state.surfaceMapOut+"\n\nMETA-AUTHOR:\n"+state.metaOut+"\n\nReality Anchor:\n"+state.realityAnchorOut;
         await beginProvenance("stress_test","synthesis",null,stressPrompt+authorityBoundaryPrompt("stress_test"),stressUser,config.webSearch||config.publicWebSearch);
-        state.stressOut=await runGoverned("stress_test",stressPrompt,stressUser,config.autoContinue,config.webSearch||config.publicWebSearch);
-        await finishProvenance("stress_test",state.stressOut,"success",null);
+        var stressResult2=await runGovernedWithRaw("stress_test",stressPrompt,stressUser,config.autoContinue,config.webSearch||config.publicWebSearch);
+        state.stressOut=stressResult2.output;
+        await finishProvenance("stress_test",state.stressOut,"success",null,
+          stressResult2.rawOutput,
+          "stripCalibrationBleed_v1+authority_repair",
+          "post_authority_repair"
+        );
         emit("stage-output",{stage:"stress",output:state.stressOut});
         await storeSynthesisBrief("stress","Decision Stress Test",state.stressOut);
         setSynthesisStageStatus("stress","success");
-      } catch(e){ await finishProvenance("stress_test",null,"failed",e); recordStageFailure("stress","Stress",e); }
+      } catch(e){ await finishProvenance("stress_test",null,"failed",e,null,null,null); recordStageFailure("stress","Stress",e); }
       stageEmitter(emit,"stress",false);
     } else {
       setSynthesisStageStatus("stress","skipped",null,"stress trigger not met");
@@ -697,13 +765,17 @@ export async function runGovernancePipeline(config,runtime,emit) {
       var chairPrompt=chairSystem((config.docs&&config.docs.chair)||[],config.webSearch,config.publicWebSearch,config.sessionEvidence,config.analysisMode,activeDir,failedDirLabels,config.instructions);
       var chairUser="Decision: "+config.decision+"\n\nDecision Surface Map:\n"+state.surfaceMapOut+"\n\nMETA-AUTHOR:\n"+state.metaOut+"\n\nReality Anchor:\n"+state.realityAnchorOut+(state.stressOut?"\n\nStress Test:\n"+state.stressOut:"")+(state.probeOut?"\n\nAdversarial Bias Probe:\n"+state.probeOut:"")+probeInjection;
       await beginProvenance("chair","synthesis",null,chairPrompt+authorityBoundaryPrompt("chair"),chairUser,config.webSearch||config.publicWebSearch);
-      state.chairOut=await runGoverned("chair",chairPrompt,chairUser,config.autoContinue,config.webSearch||config.publicWebSearch);
-      state.chairOut=await repairChair(state.chairOut,chairPrompt,chairUser);
-      await finishProvenance("chair",state.chairOut,"success",null);
+      var chairResult=await runGovernedWithRaw("chair",chairPrompt,chairUser,config.autoContinue,config.webSearch||config.publicWebSearch);
+      state.chairOut=await repairChair(chairResult.output,chairPrompt,chairUser);
+      await finishProvenance("chair",state.chairOut,"success",null,
+        chairResult.rawOutput,
+        "stripCalibrationBleed_v1+authority_repair+authority_repair",
+        "post_authority_repair"
+      );
       emit("stage-output",{stage:"chair",output:state.chairOut});
       await storeSynthesisBrief("chair","Chair Decision",state.chairOut);
       setSynthesisStageStatus("chair","success");
-    } catch(e){ await finishProvenance("chair",null,"failed",e); recordStageFailure("chair","Chair",e); }
+    } catch(e){ await finishProvenance("chair",null,"failed",e,null,null,null); recordStageFailure("chair","Chair",e); }
     stageEmitter(emit,"chair",false); emit("stages-done",{value:8});
 
     if(!state.synthesisStageStatus.chair||state.synthesisStageStatus.chair.status!=="success"){
@@ -732,7 +804,8 @@ export async function runGovernancePipeline(config,runtime,emit) {
         var comparatorPrompt=comparatorJsonSystem(config.decisionId,config.decisionSignal,state.results,config.analysisMode,activeDir,state.chairOut,config.instructions,pCount,cCount,hCount);
         var comparatorUser="Run comparator now."+killSwitchHints;
         await beginProvenance("comparator","comparator",null,comparatorPrompt+authorityBoundaryPrompt("comparator"),comparatorUser,false);
-        var compRaw=await runGoverned("comparator",comparatorPrompt,comparatorUser,config.autoContinue);
+        var comparatorResult=await runGovernedWithRaw("comparator",comparatorPrompt,comparatorUser,config.autoContinue);
+        var compRaw=comparatorResult.output;
         var compParsed=validateComparatorSchema(extractFirstJsonObject(compRaw));
         if(compParsed&&compParsed.summary&&typeof compParsed.summary.decision_signal_interpretation==="string"){
           var interp=compParsed.summary.decision_signal_interpretation;
@@ -740,11 +813,15 @@ export async function runGovernancePipeline(config,runtime,emit) {
             compParsed.summary.decision_signal_interpretation="[Signal tally: "+pCount+" PROCEED / "+cCount+" CAUTION / "+hCount+" HALT] "+interp;
           }
         }
-        await finishProvenance("comparator",compRaw,"success",null);
+        await finishProvenance("comparator",compRaw,"success",null,
+          comparatorResult.rawOutput,
+          "stripCalibrationBleed_v1+authority_repair",
+          "post_authority_repair"
+        );
         state.comparatorData={raw:compRaw,parsed:compParsed,created_at:runtimeNow(runtime)};
         emit("comparator",{comparatorData:state.comparatorData});
         setSynthesisStageStatus("comparator","success");
-      } catch(e){ await finishProvenance("comparator",null,"failed",e); recordStageFailure("comparator","Comparator",e); }
+      } catch(e){ await finishProvenance("comparator",null,"failed",e,null,null,null); recordStageFailure("comparator","Comparator",e); }
     }
 
     if(state.results.length>0){
