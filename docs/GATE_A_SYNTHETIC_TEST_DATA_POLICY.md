@@ -18,7 +18,7 @@ No real-case substitution during a run is permitted.
 - Invented decisions, organisations, services, roles, populations, events, dates, metrics and source documents, labelled as synthetic.
 - Synthetic evidence bundles intentionally designed to exercise missing evidence, conflicting perspectives, uncertainty, authority boundaries and participation-status reasoning.
 - Publicly available generic framework excerpts where permitted by applicable rights and attribution requirements, with no private case facts added.
-- Deliberately de-identified fixtures **only** when their eligibility, provenance and approval are recorded before use, as described above.
+- Deliberately de-identified fixtures **only** when their eligibility, provenance and approval are recorded before use, meeting Section 1's standard of no reasonable re-identification or confidentiality risk in context.
 
 Synthetic scenarios may resemble plausible health or public-sector settings, but must not be lightly altered versions of identifiable real cases. Do not claim that invented participation, consultations or clinical events actually occurred.
 
@@ -57,7 +57,7 @@ Generated outputs can repeat input text, infer apparently specific facts, or con
 - Review artefacts before export or publication for accidental personal, confidential or secret material.
 - Record which artefacts were produced and where they were stored; do not assume exports or browser downloads are centrally retained or automatically deleted.
 - Retain only what is necessary to reproduce the evaluation and its audit trail. The evaluator must record the chosen retention location, responsible custodian and deletion/review date before transfer. **No universal retention period or automatic deletion mechanism is established here.**
-- Delete unintended local copies according to the approved evaluation handling procedure and record any exception. Do not claim deletion from model providers or external services without evidence.
+- Delete unintended local copies and record any exception according to the handling procedure that must be established before the first external run (see Section 10). Do not claim deletion from model providers or external services without evidence.
 
 ## 6. External services and provider handling
 
