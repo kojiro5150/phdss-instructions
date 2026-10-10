@@ -78,7 +78,7 @@ Specific forms include:
 
 **Limitation:** The negative-scope scanner is a regression detector for a limited set of known syntactic forms. Its coverage is demonstrably incomplete.
 
-- F01 produced no scanner warning despite an identified candidate unsupported-absence assertion. The miss was not borderline.
+- F01 produced no scanner warning despite an identified candidate unsupported-absence assertion. The assertion was identified through model-assisted exploratory review and accepted by the Protocol Authority; it was not independently adjudicated against the frozen A-D rubric. This is recorded as a candidate miss relative to that exploratory adjudication, not as an established detection failure.
 - The scanner does not detect novel paraphrases of the same underlying failure.
 - No prospective sensitivity or specificity estimates exist. The pre-Gate tranche closed at F01, short of the preregistered 5–8-probe characterisation requirement.
 - An empty warning set must not be treated as assurance of negative-scope compliance.

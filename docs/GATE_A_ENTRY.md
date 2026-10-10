@@ -93,7 +93,8 @@ Gate A closes when all of the following are demonstrably met:
 3. The limitations register is complete and accurate.
 4. The synthetic-only test-data policy is documented and explicit.
 5. The deployment provenance and instruction-pin verification pass on the tagged build.
-6. The known limitations (including the pre-Gate deviation and scanner limitations) are disclosed in a form that would be intelligible to a competent person who did not build PHDSS.
+6. Governance-mode provenance parity is verified: the provenance chain for Governance-mode outputs meets the same standard as Advisory provenance, confirmed on the tagged build.
+7. The known limitations (including the pre-Gate deviation and scanner limitations) are disclosed in a form that would be intelligible to a competent person who did not build PHDSS.
 
 Operator Guide v1 and Evaluator Protocol v1 are Gate B requirements. They are not required to close Gate A, but they should be drafted before Gate B is opened.
 
