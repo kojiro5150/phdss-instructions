@@ -1,13 +1,13 @@
 # PHDSS Limitations Register
 
-**Status:** IN PROGRESS — opened at Gate A entry  
+**Status:** REVIEW CANDIDATE — consolidated for Protocol Authority review; not yet accepted as Gate A-complete  
 **Date opened:** 10 October 2026  
 **Scope:** Known limitations of the PHDSS v2.0.0 constitutional baseline and current v3 development state  
 **Purpose:** Gate A transfer-readiness requirement. A competent person who did not build PHDSS must be able to understand these limitations from this register without developer assistance.
 
 This register records known limitations. It does not record features, aspirations, or deferred capabilities. A limitation is in this register because it is a gap in the current system's ability to do what it claims, or a boundary on what the evidence supports.
 
-The register will be updated as Gate A work proceeds. Its current status is initial, not complete.
+This is a transfer-facing consolidation of currently documented limitations, not proof that all possible limitations have been discovered. Protocol Authority acceptance and the transfer-candidate validation findings are outstanding. No Gate A exit claim follows from this document alone.
 
 ---
 
@@ -115,7 +115,7 @@ Both the raw model output and the post-transform output are captured and hashed 
 
 **Current status:** Runtime orchestration contract covers this. See `docs/RUNTIME_ORCHESTRATION_BOUNDARY.md`.
 
-**Transfer implication:** CORE mode governance artefacts should be reviewed to confirm that Director outputs are consistent with the selected Director set.
+**Transfer implication:** CORE mode governance artefacts should be reviewed to confirm that Director outputs are consistent with the selected Director set. CORE contains globally mandatory Systems and Safety, CORE-fixed Equity and Lived Experience, and one adaptive fifth Director; these roles must not be conflated. See `docs/CORE_ACTIVATION_POLICY.md`.
 
 ---
 
@@ -143,7 +143,7 @@ Instruction-level refusal language in Director outputs — statements that a pro
 
 This distinction must not be confused in any external transfer artefact. A governance record that contains a strong Ethics Director caution is not evidence that the system blocked the proposal.
 
-**Transfer implication:** Facilitators, evaluators, and any operator guide must make clear that Director outputs are inputs to human decision-making, not runtime enforcement. An Ethics or Behaviour Director finding does not substitute for institutional governance authority over the decision.
+**Transfer implication:** Facilitators, evaluators, and any operator guide must make clear that Director outputs are inputs to human decision-making, not runtime enforcement. An Ethics or Behaviour Director finding does not substitute for institutional governance authority over the decision. The instruction corpus also contains an unresolved inconsistency: Ethics describes its active refusal obligation as unique while Behaviour describes the same structural feature; neither is a separately verified runtime veto. See `docs/CORE_ACTIVATION_POLICY.md` §5.
 
 ---
 
@@ -166,15 +166,73 @@ Two sub-boundaries are documented in code but not mechanically enforced:
 
 ---
 
+## L-10 — CORE Equity/Lived necessary-condition rationale is not verified downstream enforcement
+
+**Component:** CORE activation and downstream signal aggregation
+**Evidence:** `docs/CORE_ACTIVATION_POLICY.md` §§1–4
+
+**Limitation:** Equity and Lived Experience are intentionally CORE-fixed alongside globally mandatory Systems and Safety, with one adaptive fifth Director. Their inclusion reflects a domain-grounded design judgment: in intended public-health contexts, a materially adverse Equity or Lived finding undermines a proposal's soundness. However, existing runtime inspection has not established any Director-identity-specific downstream cap, veto, automatic disposition or non-aggregable enforcement of that necessary-condition rationale. Standard CAUTION/HALT signal aggregation is not the same mechanism.
+
+Housing-policy and geopolitical runs were used to examine structural transfer of the reasoning architecture; they do not establish that the Equity/Lived necessary-condition rationale is universal across sectors.
+
+**Current status:** Selection policy and rationale documented; special downstream enforcement unverified. No new enforcement is introduced by this register.
+
+**Transfer implication:** Operators must distinguish **fixed inclusion**, **substantive rationale**, and **runtime enforcement**. Do not claim that an Equity or Lived CAUTION/HALT automatically blocks a proposal or determines a human decision.
+
+---
+
+## L-11 — Stochastic synthesis and evidence quality are not independently assured
+
+**Component:** Model-generated Director and synthesis outputs
+**Evidence:** `docs/NORTH_STAR.md` (epistemic provenance and non-substitution); `docs/V3_DEVELOPMENT_CONTRACT.md` §3; `docs/V3_TRANSFER_READINESS_AND_INDEPENDENT_EVALUATION_ROADMAP.md` §§3, 12
+
+**Limitation:** Model outputs are probabilistic analyses of the material supplied, not independently authenticated facts. A plausible or repeated claim can still be wrong, omit relevant evidence, collapse uncertainty, or present an inferred perspective as if independently corroborated. Agreement between Directors or synthesis layers is not independent corroboration; the Chair's presentation does not create evidentiary authority. No general accuracy, completeness, clinical safety, institutional effectiveness or universal authority-compliance rate is established by the current deterministic tests.
+
+**Current status:** Constitutional constraints, stage checks and provenance provide bounded safeguards and auditability, not comprehensive factual verification. Behavioural and external-transfer evidence remain limited.
+
+**Transfer implication:** Evaluators must examine source grounding and unresolved uncertainty, distinguish model inference from supplied evidence and actual participation, and preserve human authority. Do not use PHDSS output as clinical, legal or institutional authorisation.
+
+---
+
+## L-12 — Transfer reproducibility and operator independence not yet demonstrated
+
+**Component:** Build, deployment, provider configuration, exports and handoff
+**Evidence:** `docs/GATE_A_ENTRY.md` §§2–4; `docs/V3_TRANSFER_READINESS_AND_INDEPENDENT_EVALUATION_ROADMAP.md` §§9–14; `docs/GATE_A_SYNTHETIC_TEST_DATA_POLICY.md`
+
+**Limitation:** A tagged post-v2 transfer baseline and its clean validation evidence have not yet been recorded. Passing local tests on a development branch is not equivalent to validation at the exact frozen release, a live Governance capture/export integration test, or a stranger-operated run. Package-lock identity, deployed build identity, model/provider settings, instruction pin, export completeness, access arrangements and run-time failure recovery must be evidenced for the transfer candidate rather than inferred from repository documentation.
+
+**Current status:** **Open transfer-evidence requirement**, not an established reproducibility defect. Gate A.1 Governance provenance was accepted as PARTIAL under L-09; the actual v2 capture/export path still requires an integration test. The synthetic-only policy is documented but does not establish technical input blocking or completed external-run handling arrangements.
+
+**Transfer implication:** Do not claim the build is independently reproducible, Governance provenance is fully equivalent to Advisory v4, or an external operator can complete a run without developer assistance until the corresponding evidence exists. New defects discovered in candidate validation must be recorded here before Gate A exit.
+
+---
+
+## Transfer-facing disclosure and acceptance checklist
+
+A competent operator should be able to identify, without developer explanation:
+
+- **Authority:** PHDSS organises analysis; a human decides. Chair and Director outputs are not adjudications or vetoes (L-01, L-08, L-10).
+- **Participation:** Modelled perspectives and supplied lived-experience evidence are not proof of actual participation; human verification is required (L-02–L-04).
+- **Evidence:** An absence of a scanner warning does not certify compliance; model convergence does not corroborate a claim (L-03, L-04, L-11).
+- **Provenance:** Hash checks confirm captured strings, not a complete replayable transform chain; retries/repair responses can be absent (L-05, L-09).
+- **Transfer:** The pre-Gate tranche ended by approved deviation; frozen-build and independent-use evidence is still pending (L-07, L-12).
+
+**Acceptance rule:** This register may be accepted as the documented set of *currently known* limitations after independent review. Acceptance does not waive outstanding Gate A exit criteria, resolve unverified runtime claims, or certify completeness against defects not yet discovered.
+
+---
+
 ## Register maintenance
 
 This register is a living document through Gate A. Known limitations not yet listed must be added before Gate A can close.
 
 Limitations are not removed when they are mitigated; they are updated to reflect the current status of the limitation and any compensating controls. A compensating control is not evidence that the limitation is resolved.
 
-Outstanding items to be added before Gate A close:
+Outstanding verification and update triggers before Gate A exit:
 
-- Reality Anchor instruction contract limitations (if any)
-- Known model behaviour limitations beyond lived/negative-scope
-- Any deployment or build reproducibility limitations identified during Gate A validation run
-- Tribal knowledge gaps identified during Operator Guide v1 drafting
+- **Reality Anchor:** The existing instruction-contract regression coverage is listed in `docs/GATE_A_ENTRY.md`, but this review has not established a separate Reality Anchor-specific failure mode. Do not invent one; inspect any relevant evidence during transfer-candidate validation and add a specific entry if supported.
+- **Governance provenance:** Run the actual v2 capture/export integration test and update L-09/L-12 if it reveals further gaps.
+- **Build/deployment:** Record any reproducibility, instruction-pin, provider, export or environment defect found on the exact tagged candidate; update L-12 or add a new limitation with evidence.
+- **Operator transfer:** Any missing operational knowledge discovered while drafting the Gate B Operator Guide or in the stranger test must be logged and assessed; Gate B findings must not be retrospectively described as Gate A validation.
+- **UI disclosure:** Verify that the transfer-facing limitations are intelligible and accessible in the actual UI; this register alone does not establish UI disclosure.
+
+**Protocol Authority review questions:** Are L-01–L-12 accurately characterised? Are there documented, evidenced omissions? Which open items are transfer blockers versus accepted limitations? Do not mark the register or Gate A exit COMPLETE before these questions are disposed of.
