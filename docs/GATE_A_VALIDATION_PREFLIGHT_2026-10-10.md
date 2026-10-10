@@ -1,7 +1,7 @@
 # Gate A — Transfer Candidate Validation Preflight Record
 
 **Date:** 2026-10-10
-**Status:** BLOCKED — preflight only; **no candidate validation performed**
+**Status:** PARTIAL PREFLIGHT — separate reviewer reports deterministic validation on an older local commit; **candidate validation not established**
 **Reference procedure:** `docs/GATE_A_TRANSFER_CANDIDATE_VALIDATION_PROTOCOL.md`
 **Observed merged PR #83 commit:** `4e670ff539b66472ab35b52656a3cc9aaa0d484b`
 **Release tag:** NOT CREATED
@@ -11,24 +11,26 @@
 
 An attempt was made to begin execution of the approved Gate A transfer-candidate validation protocol. The observed merge commit is a **starting reference**, not an approved frozen candidate, and no clean build or integration-run result has been obtained.
 
-### Environment and access observations
+### Environment and access observations — original attempt and independent reviewer
 
-- The current execution environment reports Node `v22.16.0` and npm `10.9.2`. These versions describe the attempt environment, **not** a validated candidate environment.
-- The PHDSS repository is **not available as a checked-out local working tree** in this environment.
-- Attempted `git ls-remote https://github.com/kojiro5150/phdss-instructions.git HEAD` failed with `Could not resolve host: github.com`. This is an execution-environment network limitation, **not evidence of a repository defect**.
-- GitHub connector access was sufficient to verify the PR #83 merge and inspect repository files, but it does not provide a local checkout or live browser session for this run.
+The original attempt and Claude's independent review occurred in **different execution contexts**. The following statements are scoped to their respective environments and should not be conflated.
+
+- **Original assistant attempt:** Node `v22.16.0`, npm `10.9.2`. No PHDSS working tree was available **to that attempt**. This does not imply the repository is unavailable in other environments.
+- **Independent Claude review (user-supplied report):** a local PHDSS checkout was present, with Node `v22.22.0` and npm `10.9.4`. Claude reports that `npm run validate` passed, but identifies its **local HEAD as `20e2e01`**, not the proposed candidate reference `4e670ff`. The complete command log, clean-tree proof and exact full SHA were not supplied with this review; therefore this is **reviewer-reported prior-commit validation**, not independently verified candidate validation.
+- **Original assistant attempt:** `git ls-remote https://github.com/kojiro5150/phdss-instructions.git HEAD` failed with `Could not resolve host: github.com`. This is an execution-environment network limitation, **not evidence of a repository defect**.
+- **Original assistant attempt:** GitHub connector access was sufficient to verify the PR #83 merge and inspect repository files, but it does not provide a local checkout or live browser session for this run.
 - The available GitHub workflow-run lookup for commit `4e670ff539b66472ab35b52656a3cc9aaa0d484b` returned no associated pull-request workflow runs. This is **not** proof that no other CI run exists or that CI passed/failed.
-- No authenticated application session, provider-backed synthetic Governance run, or browser export artefacts were available for this attempt.
+- **Neither reported context supplied evidence of** an authenticated application session, provider-backed synthetic Governance run, or browser export artefacts were available for this attempt.
 
 ### Required validation disposition
 
 | Check | Disposition | Evidence / explanation |
 |---|---|---|
 | Identify reference commit | OBSERVED | PR #83 merge commit above; candidate not frozen |
-| Clean checkout / exact SHA | BLOCKED | No repository checkout; GitHub DNS resolution failed |
-| Dependency installation and lockfile identity | NOT RUN | No checkout; do not modify `package-lock.json` |
-| `npm run validate` | NOT RUN | No checkout |
-| `npm run build` | NOT RUN | No checkout |
+| Clean checkout / exact candidate SHA | NOT VERIFIED | Original attempt lacked a checkout; reviewer reports local HEAD `20e2e01`, not `4e670ff` |
+| Dependency installation and lockfile identity | NOT VERIFIED | Original attempt did not run; reviewer did not provide lockfile/install evidence |
+| `npm run validate` | REVIEWER-REPORTED PASS — DIFFERENT COMMIT | Claude reports passing locally at `20e2e01` (Node `v22.22.0`, npm `10.9.4`); no full log supplied; **NOT RUN / NOT VERIFIED at candidate reference `4e670ff`** |
+| `npm run build` | NOT VERIFIED | No build output supplied for candidate |
 | Build/deployment provenance | NOT RUN | No build or deployment artefact |
 | Synthetic Governance end-to-end run | NOT RUN | No runnable application/provider-backed session |
 | Ledger → Export Provenance | NOT RUN | No completed Governance run or browser export |
@@ -40,7 +42,7 @@ An attempt was made to begin execution of the approved Gate A transfer-candidate
 
 ## Execution handoff — exact next steps
 
-1. Provide an execution environment with access to the repository and required application/provider configuration. Select the exact candidate SHA and verify a clean checkout.
+1. Use the existing reviewer checkout if suitable, or provide another environment with access to the repository and required application/provider configuration. Select the exact candidate SHA, update/check out that exact SHA and verify a clean tree. Do not treat the reviewer's older `20e2e01` HEAD as the candidate.
 2. Record tracked/untracked `package-lock.json` state and dependency installation outcome; do not introduce unrelated lockfile changes.
 3. Run `npm run validate` and `npm run build` at that exact SHA. Preserve full logs, exit codes, environment identity, timestamps and build provenance.
 4. Execute the approved **synthetic-only** Governance fixture in the actual application. In the **Ledger** tab, choose **Export Provenance**, not **Export JSON**. Preserve the manifest and downloaded stage JSON files unmodified. Export the ledger separately if available.
@@ -50,6 +52,6 @@ An attempt was made to begin execution of the approved Gate A transfer-candidate
 
 ## Decision and constraints
 
-**No validation PASS is asserted.** No release freeze or tag is authorised by this preflight record. The Governance provenance status remains Gate A.1 **PARTIAL** with actual capture/export integration outstanding. No evidence supports Gate A exit.
+**No PASS is asserted for the proposed transfer candidate.** Claude's separate `npm run validate` PASS is recorded as reviewer-reported evidence for an older local commit, without the complete logs. No release freeze or tag is authorised by this preflight record. The Governance provenance status remains Gate A.1 **PARTIAL** with actual capture/export integration outstanding. No evidence supports Gate A exit.
 
-This is a record of an environment-blocked attempt; it must not be used as a substitute for the canonical validation protocol or a completed candidate results record.
+This is a record of an environment-blocked attempt supplemented by a separately reported older-commit validation; it must not be used as a substitute for the canonical validation protocol or a completed candidate results record.
