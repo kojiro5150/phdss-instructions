@@ -345,7 +345,6 @@ for non-attendance, confirmed non-participation, recorded contributions,
 incorporation into a specified artefact, bounded authority, and explicit
 non-endorsement remain factual evidence, not UNKNOWN.
 
-
 EVIDENCE LIBRARY PRE-CHECK — COMPLETE BEFORE WRITING ANY OUTPUT:
 If an Evidence Library document has been provided for this Director run, you
 must do the following BEFORE writing the Executive Layer or any other section:
