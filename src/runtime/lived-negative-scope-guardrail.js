@@ -9,7 +9,8 @@ const RULES = Object.freeze([
 const SECTION = /^\s{0,3}(?:#{1,6}\s+|\*\*|__)?Participation\s*(?:&|and)\s*Representation\s*Status\b/i;
 const HEADING = /^\s{0,3}(?:#{1,6}\s+|\*\*[^*]+\*\*\s*$|__[^_]+__\s*$)/;
 const UNKNOWN = /\b(?:unknown|not\s+(?:established|documented|verified)|no\s+(?:supplied\s+)?evidence\s+(?:in\s+the\s+record\s+)?(?:establishes|confirms)|record\s+does\s+not\s+(?:establish|confirm))\b/i;
-const HYPOTHETICAL = /\b(?:if|could|might|may|would|risk\s+of|potential(?:ly)?|hypothetical|for\s+example|should\s+the)\b/i;
+// 'could not open' describes an inability, not a hypothetical 'could' scenario.
+const HYPOTHETICAL = /\b(?:if|could\b(?!\s+not\b)|might|may|would|risk\s+of|potential(?:ly)?|hypothetical|for\s+example|should\s+the)\b/i;
 const RECORD_SCOPED = /\b(?:the\s+)?(?:supplied|available|provided|reviewed)\s+(?:record|material|evidence|documents?)\s+(?:says|states|establishes|confirms|documents)\b|\bnot\s+documented\b|\bno\s+evidence\s+(?:of|that)\b/i;
 function lineAt(text, offset) {
   const before = text.slice(0, offset);
