@@ -1,7 +1,9 @@
 import { SYNTHESIS_MODEL } from "./anthropic-client.js";
 
 export const GOVERNANCE_PROVENANCE_SCHEMA="phdss.governance-provenance.v1";
-export const GOVERNANCE_STAGE_PROVENANCE_SCHEMA="phdss.governance-stage-provenance.v1";
+// Stage schema versioned to v2 to add raw_output, raw_output_sha256,
+// output_transform and output_capture_stage (G-01 / G-02 repair).
+export const GOVERNANCE_STAGE_PROVENANCE_SCHEMA="phdss.governance-stage-provenance.v2";
 
 export async function sha256Text(value){
   if(typeof globalThis==="undefined"||!globalThis.crypto||!globalThis.crypto.subtle||typeof TextEncoder==="undefined"){
@@ -66,6 +68,10 @@ export async function createGovernanceStageRequest(input){
     system_prompt_sha256:input.system_prompt==null?null:await sha256Text(input.system_prompt),
     user_message:String(input.user_message||""),
     user_message_sha256:input.user_message==null?null:await sha256Text(input.user_message),
+    raw_output:null,
+    raw_output_sha256:null,
+    output_transform:null,
+    output_capture_stage:null,
     output:null,
     output_sha256:null,
     status:"pending",
@@ -86,6 +92,31 @@ export async function finalizeGovernanceStage(record,input){
   var out=Object.assign({},record);
   out.status=input.status||"success";
   out.error=input.error||null;
+  // raw_output: the model response text before any transformation.
+  // Callers supply this separately; null means the stage failed or was skipped.
+  // For epistemic_audit with retries, raw_output is the initial attempt only;
+  // output_transform records the attempt count for audit purposes.
+  // For chair, raw_output is the initial model response; replacement responses
+  // generated inside the authority-repair loop of the second repairChair pass
+  // are internal to the authority contract layer and are not captured here.
+  //
+  // Transformation-integrity boundary: output_transform names the declared
+  // sequence; the verifier confirms raw_output_sha256 and output_sha256 are
+  // internally consistent but cannot prove the declared sequence produced
+  // output from raw_output. This is a documented structural limit of the
+  // schema, not a gap to be closed within the schema itself.
+  if(Object.prototype.hasOwnProperty.call(input,"raw_output")){
+    out.raw_output=input.raw_output==null?null:String(input.raw_output);
+    out.raw_output_sha256=input.raw_output==null?null:await sha256Text(input.raw_output);
+  }
+  // output_transform: the named sequence of transforms applied to raw_output.
+  // output_capture_stage: the logical point at which output was captured.
+  if(Object.prototype.hasOwnProperty.call(input,"output_transform")){
+    out.output_transform=input.output_transform||null;
+  }
+  if(Object.prototype.hasOwnProperty.call(input,"output_capture_stage")){
+    out.output_capture_stage=input.output_capture_stage||null;
+  }
   if(Object.prototype.hasOwnProperty.call(input,"output")){
     out.output=input.output==null?null:String(input.output);
     out.output_sha256=input.output==null?null:await sha256Text(input.output);
@@ -129,6 +160,10 @@ export function createSkippedGovernanceStage(input){
     system_prompt_sha256:null,
     user_message:"",
     user_message_sha256:null,
+    raw_output:null,
+    raw_output_sha256:null,
+    output_transform:null,
+    output_capture_stage:null,
     output:null,
     output_sha256:null,
     status:"skipped",

@@ -41,4 +41,56 @@ await check("CHAIR_SPECIFIED mismatch",()=>{const d=fixture("CORE");d.manifest.a
   assert.equal(out.ledger_verification.status,"VALID","ledger hash method");
   assert.equal(out.ledger_verification.method,"SHA-256 over UTF-8 bytes of JSON.stringify(decision_record)");
 }
+// --- G-01 / G-02 schema v2 regression tests ---
+// Build a v2-schema stage (adds raw_output, raw_output_sha256, output_transform, output_capture_stage).
+function stageV2(id,decision,{rawOutput=null,outputTransform=null,outputCaptureStage=null,status="success"}={}){
+  const base=stage(id,decision);
+  base.schema="phdss.governance-stage-provenance.v2";
+  base.raw_output=rawOutput;
+  base.raw_output_sha256=rawOutput==null?null:sha(rawOutput);
+  base.output_transform=outputTransform;
+  base.output_capture_stage=outputCaptureStage;
+  base.status=status;
+  return base;
+}
+function fixtureV2(mode="CORE"){
+  const d=fixture(mode);
+  const decision="Should a public service pilot an AI tool?";
+  // Upgrade all synthesis stage records to v2 schema with canonical transforms.
+  const synthTransforms={
+    surface_map:{outputTransform:"stripCalibrationBleed_v1+authority_repair",outputCaptureStage:"post_authority_repair"},
+    epistemic_audit:{outputTransform:"stripCalibrationBleed_v1+authority_repair+stripCalibrationBleed_v1",outputCaptureStage:"post_authority_repair+stripCalibrationBleed_v1"},
+    cross_domain_tension_analysis:{outputTransform:"stripCalibrationBleed_v1+authority_repair",outputCaptureStage:"post_authority_repair"},
+    reality_anchor:{outputTransform:"stripCalibrationBleed_v1+authority_repair",outputCaptureStage:"post_authority_repair"},
+    adversarial_probe:{outputTransform:"stripCalibrationBleed_v1+authority_repair",outputCaptureStage:"post_authority_repair"},
+    stress_test:{outputTransform:"stripCalibrationBleed_v1+authority_repair",outputCaptureStage:"post_authority_repair"},
+    chair:{outputTransform:"stripCalibrationBleed_v1+authority_repair+authority_repair",outputCaptureStage:"post_authority_repair"},
+    comparator:{outputTransform:"stripCalibrationBleed_v1+authority_repair",outputCaptureStage:"post_authority_repair"},
+  };
+  d.records=d.records.map(function(r){
+    if(r.stage_id.startsWith("director:")){
+      const v2r=Object.assign({},r,{schema:"phdss.governance-stage-provenance.v2",raw_output:"RAW "+r.stage_id,output_transform:"stripCalibrationBleed_v1+deduplicateSections+rescueDirectorSignal",output_capture_stage:"post_stripCalibrationBleed_v1+deduplicateSections+rescueDirectorSignal"});
+      v2r.raw_output_sha256=sha(v2r.raw_output);
+      return v2r;
+    }
+    const transforms=synthTransforms[r.stage_id];
+    if(!transforms) return r;
+    const v2r=Object.assign({},r,{schema:"phdss.governance-stage-provenance.v2",raw_output:"RAW "+r.stage_id,output_transform:transforms.outputTransform,output_capture_stage:transforms.outputCaptureStage});
+    v2r.raw_output_sha256=sha(v2r.raw_output);
+    return v2r;
+  });
+  return d;
+}
+
+await check("v2 schema valid CORE",()=>fixtureV2("CORE"),()=>{},"VALID","\"adaptive_fifth\":\"digital\"");
+await check("v2 raw_output null on success rejected",()=>fixtureV2("CORE"),d=>{const r=d.records.find(x=>x.stage_id==="surface_map");r.raw_output=null;r.raw_output_sha256=null;},"INVALID","null raw_output|has null raw_output");
+await check("v2 raw_output hash corruption",()=>fixtureV2("CORE"),d=>{const r=d.records.find(x=>x.stage_id==="surface_map");r.raw_output_sha256=sha("wrong");},"INVALID","raw_output hash mismatch");
+await check("v2 missing output_transform",()=>fixtureV2("CORE"),d=>{const r=d.records.find(x=>x.stage_id==="surface_map");r.output_transform=null;},"INVALID","v2 stage missing output_transform");
+await check("v2 missing output_capture_stage",()=>fixtureV2("CORE"),d=>{const r=d.records.find(x=>x.stage_id==="surface_map");r.output_capture_stage=null;},"INVALID","v2 stage missing output_capture_stage");
+// Skipped stage with v2 schema should not require transform fields (null is correct).
+await check("v2 skipped stage no transform required",()=>fixtureV2("CORE"),d=>{const r=d.records.find(x=>x.stage_id==="stress_test");r.status="skipped";r.error="stress trigger not met";r.output=null;r.output_sha256=null;r.raw_output=null;r.raw_output_sha256=null;r.output_transform=null;r.output_capture_stage=null;d.manifest.stages=d.records.map(r2=>({stage_id:r2.stage_id,status:r2.status,output_sha256:r2.output_sha256}));},"VALID","SKIPPED");
+// Failed stage with v2 schema: null transform/raw fields acceptable on a non-mandatory stage failure.
+await check("v2 failed non-mandatory stage null transform acceptable",()=>fixtureV2("CORE"),d=>{const r=d.records.find(x=>x.stage_id==="reality_anchor");r.status="failed";r.output=null;r.output_sha256=null;r.raw_output=null;r.raw_output_sha256=null;r.output_transform=null;r.output_capture_stage=null;r.error="synthetic failure";d.manifest.stages=d.records.map(r2=>({stage_id:r2.stage_id,status:r2.status,output_sha256:r2.output_sha256}));},"VALID","VALID");
+
 console.log("Governance provenance v2 source/mode regressions passed.");
+console.log("Governance provenance stage-schema v2 (G-01/G-02) regressions passed.");
