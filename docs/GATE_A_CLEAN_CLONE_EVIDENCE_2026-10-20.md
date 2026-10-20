@@ -57,4 +57,4 @@ In `tests/evidence/gate-a/2026-10-20-clean-clone-25948b8/`:
 ## What this closes and what it does not
 
 - **Closes on this branch:** the untracked-lockfile defect. A fresh clone now reaches a provenance-bearing build with no manual step.
-- **Does not address:** live Governance capture and export, UI disclosure, analytical reproducibility (L-13), deployment identity, or independent operator execution (L-12).
+- **Does not address:** live Governance capture and export, UI disclosure, analytical reproducibility (L-15), deployment identity, or independent operator execution (L-12).

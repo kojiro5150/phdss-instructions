@@ -207,8 +207,68 @@ Housing-policy and geopolitical runs were used to examine structural transfer of
 
 ---
 
+## L-13 — Replay instruction provenance misattribution
 
-## L-13 — Analytical reproducibility: consequential-field stability unmeasured
+**Classification:** Verification / provenance integrity  
+**Status:** OPEN  
+**Component:** `scripts/replay-stage.mjs`  
+**Discovered:** Live replay gate design review, 20 October 2026  
+**Evidence:** `docs/LIVE_REPLAY_GATE_CI_DESIGN.md` §2 and §6 (PR #86); `src/runtime/instruction-loader.js` (split pins)
+
+**Limitation:** `replay-stage.mjs` loads `chair.md` and `comparator.md` from the working tree at execution time. It records `replay_instruction_commit` as `INSTRUCTION_COMMIT`, which is the runtime pin for `lived.md` only. The runtime resolves Chair and Comparator at `BASELINE_INSTRUCTION_COMMIT`. The recorded commit therefore may not identify the instruction bytes that produced the replayed behaviour, and no per-file content hash is recorded.
+
+**Known affected record:** `tests/fixtures/calibration/DR-20260926-204324-a2e644/replay-closure/comparator-2026-09-26T13-54-41-458Z/replay-manifest.json`. This is a successful Comparator replay whose recorded `replay_instruction_commit` cannot by itself establish which `comparator.md` content was evaluated. The record is not rewritten by this entry.
+
+**Consequence:** Replay evidence cannot independently establish which instruction version produced the recorded behaviour.
+
+**Containment:** Qualify affected historical replay claims. Do not use the recorded `replay_instruction_commit` field alone as proof of the instruction version evaluated. An affected replay record may not serve as an established baseline without independent evidence of the evaluated bytes.
+
+**Gate A cross-reference:** The Gate A evidence review must determine whether any Gate A provenance claim depends on `replay-stage.mjs` output or its `replay_instruction_commit` field. If it does, independent evidence must establish the instruction bytes actually evaluated before that claim is accepted. If Gate A relies on an independent provenance chain, the separation should be documented there. As of this entry, the Gate A protocol documents do not reference `replay-stage.mjs`; that observation is not a substitute for the evidence review. This entry does not modify Gate A acceptance criteria or status.
+
+**Closure evidence:** Corrected source resolution (instructions resolved from the commit the runtime would use), per-file content hashes recorded with each replay, provenance validation, and regression tests demonstrating that a mismatch between evaluated bytes and recorded provenance is detected.
+
+**Implementation:** Separate PR. Not authorised by this register change.
+
+**Transfer implication:** A replay record's commit field identifies a pin, not necessarily the content evaluated. Do not cite historical replay results as evidence for a specific instruction version without independent confirmation of the evaluated bytes.
+
+---
+
+## L-14 — Composite-pin instruction provenance misattribution
+
+**Classification:** Verification / provenance integrity  
+**Status:** OPEN  
+**Component:** `src/runtime/instruction-loader.js`; Governance and Advisory provenance capture; `scripts/verify-governance-provenance-v2.mjs`; `scripts/verify-advisory-provenance-v4.mjs`  
+**Discovered:** Read-only Gate A provenance independence trace at `5a7e4c9`, 20 October 2026  
+**Evidence:**
+
+- `src/runtime/instruction-loader.js:3-6,41`: composite pins. `lived.md` resolves at `INSTRUCTION_COMMIT` (`94c5851`); the other 20 instruction files resolve at `BASELINE_INSTRUCTION_COMMIT` (`22b6629`). Introduced by `612148e`.
+- `App_FINAL.jsx:2059` (Advisory v4 records, any Director) and `src/pipeline.js:327,477,517,847,873` (Governance records): `instruction_commit` is populated from `INSTRUCTION_COMMIT` for every instruction file.
+- `src/runtime/governance-provenance.js:32-41,56`: per-stage hashes of the runtime instruction bytes are recorded alongside that single `instruction_commit`.
+- `scripts/verify-governance-provenance-v2.mjs:47-49,98` and `scripts/verify-advisory-provenance-v4.mjs:45-53`: the verifiers fetch each file at the recorded `instruction_commit` from `raw.githubusercontent.com` and compare hashes.
+- `git diff 22b6629 94c5851` over instruction files: only `lived.md` differs.
+
+**Limitation:** Provenance records identify `INSTRUCTION_COMMIT` as the source of instruction files that the runtime actually resolves from `BASELINE_INSTRUCTION_COMMIT`. Instruction hashes exist and are verified. Verification currently passes for the 20 affected files only because their bytes are identical at both commits. The verifier therefore establishes that the recorded bytes correspond to content available at the declared commit. It does not establish that the declared commit was the source the runtime used. Verification also fetches from `raw.githubusercontent.com`, while the runtime loads from jsDelivr; equivalence of those sources has not been tested.
+
+- **Content integrity:** supported by hash comparison.
+- **Source attribution:** incorrect for the composite-pin configuration.
+- **Runtime provenance:** not fully established for a build from current main.
+- **Behavioural correctness:** not determined by this limitation.
+
+**Affected configurations:** Builds that contain `612148e`, including current main. The deployed `gh-pages` build (`29606ca`, built from `4fcec9a`) predates the composite pins and embeds only `22b6629`; its single-pin provenance path is not affected by this limitation, subject to its own evidence review. Historical deployment artefacts are not modified by this entry.
+
+**Containment:** For any affected candidate, treat `instruction_commit` as a declared label, not as proof of the source the runtime used. A provenance claim that depends on source attribution must be resolved or explicitly qualified before acceptance. A qualification does not convert to PASS.
+
+**Closure evidence:** Per-file source-commit attribution in provenance records; hashes of the evaluated instruction bytes; verification against the composite pin configuration actually used; a regression test in which the two pins contain **different** bytes for an affected file and the verifier correctly attributes or rejects; and a test of jsDelivr versus raw GitHub source equivalence. A passing test in which both pins hold identical bytes is not sufficient closure evidence.
+
+**Implementation:** Separate PR. Not authorised by this register change.
+
+**Relationship to L-13:** Shared root (a single commit label applied to a composite instruction set), separate mechanism. L-13 concerns `scripts/replay-stage.mjs` and records no content hashes; L-14 concerns Governance and Advisory provenance, which do record and verify content hashes. The 20 October trace found no execution or evidence path by which L-13 enters Gate A provenance.
+
+**Transfer implication:** A verified provenance record establishes that recorded bytes exist at the declared commit. For a composite-pin build, it does not by itself establish which commit the runtime loaded them from.
+
+---
+
+## L-15 — Analytical reproducibility: consequential-field stability unmeasured
 
 **Component:** HITH synthetic scenario; Director and Chair synthesis outputs  
 **Evidence:** 20 October 2026 transfer-readiness reconciliation (reviewer-reported); L-01 and L-11  
@@ -224,7 +284,7 @@ Housing-policy and geopolitical runs were used to examine structural transfer of
 
 ---
 
-## L-14 — Single-developer assurance and independent review pending
+## L-16 — Single-developer assurance and independent review pending
 
 **Component:** Code, runtime assertions, assurance process and transfer evaluation  
 **Evidence:** 20 October 2026 transfer-readiness reconciliation (reviewer-reported); L-12  
@@ -238,7 +298,7 @@ Housing-policy and geopolitical runs were used to examine structural transfer of
 
 ---
 
-## L-15 — Temporal layer is a proposed extension, not a v3 capability
+## L-17 — Temporal layer is a proposed extension, not a v3 capability
 
 **Component:** Proposed temporal decision-stewardship architecture  
 **Evidence:** 20 October 2026 repository inspection reported no implemented temporal layer  
@@ -267,7 +327,7 @@ A competent operator should be able to identify, without developer explanation:
 - **Authority:** PHDSS organises analysis; a human decides. Chair and Director outputs are not adjudications or vetoes (L-01, L-08, L-10).
 - **Participation:** Modelled perspectives and supplied lived-experience evidence are not proof of actual participation; human verification is required (L-02–L-04).
 - **Evidence:** An absence of a scanner warning does not certify compliance; model convergence does not corroborate a claim (L-03, L-04, L-11).
-- **Provenance:** Hash checks confirm captured strings, not a complete replayable transform chain; retries/repair responses can be absent (L-05, L-09).
+- **Provenance:** Hash checks confirm captured strings, not a complete replayable transform chain; retries/repair responses can be absent (L-05, L-09, L-13, L-14).
 - **Transfer:** The pre-Gate tranche ended by approved deviation; frozen-build and independent-use evidence is still pending (L-07, L-12).
 
 **Acceptance rule:** This register may be accepted as the documented set of *currently known* limitations after independent review. Acceptance does not waive outstanding Gate A exit criteria, resolve unverified runtime claims, or certify completeness against defects not yet discovered.
@@ -288,4 +348,4 @@ Outstanding verification and update triggers before Gate A exit:
 - **Operator transfer:** Any missing operational knowledge discovered while drafting the Gate B Operator Guide or in the stranger test must be logged and assessed; Gate B findings must not be retrospectively described as Gate A validation.
 - **UI disclosure:** Verify that the transfer-facing limitations are intelligible and accessible in the actual UI; this register alone does not establish UI disclosure.
 
-**Protocol Authority review questions:** Are L-01–L-12 accurately characterised? Are there documented, evidenced omissions? Which open items are transfer blockers versus accepted limitations? Do not mark the register or Gate A exit COMPLETE before these questions are disposed of.
+**Protocol Authority review questions:** Are L-01–L-17 accurately characterised? Are there documented, evidenced omissions? Which open items are transfer blockers versus accepted limitations? Do not mark the register or Gate A exit COMPLETE before these questions are disposed of.
