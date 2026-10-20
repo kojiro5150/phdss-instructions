@@ -207,6 +207,59 @@ Housing-policy and geopolitical runs were used to examine structural transfer of
 
 ---
 
+
+## L-13 — Analytical reproducibility: consequential-field stability unmeasured
+
+**Component:** HITH synthetic scenario; Director and Chair synthesis outputs  
+**Evidence:** 20 October 2026 transfer-readiness reconciliation (reviewer-reported); L-01 and L-11  
+**Classification:** Verification gap, not an established failure rate
+
+**Limitation:** No repeated-run evidence establishes how consistently the same frozen input and settings preserve consequential governance conclusions. Textual similarity alone is not the relevant criterion. The reported configuration uses `claude-sonnet-4-6` at temperature 0.8; the provider identifier's snapshot/pinning semantics must be verified and recorded rather than assumed.
+
+**Required bounded characterisation:** Run the same frozen synthetic HITH fixture three to five times, holding the fixture, instruction commit, configuration and execution pathway constant. Score ONLY (1) set of viable options, (2) whether safety or ethics concerns are surfaced, (3) participation status, (4) any evidence limitation promoted to a conclusion and (5) any implied preferred option. Record actual model identifier/version metadata when exposed, raw/final output and provenance references. Do not infer agreement from narrative similarity. A shifting implied preference is a possible practical manifestation of the L-01 Chair-authority concern; adjudicate it against the Chair's non-recommendation mandate.
+
+**Current status:** OPEN — protocol specified; repeats not run; no stability or failure-rate claim.
+
+**Transfer implication:** A deterministic-suite pass does not establish analytical stability or reproducibility of live model behaviour. Record disagreement by field, including an explicit none/not-assessable category, and disclose the observed bounded results without extrapolation.
+
+---
+
+## L-14 — Single-developer assurance and independent review pending
+
+**Component:** Code, runtime assertions, assurance process and transfer evaluation  
+**Evidence:** 20 October 2026 transfer-readiness reconciliation (reviewer-reported); L-12  
+**Classification:** Assurance and operational risk
+
+**Limitation:** Development and much of the present verification have been performed under a single-developer assurance arrangement. A locally passing suite is not equivalent to independent code review, stranger operation or independent evaluation.
+
+**Current status:** OPEN — RMIT review and an independent tester are intended assurance routes, not completed evidence unless dated scope, personnel, artefacts, findings and dispositions are recorded. This entry alone does not block a supervised synthetic advisory pilot; it remains relevant to transfer claims.
+
+**Transfer implication:** Explicitly disclose current review independence. Neither planned review nor an independent tester's future involvement may be reported as assurance already obtained.
+
+---
+
+## L-15 — Temporal layer is a proposed extension, not a v3 capability
+
+**Component:** Proposed temporal decision-stewardship architecture  
+**Evidence:** 20 October 2026 repository inspection reported no implemented temporal layer  
+**Classification:** Permanent current-version claims boundary, not a defect requiring remediation for this pilot
+
+**Limitation:** The current v3 repository does not implement a general temporal layer for commitments, option closure, branching futures or temporal agency. Incidental use of the term temporal in negative-scope controls does not establish such a capability.
+
+**Current status:** OUT OF V3 PILOT SCOPE — research/design extension only, unless a future version explicitly implements and validates it.
+
+**Transfer implication:** Do not claim temporal decision analysis as a verified v3 feature or make implementation a pre-pilot requirement.
+
+---
+
+## Pre-pilot verification versus pilot human-factors evaluation
+
+**Pre-pilot technical checks:** (1) Track an npm-generated `package-lock.json`, use `npm ci` from a clean clone and record an unmodified-tree provenance build; (2) complete the actual synthetic Governance capture/export integration check and its CLI verification, acknowledging L-09; (3) demonstrate in the actual UI that L-01/L-02/L-08/L-11 disclosures are visible, unambiguous and readily accessible; and (4) update the canonical register and evidence record. These checks do **not** constitute Gate A acceptance.
+
+**Pilot-only comprehension evaluation:** Make the strong-Ethics-caution synthetic case the first supervised pilot scenario; after use ask reviewers (a) **Who decides?** and (b) **Did the system block anything?** Record answers and approvals under the separately governed pilot protocol. Reviewer comprehension is not a pre-pilot entry requirement.
+
+**Assurance separation:** Internal deterministic tests, candidate technical validation, human-factors pilot observations and independent stranger-operation evidence are distinct. RMIT review and an independent tester are planned controls, not grounds for claiming independent assurance until completed. Only authorised human governance can accept a gate or approve transfer.
+
 ## Transfer-facing disclosure and acceptance checklist
 
 A competent operator should be able to identify, without developer explanation:
