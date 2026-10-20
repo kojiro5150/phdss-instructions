@@ -1,0 +1,126 @@
+$ npm run validate | start 2026-10-20T11:06:50Z
+
+> phdss-v2@2.0.0 validate
+> node .github/scripts/validate-v2.mjs && node .github/scripts/authority-regression.mjs && node test/verify-chair-non-substitution.js && node .github/scripts/reality-instruction-contract.mjs && node test/verify.js && node test/verify-governance-contracts.js && node test/verify-runtime-orchestration.js && node test/verify-governance-compression.js && node test/verify-comparator-contract.js && node test/verify-prompt-builders.js && node test/verify-pipeline.js && node test/verify-stage-replay.js && node test/verify-orientation.js && node test/verify-chair-authority-detector-corpus.js && node test/verify-participation-non-substitution.js && node test/verify-participation-calibration-scorer.js && node test/verify-advisory-request-provenance.js && node test/verify-advisory-lived-participation-structure.js && node test/verify-participation-disclosure-ui.js && node test/verify-participation-calibration-request-integrity.js && node test/verify-participation-status-classifier-v2.js && node test/verify-participation-calibration-scorer-v2.js && node test/verify-participation-status-classifier-v2-1.js && node test/verify-participation-calibration-scorer-v2-1.js && node test/verify-participation-status-classifier-v3.js && node test/verify-participation-calibration-scorer-v3.js && node test/verify-participation-calibration-scorer-v3-1.js && node test/verify-participation-status-classifier-v3-1.js && node test/verify-participation-calibration-scorer-v3-2.js && node test/verify-participation-status-classifier-v3-2.js && node test/verify-participation-calibration-scorer-v3-3.js && node test/verify-governance-provenance.js && node test/verify-governance-provenance-v2.mjs && node test/verify-advisory-provenance-v4.mjs && node test/verify-deployment-provenance.mjs && node test/verify-lived-negative-scope-guardrail.js
+
+PHDSS v2 recovery validation passed.
+JSX/runtime parse: PASS
+Retired contract scan: PASS
+Required recovery contract scan: PASS
+PHDSS authority regression passed.
+Synthetic authority cases: 51 PASS
+Per-layer authority termini: 8 PASS
+PHDSS Chair non-substitution verification passed.
+Synthetic Chair cases: 4 PASS
+Distinct diagnostics: epistemic promotion / tension resolution / condition invention PASS
+PHDSS Reality Anchor instruction contract passed.
+Bidirectional falsification structure: PASS
+Retired decision-direction vocabulary absent: PASS
+Human decision authority: PASS
+PHDSS modularisation equivalence verification passed.
+Equivalence fixtures: 15 PASS
+Dashboard reference states: 4 PRESENT
+Pure-module side-effect scan: PASS
+PR-1 non-extraction guards: PASS
+PHDSS Governance Record contract verification passed.
+Contract version: 1.0.0
+Valid contract shapes: 5 PASS
+Invalid contract cases: 6 REJECTED
+PHDSS runtime orchestration boundary verification passed.
+Instruction manifest/pin: PASS
+Instruction loading behavior: PASS
+Anthropic request/retry/continuation behavior: PASS
+API key interceptor behavior: PASS
+Orchestration scope guards: PASS
+PHDSS Governance Brief compression verification passed.
+Director compression retry/fallback: PASS
+Synthesis compression retry/fallback: PASS
+Authority-violation retry behavior: PASS
+Provenance monotonicity retry behavior: PASS
+Deterministic fallback extraction: PASS
+Compression scope guards: PASS
+PHDSS Comparator contract verification passed.
+Comparator difference-visibility boundary: PASS
+Comparator schema migration: PASS
+Dual Lens advisory separation: PASS
+PHDSS prompt-builder equivalence verification passed.
+Pre-extraction prompt fingerprints: 19 PASS
+Shared coverage helper: PASS
+Runtime/ledger constants: PASS
+Prompt-builder scope guards: PASS
+PHDSS governance pipeline verification passed.
+Stress trigger matrix: PASS
+Authority execution/repair: PASS
+Bounded second authority repair: PASS
+Authority offending-clause diagnostics: PASS
+Authority repair telemetry: PASS
+Surface Map authority-act repair: PASS
+External constraint reporting exception: PASS
+Comparator schema validation: PASS
+Ledger assembly: PASS
+Stage sequence 1-8: PASS
+Conditional stress on/off: PASS
+Director 500-retry backoff: PASS
+Live partial-synthesis fail-closed fixture: PASS
+Stage exception preservation: PASS
+Session completion classification: PASS
+Chair dependency skips Comparator: PASS
+Dashboard execution-status visibility: PASS
+Pipeline scope guards: PASS
+PHDSS stage replay verification passed.
+Frozen calibration fixture: PASS
+Comparator-only replay path: PASS
+Chair-then-Comparator replay path: PASS
+Billing failure visibility: PASS
+PHDSS orientation contract verification passed.
+North Star: exact PASS
+Authority chain: AI → Code → Chair → Human PASS
+Product flow: Inputs → Directors → Synthesis → Decision Brief → Transparency → Ledger PASS
+Mode / cost / legitimacy guidance: PASS
+Frozen Chair detector challenge corpus v1 integrity: PASS
+SHA-256: 4ad92cf3d27d505593e8b753b49c457c0286fbf51bf36cd3a4c44fc2f2f02437
+Cases: 36
+PHDSS participation non-substitution verification passed.
+Invariant present in V3 contract and Lived Experience Director: PASS
+Representation / evidence / participation categories remain distinct: PASS
+Document-wide negative-scope discipline present: PASS
+Stale Chair adjudication language absent from lived.md: PASS
+Participation calibration scorer v1 frozen-behavior verification passed.
+Known lexical-negation defect preserved: 'not established' -> ambiguous, status_matches_ground_truth=false.
+Advisory request provenance verification passed.
+Advisory Lived Experience participation structure verification passed.
+Participation disclosure UI verification passed.
+Contract-to-UI disclosure substance preserved: PASS
+Session-level notice marker present: PASS
+Notice gated to governance sessions invoking Lived Experience: PASS
+Participation calibration request integrity fail-closed verification passed.
+Participation status classifier v2 paired-case verification passed.
+Classifier version: status_classifier_v2
+Cases: 7 PASS
+Participation calibration scorer v2 end-to-end verification passed.
+Participation status classifier v2.1 frozen-behavior verification passed.
+Classifier version: status_classifier_v2_1
+Exact corpus matches: 15/16
+Known historical mismatch preserved: genuine_conflict_records expected ambiguous -> actual not_established.
+Participation calibration scorer v2.1 end-to-end verification passed.
+Participation status classifier v3 five-field verification passed.
+Classifier version: status_classifier_v3
+Frozen cases: 16 PASS
+Participation calibration scorer v3 five-field end-to-end verification passed.
+Participation calibration scorer v3.1 section-boundary verification passed.
+Heading styles: 2 PASS
+Participation status classifier v3.1 property-binding verification passed.
+Classifier version: status_classifier_v3_1
+Frozen cases: 18 PASS
+Participation calibration scorer v3.2 property-binding verification passed.
+Participation status classifier v3.2 composite-binding verification passed.
+Classifier version: status_classifier_v3_2
+Frozen cases: 20 PASS
+Participation calibration scorer v3.3 composite-binding verification passed.
+Governance provenance verifier regression cases passed.
+Governance provenance v2 source/mode regressions passed.
+Governance provenance stage-schema v2 (G-01/G-02) regressions passed.
+Advisory provenance v4 regressions passed.
+Deployment provenance build checks passed.
+Lived negative-scope warning-only development fixtures passed (including post-hoc V2 line regressions; not full historical replay).
+exit 0 | end 2026-10-20T11:06:54Z

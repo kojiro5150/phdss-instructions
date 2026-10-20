@@ -1,0 +1,14 @@
+$ npm run build | start 2026-10-20T11:06:54Z
+
+> phdss-v2@2.0.0 build
+> node scripts/build-with-provenance.mjs
+
+vite v7.3.7 building client environment for production...
+transforming...
+✓ 44 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                  0.40 kB │ gzip:   0.26 kB
+dist/assets/index-Bukdyuok.js  484.97 kB │ gzip: 140.56 kB
+✓ built in 1.89s
+exit 0 | end 2026-10-20T11:06:56Z
