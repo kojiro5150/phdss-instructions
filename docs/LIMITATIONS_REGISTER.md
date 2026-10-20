@@ -207,6 +207,32 @@ Housing-policy and geopolitical runs were used to examine structural transfer of
 
 ---
 
+## L-13 — Replay instruction provenance misattribution
+
+**Classification:** Verification / provenance integrity  
+**Status:** OPEN  
+**Component:** `scripts/replay-stage.mjs`  
+**Discovered:** Live replay gate design review, 20 October 2026  
+**Evidence:** `docs/LIVE_REPLAY_GATE_CI_DESIGN.md` §2 and §6 (PR #86); `src/runtime/instruction-loader.js` (split pins)
+
+**Limitation:** `replay-stage.mjs` loads `chair.md` and `comparator.md` from the working tree at execution time. It records `replay_instruction_commit` as `INSTRUCTION_COMMIT`, which is the runtime pin for `lived.md` only. The runtime resolves Chair and Comparator at `BASELINE_INSTRUCTION_COMMIT`. The recorded commit therefore may not identify the instruction bytes that produced the replayed behaviour, and no per-file content hash is recorded.
+
+**Known affected record:** `tests/fixtures/calibration/DR-20260926-204324-a2e644/replay-closure/comparator-2026-09-26T13-54-41-458Z/replay-manifest.json`. This is a successful Comparator replay whose recorded `replay_instruction_commit` cannot by itself establish which `comparator.md` content was evaluated. The record is not rewritten by this entry.
+
+**Consequence:** Replay evidence cannot independently establish which instruction version produced the recorded behaviour.
+
+**Containment:** Qualify affected historical replay claims. Do not use the recorded `replay_instruction_commit` field alone as proof of the instruction version evaluated. An affected replay record may not serve as an established baseline without independent evidence of the evaluated bytes.
+
+**Gate A cross-reference:** The Gate A evidence review must determine whether any Gate A provenance claim depends on `replay-stage.mjs` output or its `replay_instruction_commit` field. If it does, independent evidence must establish the instruction bytes actually evaluated before that claim is accepted. If Gate A relies on an independent provenance chain, the separation should be documented there. As of this entry, the Gate A protocol documents do not reference `replay-stage.mjs`; that observation is not a substitute for the evidence review. This entry does not modify Gate A acceptance criteria or status.
+
+**Closure evidence:** Corrected source resolution (instructions resolved from the commit the runtime would use), per-file content hashes recorded with each replay, provenance validation, and regression tests demonstrating that a mismatch between evaluated bytes and recorded provenance is detected.
+
+**Implementation:** Separate PR. Not authorised by this register change.
+
+**Transfer implication:** A replay record's commit field identifies a pin, not necessarily the content evaluated. Do not cite historical replay results as evidence for a specific instruction version without independent confirmation of the evaluated bytes.
+
+---
+
 ## Transfer-facing disclosure and acceptance checklist
 
 A competent operator should be able to identify, without developer explanation:
