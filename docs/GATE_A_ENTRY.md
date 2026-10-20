@@ -23,17 +23,26 @@ The project enters Gate A under this approved deviation. The deviation is disclo
 
 The v2.0.0 constitutional baseline is sealed (`docs/V2_RELEASE.md`). Its invariants — decision-space expansion, non-substitution, epistemic provenance — are inherited infrastructure for Gate A and beyond. No Gate A work redefines these.
 
-### 1.3 Instruction pin confirmed
+### 1.3 Instruction pins
 
-The runtime instruction loader is pinned to a single immutable commit:
+> **Correction (20 October 2026):** This section previously stated that all 21 instruction files load from a single pin. That was accurate when written (`4d5953f`) but became stale when `612148e` introduced composite pins on main. See L-14 in `docs/LIMITATIONS_REGISTER.md`.
+
+**Historical deployment.** The deployed `gh-pages` build (`29606ca`, built from `4fcec9a`) predates the composite pins. It loads all 21 instruction files from a single immutable commit via the jsDelivr CDN:
 
 ```
 INSTRUCTION_COMMIT = 22b662999e01462fc4008446885a38df2cf735ad
 ```
 
-Source: `src/runtime/instruction-loader.js`.
+**Current main.** The runtime instruction loader uses two immutable pins:
 
-All 21 instruction files are loaded from this commit via the jsDelivr CDN. The pin is verified by the test suite.
+```
+INSTRUCTION_COMMIT          = 94c5851146d849957af9610935a85f674c6ab05d   (lived.md only)
+BASELINE_INSTRUCTION_COMMIT = 22b662999e01462fc4008446885a38df2cf735ad   (the other 20 files)
+```
+
+Source: `src/runtime/instruction-loader.js:3-6,41`. Both pin values and the per-file routing are asserted by `test/verify-runtime-orchestration.js:29-35,64-65`.
+
+Provenance records on current main label every instruction file with `INSTRUCTION_COMMIT`, so source attribution is incorrect for the 20 baseline files (L-14). This section describes the pin configuration only; it does not change the Gate A exit criteria or status.
 
 ### 1.4 Validation suite passing
 
