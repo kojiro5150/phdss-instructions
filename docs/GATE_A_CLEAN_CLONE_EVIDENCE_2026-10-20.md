@@ -2,12 +2,13 @@
 
 **Date:** 2026-10-20
 **Verified commit:** `25948b8821bc50cc9738db1c87ae781895cde4c2` (PR #85, branch `assurance/gate-a-reproducibility-20261020`)
-**Classification:** Reviewer-executed, artefact-backed verification
+**Classification:** AI-assisted verification — Protocol Authority review pending; independent human verification pending
+**Classification amended:** 2026-10-20. Original classification "Reviewer-executed, artefact-backed verification" replaced to state completed actions only. Execution details, timestamps, hashes and logs are unchanged; no new verification run.
 **Gate A:** OPEN
 
 ## Evidentiary status
 
-This record preserves the commands, exit codes, timestamps, hashes and full logs of a clean-clone build verification. Preserving the logs improves auditability. It does **not** make the run independently witnessed, does **not** constitute transfer-candidate acceptance, and does **not** freeze a candidate. The commit that adds this record is a review reference only.
+This record preserves the commands, exit codes, timestamps, hashes and full logs of a clean-clone build verification. The run was executed by an AI system. Review by a second AI system is not independent assurance. Preserving the logs improves auditability. It does **not** make the run independently witnessed, does **not** constitute transfer-candidate acceptance, and does **not** freeze a candidate. The commit that adds this record is a review reference only.
 
 Source commit identity is not deployment identity. This record establishes what builds from source at `25948b8`. It does not establish what is running on any deployment, which instruction set a live session loads, or which model configuration a live session uses.
 
