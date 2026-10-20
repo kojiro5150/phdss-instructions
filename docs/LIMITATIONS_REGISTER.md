@@ -240,7 +240,7 @@ A competent operator should be able to identify, without developer explanation:
 - **Authority:** PHDSS organises analysis; a human decides. Chair and Director outputs are not adjudications or vetoes (L-01, L-08, L-10).
 - **Participation:** Modelled perspectives and supplied lived-experience evidence are not proof of actual participation; human verification is required (L-02–L-04).
 - **Evidence:** An absence of a scanner warning does not certify compliance; model convergence does not corroborate a claim (L-03, L-04, L-11).
-- **Provenance:** Hash checks confirm captured strings, not a complete replayable transform chain; retries/repair responses can be absent (L-05, L-09).
+- **Provenance:** Hash checks confirm captured strings, not a complete replayable transform chain; retries/repair responses can be absent; a replay record's commit field does not by itself identify the instruction bytes evaluated (L-05, L-09, L-13).
 - **Transfer:** The pre-Gate tranche ended by approved deviation; frozen-build and independent-use evidence is still pending (L-07, L-12).
 
 **Acceptance rule:** This register may be accepted as the documented set of *currently known* limitations after independent review. Acceptance does not waive outstanding Gate A exit criteria, resolve unverified runtime claims, or certify completeness against defects not yet discovered.
@@ -261,4 +261,4 @@ Outstanding verification and update triggers before Gate A exit:
 - **Operator transfer:** Any missing operational knowledge discovered while drafting the Gate B Operator Guide or in the stranger test must be logged and assessed; Gate B findings must not be retrospectively described as Gate A validation.
 - **UI disclosure:** Verify that the transfer-facing limitations are intelligible and accessible in the actual UI; this register alone does not establish UI disclosure.
 
-**Protocol Authority review questions:** Are L-01–L-12 accurately characterised? Are there documented, evidenced omissions? Which open items are transfer blockers versus accepted limitations? Do not mark the register or Gate A exit COMPLETE before these questions are disposed of.
+**Protocol Authority review questions:** Are L-01–L-13 accurately characterised? Are there documented, evidenced omissions? Which open items are transfer blockers versus accepted limitations? Do not mark the register or Gate A exit COMPLETE before these questions are disposed of.
