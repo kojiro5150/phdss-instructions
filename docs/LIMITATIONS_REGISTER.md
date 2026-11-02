@@ -315,7 +315,7 @@ Housing-policy and geopolitical runs were used to examine structural transfer of
 ## L-18 — Dominant signal computed by divergent rules across synthesis stages
 
 **Classification:** Runtime integrity / deliberative-architecture consistency  
-**Status:** OPEN  
+**Status:** PARTIALLY REMEDIATED — cross-stage consistency fix merged (PR #90, `7649eb4`) and verified by CI; Protocol Authority disposition outstanding on tie and no-signal semantics; stress-trigger extraction transferred to L-20  
 **Component:** `src/pipeline.js` (`runGovernancePipeline`, `shouldRunStressTest`)  
 **Discovered:** Architecture review of synthesis-stage inputs, 2 November 2026  
 **Evidence:** `src/pipeline.js` at `main` `db2aded`: Surface Map tally (around lines 600–607), Adversarial Probe tally (around lines 713–717), Comparator counts (around lines 797–799), stress trigger patterns (around lines 98–112)
@@ -337,11 +337,99 @@ A related divergence: `shouldRunStressTest` extracts signals with a third, more 
 
 **Containment:** For any historical run with tied signal counts, qualify the Probe's challenge direction before citing it as evidence of the Deliberate Advocacy Principle. Do not describe the Probe direction as tally-derived in transfer or publication material until closure evidence exists.
 
-**Closure evidence:** One shared signal-extraction and tally function used by the Surface Map, Adversarial Probe and Comparator; regression tests demonstrating identical dominant signals across stages for tied and signal-free inputs; a recorded Protocol Authority disposition on tie and no-signal semantics, including whether MIXED should be reachable; and a separate disposition on whether the stress trigger adopts the shared extractor.
+**Closure evidence:** One shared signal-extraction and tally function used by the Surface Map, Adversarial Probe and Comparator (met by PR #90); regression tests demonstrating identical dominant signals across stages for tied and signal-free inputs (met by PR #90); and a recorded Protocol Authority disposition on tie and no-signal semantics, including whether MIXED should be reachable (outstanding). Stress-trigger extraction closes under L-20.
+
+**Remediation (2 November 2026):** PR #90 added `src/signal-tally.js`. The Surface Map counts and dominant signal, Adversarial Probe direction, Comparator tally and Ledger counts now come from one shared tally (`tallyDirectorSignals`). The pre-existing Surface Map rule is preserved exactly. `test/verify-signal-tally.js` shows Surface Map and Probe agreement on tied and signal-free inputs; both checks fail on the pre-fix pipeline. CI passed on merge commit `7649eb4`.
+
+**Residual:** (1) Tie and no-signal semantics are unchanged and await Protocol Authority disposition: 4 PROCEED / 1 CAUTION / 4 HALT resolves to PROCEED, and 0 / 0 / 0 resolves to CAUTION. (2) The stress trigger's separate extractor is not covered by the fix; it is now recorded as L-20. (3) Whether a single dominant signal should represent disagreement at all is a separate governance question, recorded as L-21.
+
+**Fixture:** `tests/fixtures/synthetic/limitations-l18-l21.json` cases `L18-TIE-PROCEED-HALT` and `L18-NO-SIGNAL`, characterised by `test/verify-limitation-fixtures.js`.
+
+**Transfer implication:** Surface Map and Probe now receive the same dominant signal in every run from `7649eb4`. Runs before that commit with tied counts remain subject to the containment above. The tie and no-signal outputs are policy-dependent and should be reported with the full signal counts.
+
+---
+
+## L-19 — Authority detector exempts clauses ending in a question mark
+
+**Classification:** Authority-boundary defect  
+**Status:** OPEN  
+**Component:** `src/authority-contract.js` (`reasonForClause`, around line 84: `if(/\?$/.test(clause)) return null;`)  
+**Discovered:** Independent source review and verification, 3 November 2026  
+**Baseline:** `7649eb4`
+
+**Limitation:** The authority detector returns no violation for any clause ending in `?`. The exemption is intended to allow questions that surface decision issues, but it also passes directives phrased as rhetorical questions. Verified at baseline: "Surely the Board should approve pathway B?" and "Should the Board not simply approve pathway B?" are not flagged in the Chair layer, while the declarative control "The Board should approve pathway B." is flagged as `INSTITUTIONAL_DIRECTIVE`.
+
+This is distinct from L-01. L-01 concerns indirect adjudication without explicit directive vocabulary; L-19 is an explicit directive that escapes detection solely because of its punctuation.
+
+**Consequence:** A synthesis layer can direct the human decision-maker without triggering repair or telemetry, and the stage is recorded as authority-compliant.
+
+**Fixture:** `tests/fixtures/synthetic/limitations-l18-l21.json` cases `L19-RHETORICAL-DIRECTIVE`, `L19-NEGATED-RHETORICAL-DIRECTIVE` and control `L19-CONTROL-DECLARATIVE-DIRECTIVE`.
+
+**Containment:** Do not cite repair telemetry or an absence of authority violations as evidence that outputs contain no directives phrased as questions.
+
+**Closure evidence:** Detector behaviour that flags directive content irrespective of terminal punctuation, while still permitting genuine issue-surfacing questions; a calibrated challenge set covering both, with results recorded; the fixture cases updated in the same change.
 
 **Implementation:** Separate PR. Not authorised by this register change.
 
-**Transfer implication:** The Probe's challenge direction is reliable as a tally-derived property only where Director signal counts are untied, until the shared-tally fix is merged and verified.
+**Transfer implication:** The authority detector's assurance does not extend to rhetorical-question directives.
+
+---
+
+## L-20 — Stress-trigger reliability: negation and divergent signal extraction
+
+**Classification:** Runtime reliability defect (conditional-stage triggering)  
+**Status:** OPEN  
+**Component:** `src/pipeline.js` (`shouldRunStressTest`, around lines 91–130)  
+**Discovered:** Independent source review and verification, 3 November 2026; extraction divergence first recorded under L-18  
+**Baseline:** `7649eb4`
+
+**Limitation:** Two independently identifiable problems.
+
+1. **Negation.** Trigger expressions match vocabulary without reading polarity. Verified at baseline: an Epistemic Audit stating "The evidence is not weak." or "No compromised sources identified." triggers the Stress Test with the recorded reason "Epistemic Audit detected major uncertainty".
+2. **Divergent extraction.** The trigger uses its own, more permissive signal patterns rather than the shared tally. Verified at baseline: a lowercase signal ("**Recommendation Signal**: halt"), an unbolded signal line ("Recommendation Signal (final): HALT") and a negated heading ("**HALT** conditions are not met in this analysis.") are each counted as a HALT by the trigger, while the shared tally counts none as HALT.
+
+**Consequence:** The Stress Test can run when no qualifying condition exists, and the ledger can record a trigger reason that is false. Because the error tends towards running the stage, the immediate analytical risk is low; the provenance and evaluation risk is not, since trigger reasons and conditional-stage frequencies may be misreported.
+
+**Fixture:** `tests/fixtures/synthetic/limitations-l18-l21.json` cases `L20-NEGATED-WEAK`, `L20-NEGATED-COMPROMISED`, `L20-EXTRACTOR-LOWERCASE`, `L20-EXTRACTOR-UNBOLDED` and `L20-EXTRACTOR-NEGATED-HEADING`.
+
+**Containment:** Treat recorded stress-trigger reasons as provisional. Do not use Stress Test activation frequency as an evaluation measure until closure.
+
+**Closure evidence:** A recorded disposition on whether the trigger adopts the shared extractor; trigger expressions that do not fire on negated vocabulary, or a documented decision to accept conservative over-triggering with accurate reason recording; the fixture cases updated in the same change.
+
+**Implementation:** Separate PR. Not authorised by this register change.
+
+**Transfer implication:** A Stress Test's presence does not establish that its recorded trigger condition was met.
+
+---
+
+## L-21 — Dominant-signal compression can conceal material disagreement
+
+**Classification:** Governance interpretation risk (not a software defect)  
+**Status:** OPEN — Protocol Authority decision required  
+**Component:** `src/signal-tally.js` (`dominantSignalFromCounts`); the Surface Map instruction to report "exactly this single word" for Dominant Signal (`src/pipeline.js`, `signalCountNote`); Adversarial Probe direction  
+**Discovered:** Independent source review, 3 November 2026  
+**Baseline:** `7649eb4`
+
+**Limitation:** The Board's signal distribution is reduced to one dominant word, which then labels the Surface Map and sets the Probe's challenge direction. The full counts are supplied to the Surface Map alongside it, but the single word is what the record foregrounds. Verified at baseline: 12 PROCEED and 1 HALT resolves to PROCEED; 4 PROCEED, 1 CAUTION and 4 HALT also resolves to PROCEED.
+
+Two dimensions are conflated:
+
+- **Signal distribution:** how much disagreement exists among Director perspectives.
+- **Constraint status:** whether an objection exists that cannot legitimately be overridden by numerical agreement, such as an unresolved legal, safety or human-rights constraint.
+
+The second is not a function of the first. A single HALT among thirteen Directors may carry a non-aggregable constraint; a near-even split may carry none. Directors are analytical perspectives, not independent voters or holders of delegated authority, so neither dimension should be read as a vote.
+
+**Relationship to other entries:** L-08 and L-10 record that non-aggregable refusal and the CORE necessary-condition rationale have no runtime enforcement channel. L-21 records the complementary representational gap: even where such a constraint is identified analytically, the dominant signal does not show it.
+
+**Consequence:** A Governance Record can present a contested Board, or a Board with an unresolved non-aggregable objection, under a single directional label. A human reader relying on that label may underweight dissent the architecture exists to preserve.
+
+**Fixture:** `tests/fixtures/synthetic/limitations-l18-l21.json` cases `L21-SINGLE-HALT-COMPRESSED` and `L21-EVEN-SPLIT-COMPRESSED`.
+
+**Containment:** Report the full signal distribution wherever the dominant signal is cited. Do not present the dominant signal as a Board position, a vote outcome or evidence that no blocking constraint exists.
+
+**Closure evidence:** A documented Protocol Authority decision on how disagreement and non-aggregable constraints are represented in the Governance Record. Closure does not require a change to the dominant-signal algorithm, and no numerical threshold for a split state is prescribed by this entry. Any representation change that follows is a separate implementation PR with its own fixtures.
+
+**Transfer implication:** The dominant signal summarises a distribution; it is not a decision, a vote or a constraint assessment.
 
 ---
 
@@ -381,4 +469,4 @@ Outstanding verification and update triggers before Gate A exit:
 - **Operator transfer:** Any missing operational knowledge discovered while drafting the Gate B Operator Guide or in the stranger test must be logged and assessed; Gate B findings must not be retrospectively described as Gate A validation.
 - **UI disclosure:** Verify that the transfer-facing limitations are intelligible and accessible in the actual UI; this register alone does not establish UI disclosure.
 
-**Protocol Authority review questions:** Are L-01–L-18 accurately characterised? Are there documented, evidenced omissions? Which open items are transfer blockers versus accepted limitations? Do not mark the register or Gate A exit COMPLETE before these questions are disposed of.
+**Protocol Authority review questions:** Are L-01–L-21 accurately characterised? Are there documented, evidenced omissions? Which open items are transfer blockers versus accepted limitations? Do not mark the register or Gate A exit COMPLETE before these questions are disposed of.
