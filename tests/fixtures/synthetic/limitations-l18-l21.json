@@ -1,0 +1,105 @@
+{
+  "fixture_id": "limitations-l18-l21",
+  "purpose": "Reproducible synthetic characterisation of limitations L-18 to L-21 at the pre-evaluation baseline. Each case records the behaviour observed at baseline_commit. These are known-defect observations, not desired behaviour. When remediation changes an observed value, the characterisation test fails by design and the corresponding register entry must be updated in the same change.",
+  "baseline_commit": "7649eb4",
+  "synthetic_text_only": true,
+  "cases": [
+    {
+      "id": "L18-TIE-PROCEED-HALT",
+      "limitation": "L-18",
+      "kind": "dominant_from_counts",
+      "input": { "proceed": 4, "caution": 1, "halt": 4 },
+      "observed": "PROCEED",
+      "note": "Open tie-semantics policy question; behaviour preserved by #90."
+    },
+    {
+      "id": "L18-NO-SIGNAL",
+      "limitation": "L-18",
+      "kind": "dominant_from_counts",
+      "input": { "proceed": 0, "caution": 0, "halt": 0 },
+      "observed": "CAUTION",
+      "note": "0 >= 0 satisfies the CAUTION branch; MIXED is unreachable."
+    },
+    {
+      "id": "L19-RHETORICAL-DIRECTIVE",
+      "limitation": "L-19",
+      "kind": "authority_assessment",
+      "layer": "chair",
+      "input": "Surely the Board should approve pathway B?",
+      "observed_violates": false
+    },
+    {
+      "id": "L19-NEGATED-RHETORICAL-DIRECTIVE",
+      "limitation": "L-19",
+      "kind": "authority_assessment",
+      "layer": "chair",
+      "input": "Should the Board not simply approve pathway B?",
+      "observed_violates": false
+    },
+    {
+      "id": "L19-CONTROL-DECLARATIVE-DIRECTIVE",
+      "limitation": "L-19",
+      "kind": "authority_assessment",
+      "layer": "chair",
+      "input": "The Board should approve pathway B.",
+      "observed_violates": true,
+      "note": "Control: the same directive without a question mark is detected."
+    },
+    {
+      "id": "L20-NEGATED-WEAK",
+      "limitation": "L-20",
+      "kind": "stress_from_epistemic",
+      "input": "The evidence is not weak.",
+      "observed_run": true,
+      "observed_reason": "Epistemic Audit detected major uncertainty"
+    },
+    {
+      "id": "L20-NEGATED-COMPROMISED",
+      "limitation": "L-20",
+      "kind": "stress_from_epistemic",
+      "input": "Epistemic Health Score: ADEQUATE. No compromised sources identified.",
+      "observed_run": true,
+      "observed_reason": "Epistemic Audit detected major uncertainty"
+    },
+    {
+      "id": "L20-EXTRACTOR-LOWERCASE",
+      "limitation": "L-20",
+      "kind": "stress_vs_tally",
+      "input": "**Recommendation Signal**: halt — synthetic rationale.",
+      "observed_tally_halt": 0,
+      "observed_stress_reason": "1 director(s) signalled HALT"
+    },
+    {
+      "id": "L20-EXTRACTOR-UNBOLDED",
+      "limitation": "L-20",
+      "kind": "stress_vs_tally",
+      "input": "Recommendation Signal (final): HALT — synthetic rationale.",
+      "observed_tally_halt": 0,
+      "observed_stress_reason": "1 director(s) signalled HALT"
+    },
+    {
+      "id": "L20-EXTRACTOR-NEGATED-HEADING",
+      "limitation": "L-20",
+      "kind": "stress_vs_tally",
+      "input": "**HALT** conditions are not met in this analysis.",
+      "observed_tally_halt": 0,
+      "observed_stress_reason": "1 director(s) signalled HALT"
+    },
+    {
+      "id": "L21-SINGLE-HALT-COMPRESSED",
+      "limitation": "L-21",
+      "kind": "tally",
+      "input_signals": ["PROCEED", "PROCEED", "PROCEED", "PROCEED", "PROCEED", "PROCEED", "PROCEED", "PROCEED", "PROCEED", "PROCEED", "PROCEED", "PROCEED", "HALT"],
+      "observed_dominant": "PROCEED",
+      "note": "A single HALT that may carry an unresolved legal, safety or human-rights constraint is not represented in the dominant signal. Counts are reported separately."
+    },
+    {
+      "id": "L21-EVEN-SPLIT-COMPRESSED",
+      "limitation": "L-21",
+      "kind": "tally",
+      "input_signals": ["PROCEED", "PROCEED", "PROCEED", "PROCEED", "CAUTION", "HALT", "HALT", "HALT", "HALT"],
+      "observed_dominant": "PROCEED",
+      "note": "A Board divided 4 to 4 is reported with a single dominant word."
+    }
+  ]
+}
