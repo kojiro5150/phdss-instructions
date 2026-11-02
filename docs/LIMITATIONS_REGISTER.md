@@ -323,13 +323,13 @@ Housing-policy and geopolitical runs were used to examine structural transfer of
 **Limitation:** The Board's dominant signal is computed twice within one run, by two different rules, and each result is supplied to a different stage.
 
 - **Surface Map path.** Counts PROCEED / CAUTION / HALT from each Director's `**Recommendation Signal**`, then applies: HALT if strictly greater than both other counts; otherwise CAUTION if greater than or equal to both; otherwise PROCEED if any PROCEED; otherwise MIXED. The result is injected to the Surface Map as `AUTHORITATIVE SIGNAL COUNTS ... DOMINANT SIGNAL`.
-- **Adversarial Probe path.** Recounts with an equivalent pattern, sorts the counts in descending order, and takes the first entry. Ties are resolved by the order in which signals first appear in Director result order, not by any governance rule. Where no signal is parsed, the Probe receives `UNKNOWN`; the Surface Map path yields `MIXED`.
+- **Adversarial Probe path.** Recounts with an equivalent pattern, sorts the counts in descending order, and takes the first entry. Ties are resolved by the order in which signals first appear in Director result order, not by any governance rule. Where no signal is parsed, the Probe receives `UNKNOWN`, while the Surface Map path yields `CAUTION` (see the policy observation below).
 
 On any tied count the two stages can be told different dominant signals. Example: two PROCEED and two CAUTION, with the first Director reporting PROCEED. The Surface Map is told CAUTION; the Probe is told PROCEED and directs its challenge against proceeding.
 
 A related divergence: `shouldRunStressTest` extracts signals with a third, more permissive pattern set, including a bare `**HALT**` anywhere in a Director's output. Its HALT and CAUTION counts can therefore differ from the authoritative tally. This affects whether the Stress Test runs, not the dominant signal, and is recorded here rather than as a separate entry because it shares the same root cause: no single signal-extraction function.
 
-**Policy observation (not a defect claim):** The Surface Map rule resolves a PROCEED–HALT tie with fewer CAUTION signals to PROCEED, for example four PROCEED, four HALT and one CAUTION. Whether this is the intended governance semantics is a Protocol Authority decision. It is recorded here so that a consistency fix is not mistaken for a decision on tie semantics.
+**Policy observation (not a defect claim):** The Surface Map rule resolves a PROCEED–HALT tie with fewer CAUTION signals to PROCEED, for example four PROCEED, four HALT and one CAUTION. Whether this is the intended governance semantics is a Protocol Authority decision. Separately, because zero satisfies the CAUTION condition (0 ≥ 0), a run with no parsed Director signals is reported as CAUTION, and the rule's MIXED branch is unreachable. Both observations are recorded here so that a consistency fix is not mistaken for a decision on tie or no-signal semantics.
 
 **Consequence:** In tied runs, the direction of the Adversarial Probe (the Deliberate Advocacy direction) can be set by Director execution order rather than by the Board's recorded tally, and the Governance Record can be internally inconsistent: the Surface Map reports one dominant signal while the Probe challenges another. Any claim that the Probe's direction is computed deterministically from the authoritative tally holds only for untied runs.
 
@@ -337,7 +337,7 @@ A related divergence: `shouldRunStressTest` extracts signals with a third, more 
 
 **Containment:** For any historical run with tied signal counts, qualify the Probe's challenge direction before citing it as evidence of the Deliberate Advocacy Principle. Do not describe the Probe direction as tally-derived in transfer or publication material until closure evidence exists.
 
-**Closure evidence:** One shared signal-extraction and tally function used by the Surface Map, Adversarial Probe and Comparator; regression tests demonstrating identical dominant signals across stages for tied and signal-free inputs; a recorded Protocol Authority disposition on tie semantics; and a separate disposition on whether the stress trigger adopts the shared extractor.
+**Closure evidence:** One shared signal-extraction and tally function used by the Surface Map, Adversarial Probe and Comparator; regression tests demonstrating identical dominant signals across stages for tied and signal-free inputs; a recorded Protocol Authority disposition on tie and no-signal semantics, including whether MIXED should be reachable; and a separate disposition on whether the stress trigger adopts the shared extractor.
 
 **Implementation:** Separate PR. Not authorised by this register change.
 
