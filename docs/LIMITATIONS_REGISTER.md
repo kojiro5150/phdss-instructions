@@ -312,6 +312,39 @@ Housing-policy and geopolitical runs were used to examine structural transfer of
 
 ---
 
+## L-18 — Dominant signal computed by divergent rules across synthesis stages
+
+**Classification:** Runtime integrity / deliberative-architecture consistency  
+**Status:** OPEN  
+**Component:** `src/pipeline.js` (`runGovernancePipeline`, `shouldRunStressTest`)  
+**Discovered:** Architecture review of synthesis-stage inputs, 2 November 2026  
+**Evidence:** `src/pipeline.js` at `main` `db2aded`: Surface Map tally (around lines 600–607), Adversarial Probe tally (around lines 713–717), Comparator counts (around lines 797–799), stress trigger patterns (around lines 98–112)
+
+**Limitation:** The Board's dominant signal is computed twice within one run, by two different rules, and each result is supplied to a different stage.
+
+- **Surface Map path.** Counts PROCEED / CAUTION / HALT from each Director's `**Recommendation Signal**`, then applies: HALT if strictly greater than both other counts; otherwise CAUTION if greater than or equal to both; otherwise PROCEED if any PROCEED; otherwise MIXED. The result is injected to the Surface Map as `AUTHORITATIVE SIGNAL COUNTS ... DOMINANT SIGNAL`.
+- **Adversarial Probe path.** Recounts with an equivalent pattern, sorts the counts in descending order, and takes the first entry. Ties are resolved by the order in which signals first appear in Director result order, not by any governance rule. Where no signal is parsed, the Probe receives `UNKNOWN`; the Surface Map path yields `MIXED`.
+
+On any tied count the two stages can be told different dominant signals. Example: two PROCEED and two CAUTION, with the first Director reporting PROCEED. The Surface Map is told CAUTION; the Probe is told PROCEED and directs its challenge against proceeding.
+
+A related divergence: `shouldRunStressTest` extracts signals with a third, more permissive pattern set, including a bare `**HALT**` anywhere in a Director's output. Its HALT and CAUTION counts can therefore differ from the authoritative tally. This affects whether the Stress Test runs, not the dominant signal, and is recorded here rather than as a separate entry because it shares the same root cause: no single signal-extraction function.
+
+**Policy observation (not a defect claim):** The Surface Map rule resolves a PROCEED–HALT tie with fewer CAUTION signals to PROCEED, for example four PROCEED, four HALT and one CAUTION. Whether this is the intended governance semantics is a Protocol Authority decision. It is recorded here so that a consistency fix is not mistaken for a decision on tie semantics.
+
+**Consequence:** In tied runs, the direction of the Adversarial Probe (the Deliberate Advocacy direction) can be set by Director execution order rather than by the Board's recorded tally, and the Governance Record can be internally inconsistent: the Surface Map reports one dominant signal while the Probe challenges another. Any claim that the Probe's direction is computed deterministically from the authoritative tally holds only for untied runs.
+
+**Known affected records:** None established. The single complete run stored in this repository (`tests/fixtures/calibration/DR-20260926-204324-a2e644`, 11 CAUTION / 2 HALT) is untied and unaffected. The external 58-run development corpus has not been checked. Affected historical runs can be identified by recomputing both rules from the stored Director signals; a tie under the Surface Map rule is necessary but not sufficient, since divergence also depends on Director order.
+
+**Containment:** For any historical run with tied signal counts, qualify the Probe's challenge direction before citing it as evidence of the Deliberate Advocacy Principle. Do not describe the Probe direction as tally-derived in transfer or publication material until closure evidence exists.
+
+**Closure evidence:** One shared signal-extraction and tally function used by the Surface Map, Adversarial Probe and Comparator; regression tests demonstrating identical dominant signals across stages for tied and signal-free inputs; a recorded Protocol Authority disposition on tie semantics; and a separate disposition on whether the stress trigger adopts the shared extractor.
+
+**Implementation:** Separate PR. Not authorised by this register change.
+
+**Transfer implication:** The Probe's challenge direction is reliable as a tally-derived property only where Director signal counts are untied, until the shared-tally fix is merged and verified.
+
+---
+
 ## Pre-pilot verification versus pilot human-factors evaluation
 
 **Pre-pilot technical checks:** (1) Track an npm-generated `package-lock.json`, use `npm ci` from a clean clone and record an unmodified-tree provenance build; (2) complete the actual synthetic Governance capture/export integration check and its CLI verification, acknowledging L-09; (3) demonstrate in the actual UI that L-01/L-02/L-08/L-11 disclosures are visible, unambiguous and readily accessible; and (4) update the canonical register and evidence record. These checks do **not** constitute Gate A acceptance.
@@ -348,4 +381,4 @@ Outstanding verification and update triggers before Gate A exit:
 - **Operator transfer:** Any missing operational knowledge discovered while drafting the Gate B Operator Guide or in the stranger test must be logged and assessed; Gate B findings must not be retrospectively described as Gate A validation.
 - **UI disclosure:** Verify that the transfer-facing limitations are intelligible and accessible in the actual UI; this register alone does not establish UI disclosure.
 
-**Protocol Authority review questions:** Are L-01–L-17 accurately characterised? Are there documented, evidenced omissions? Which open items are transfer blockers versus accepted limitations? Do not mark the register or Gate A exit COMPLETE before these questions are disposed of.
+**Protocol Authority review questions:** Are L-01–L-18 accurately characterised? Are there documented, evidenced omissions? Which open items are transfer blockers versus accepted limitations? Do not mark the register or Gate A exit COMPLETE before these questions are disposed of.
