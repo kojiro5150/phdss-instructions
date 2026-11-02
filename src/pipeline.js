@@ -2,6 +2,7 @@ import { STRESS_KEYWORDS, RUNTIME_CONTRACT, LEDGER_SCHEMA } from "./constants.js
 import { DIRECTORS } from "./registry.js";
 import { resolveActiveDirectors } from "./governance-rules.js";
 import { safeMatch, findSignal, extractFirstJsonObject } from "./parsers.js";
+import { tallyDirectorSignals } from "./signal-tally.js";
 import { stripCalibrationBleed, deduplicateSections } from "./text-utils.js";
 import { buildCoverageNote } from "./coverage.js";
 import {
@@ -308,9 +309,9 @@ export function buildLedgerRecord(input,runtime) {
     omitted_directors:omittedDir.map(function(d){return d.id;}),
     question:input.decision, decision_signal:input.decisionSignal, org_context:input.orgContext,
     web_search_enabled:input.webSearch, docs_loaded:(input.totalLoadedDocs||0)+((input.sessionEvidence||[]).filter(function(e){return e.content;}).length),
-    proceed_count:results.filter(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(PROCEED)/,1)==="PROCEED";}).length,
-    caution_count:results.filter(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(CAUTION)/,1)==="CAUTION";}).length,
-    halt_count:results.filter(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(HALT)/,1)==="HALT";}).length,
+    proceed_count:tallyDirectorSignals(results).proceed,
+    caution_count:tallyDirectorSignals(results).caution,
+    halt_count:tallyDirectorSignals(results).halt,
     decision_brief_status:decisionBriefStatus,
     epistemic_score:(function(){
       var m=(input.epistemicOut||"").match(/\*\*Epistemic Health Score\*\*:?\s*(STRONG|ADEQUATE|WEAK|COMPROMISED)/i);
@@ -598,12 +599,15 @@ export async function runGovernancePipeline(config,runtime,emit) {
       return brief?"### "+d.label+"\n"+formatBriefForSynthesis(brief,d.output):"### "+d.label+"\n"+d.output;
     }).join("\n\n");
 
-    var proceed=state.results.filter(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(PROCEED)/,1)==="PROCEED";}).length;
-    var caution=state.results.filter(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(CAUTION)/,1)==="CAUTION";}).length;
-    var halt=state.results.filter(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(HALT)/,1)==="HALT";}).length;
-    var notApplicable=state.results.filter(function(r){return /NOT APPLICABLE/i.test(r.output)&&!safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(PROCEED|CAUTION|HALT)/i,1);}).length;
-    var undefinedCount=state.results.length-proceed-caution-halt-notApplicable;
-    var dominant=(halt>caution&&halt>proceed)?"HALT":(caution>=halt&&caution>=proceed)?"CAUTION":(proceed>0)?"PROCEED":"MIXED";
+    // L-18: one tally per run, shared by every stage told the dominant signal or counts.
+    var signalTally=tallyDirectorSignals(state.results);
+    state.signalTally=signalTally;
+    var proceed=signalTally.proceed;
+    var caution=signalTally.caution;
+    var halt=signalTally.halt;
+    var notApplicable=signalTally.notApplicable;
+    var undefinedCount=signalTally.undefinedCount;
+    var dominant=signalTally.dominant;
     var signalCountNote="\n\n[AUTHORITATIVE SIGNAL COUNTS — use these exact figures in your Signal Tally, do not recount from text: "+proceed+" PROCEED / "+caution+" CAUTION / "+halt+" HALT"+(notApplicable>0?" / "+notApplicable+" NOT APPLICABLE":"")+(undefinedCount>0?" / "+undefinedCount+" UNDEFINED":"")+". Total directors: "+state.results.length+". DOMINANT SIGNAL: "+dominant+" — use exactly this single word for the Dominant Signal field, not a compound like HALT/CAUTION. NOT APPLICABLE means the Director correctly determined the proposal is outside their mandate — do not count as PROCEED.]";
 
     try {
@@ -711,9 +715,7 @@ export async function runGovernancePipeline(config,runtime,emit) {
 
     try {
       stageEmitter(emit,"probe",true);
-      var sigs=state.results.map(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(PROCEED|CAUTION|HALT)/,1);}).filter(Boolean);
-      var sigCounts=sigs.reduce(function(a,s){return Object.assign({},a,{[s]:(a[s]||0)+1});},{});
-      var dominantSignal=(Object.entries(sigCounts).sort(function(a,b){return b[1]-a[1];})[0]||[])[0]||"UNKNOWN";
+      var dominantSignal=signalTally.dominant;
       var probePrompt=adversarialProbeSystem(dominantSignal,config.analysisMode,activeDir,config.instructions);
       var probeUser="Decision: "+config.decision+"\n\nAll Director Governance Briefs:\n"+briefSummary+"\n\nMETA-AUTHOR Synthesis:\n"+state.metaOut+"\n\nReality Anchor:\n"+state.realityAnchorOut;
       await beginProvenance("adversarial_probe","synthesis",null,probePrompt+authorityBoundaryPrompt("adversarial_probe"),probeUser,false);
@@ -794,9 +796,9 @@ export async function runGovernancePipeline(config,runtime,emit) {
       skipProvenance("comparator","required upstream stage chair failed");
     } else {
       try {
-        var pCount=state.results.filter(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(PROCEED)/,1)==="PROCEED";}).length;
-        var cCount=state.results.filter(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(CAUTION)/,1)==="CAUTION";}).length;
-        var hCount=state.results.filter(function(r){return safeMatch(r.output,/\*\*Recommendation Signal\*\*:?[^A-Z]*(HALT)/,1)==="HALT";}).length;
+        var pCount=signalTally.proceed;
+        var cCount=signalTally.caution;
+        var hCount=signalTally.halt;
         var killSwitchHints=(function(){
           var hints=[];
           var measureDir=state.results.find(function(r){return r.id==="measurement";});
