@@ -333,7 +333,9 @@ A related divergence: `shouldRunStressTest` extracts signals with a third, more 
 
 **Consequence:** In tied runs, the direction of the Adversarial Probe (the Deliberate Advocacy direction) can be set by Director execution order rather than by the Board's recorded tally, and the Governance Record can be internally inconsistent: the Surface Map reports one dominant signal while the Probe challenges another. Any claim that the Probe's direction is computed deterministically from the authoritative tally holds only for untied runs.
 
-**Known affected records:** None established. The single complete run stored in this repository (`tests/fixtures/calibration/DR-20260926-204324-a2e644`, 11 CAUTION / 2 HALT) is untied and unaffected. The external 58-run development corpus has not been checked. Affected historical runs can be identified by recomputing both rules from the stored Director signals; a tie under the Surface Map rule is necessary but not sufficient, since divergence also depends on Director order.
+**Known affected records:** Four probable, in the external 58-run development corpus (`phdss-corpus-2026-03-30-v2`; see L-23): `DR-20260329-185438-a14b53`, `DR-20260329-202150-8b36b4`, `DR-20260329-225548-e43923` and `DR-20260330-174621-01585f`. Each records 0 PROCEED / 6 CAUTION / 6 HALT. Under the Surface Map rule the dominant signal is CAUTION; in each run the Probe's Strongest Counter-Argument explicitly challenges a HALT signal. The divergent rules are present in the earliest repository copy of the application (`0512e48`, 22 March 2026), which predates all four runs. Classification is *probable*, not confirmed: the corpus does not store Surface Map output, so the dominant signal the Surface Map actually received cannot be read from the record. Three of the four are among the 17 challenged-Probe / conditional-approval cases used as historical Chair evidence and must be analysed as a separate stratum.
+
+Checked and not classified as affected: `DR-20260308-225832-9f3c90` (0 / 2 / 2) predates the earliest repository copy and its Probe challenges caution, consistent with the Surface Map rule; `DR-20260309-191131-1082b9` records 0 / 0 / 0 while its Probe refers to unanimous CAUTION/DEFER signals from fourteen Directors, which indicates a tally-parse failure (L-23), not a tie. The single complete run stored in this repository (`tests/fixtures/calibration/DR-20260926-204324-a2e644`, 11 CAUTION / 2 HALT) is untied and unaffected.
 
 **Containment:** For any historical run with tied signal counts, qualify the Probe's challenge direction before citing it as evidence of the Deliberate Advocacy Principle. Do not describe the Probe direction as tally-derived in transfer or publication material until closure evidence exists.
 
@@ -433,6 +435,60 @@ The second is not a function of the first. A single HALT among thirteen Director
 
 ---
 
+## L-22 — Adversarial Probe challenge direction is instructed, not enforced
+
+**Classification:** Deliberative-architecture defect (Deliberate Advocacy Principle)  
+**Status:** OPEN  
+**Component:** `probe.md` (The Strongest Counter-Argument; explicit direction rule present since `4d42ff8`, 15 March 2026); `src/prompt-builders.js` (`adversarialProbeSystem`, dominant signal appended as prompt text); `src/pipeline.js` (Probe stage records success whenever output is present)  
+**Discovered:** Corpus case review, 3 November 2026; characterised 8 November 2026  
+**Baseline:** `53a6345`
+
+**Limitation:** The dominant signal is computed in code (L-18) and supplied to the Probe, and `probe.md` instructs the Probe to argue against it: "If HALT or CAUTION: make the strongest case for proceeding or piloting". Nothing checks that the Probe's output does so. A Probe that reinforces the dominant signal is recorded as a successful stage and its challenge is forwarded to the Chair as the adversarial challenge, with no flag.
+
+**Evidence:** In the 17 historical challenged-Probe / conditional-approval cases (L-23 corpus), all run after the explicit rule was introduced, four Probes argue primarily in the same direction as a CAUTION or HALT Board rather than against it: `DR-20260321-161316-90e56d`, `DR-20260321-164745-682352`, `DR-20260321-172410-1bc651` and `DR-20260330-174621-01585f`. One, `DR-20260329-212134-6a05ce`, is mixed. Classification is a developer-assisted reading of each Strongest Counter-Argument opening, not independent adjudication, and the remaining 41 corpus runs were not assessed.
+
+**Consequence:** The Deliberate Advocacy Principle holds as designed intent only. Its direction is code-derived, but compliance with that direction is model-dependent. A record can show a mandatory adversarial challenge that does not challenge the Board's direction, which weakens the anti-convergence function the Probe exists to provide. This is an instance of the instructed level of assurance in the control-assurance taxonomy.
+
+**Fixture:** `test/verify-probe-direction-characterisation.js` runs the pipeline with a CAUTION Board and a synthetic Probe output that reinforces caution, and asserts the observed behaviour: the Probe was told CAUTION, the stage is recorded as `success`, the reinforcing challenge reaches the Chair, and no direction flag is recorded.
+
+**Containment:** Do not cite a Probe's presence as evidence that the dominant direction was challenged. When using historical Probe outputs as evidence of Deliberate Advocacy, read the Strongest Counter-Argument for direction.
+
+**Closure evidence:** A Protocol Authority decision on whether challenge direction is enforced, detected or accepted as instructed; if detected, a calibrated challenge set with recorded precision and misses; the characterisation test updated in the same change.
+
+**Implementation:** Separate PR. Not authorised by this register change.
+
+**Transfer implication:** The Probe's direction is reliable as an input, not as a property of its output.
+
+---
+
+## L-23 — Historical 58-run corpus: incomplete stage text and unreliable narrative figures
+
+**Classification:** Evaluation-evidence limitation (historical corpus)  
+**Status:** OPEN — documentation  
+**Component:** External corpus `phdss-corpus-canonical-58runs.json`, `corpus_version` `phdss-corpus-2026-03-30-v2`, SHA-256 `6b89d7162858072e88f561e266aa3c00789a4552b01369ddfd1332ae1633e80b`. Not stored in this repository.  
+**Discovered:** Corpus inspection, 3 and 8 November 2026
+
+**Limitation:** The corpus is the historical baseline evidence for the Chair authority finding, but it has four properties that bound what it can show.
+
+1. **Incomplete stage text.** Each record stores META, Epistemic Audit, Adversarial Probe, Stress Test, Chair and Comparator output. It does not store Director outputs, the Surface Map or the Reality Anchor (one record holds Director signals). The historical Chair's inputs therefore cannot be reconstructed, and a frozen replay of the historical Chair on its original inputs is not possible.
+2. **Narrative figures can contradict recorded tallies.** Example: `DR-20260329-202150-8b36b4` records 0 / 6 / 6, while its Comparator narrative states that eight of twelve Directors issued HALT. At the time the Comparator did not receive authoritative counts. Figures in model-written narrative must be checked against stored counts before citation.
+3. **Tally-parse failure.** `DR-20260309-191131-1082b9` records 0 / 0 / 0 while its Probe refers to unanimous CAUTION/DEFER signals.
+4. **Repeated scenarios.** The 58 records contain 24 distinct question strings (22 after normalising case and whitespace), with further wording variants of the same underlying question. Records are not independent observations.
+
+**Reconciliation of published figures:** The GE paper's 76% (no PROCEED) and 83% (at least one HALT) use all 58 records: 44/58 and 48/58. The BOA paper's 75% and 82%, and the 33/48 conditional-approval figure, use 57 records, excluding `DR-20260321-184441-3fd8e9` (index 39, Epistemic Audit COMPROMISED): 43/57 (75.4%), 47/57 (82.5%) and 33 of 48 non-null Chair recommendations. With all 58 records the Chair figure is 34/49. The difference is denominator and rounding, not error; any citation should state which denominator is used.
+
+**Consequence:** The corpus supports descriptive claims about historical outputs. It does not support replay of historical stages, claims resting on narrative figures, or statistics that treat runs as independent.
+
+**Fixture:** Not applicable; the evidence is the external corpus identified above by version and hash.
+
+**Containment:** Cite corpus statistics with their denominator and the effective number of distinct scenarios. For the Chair before-and-after, re-run scenarios through the current pipeline to capture full upstream text, then compare Chair contracts on identical inputs.
+
+**Closure evidence:** Not closable by implementation. The entry is maintained as a standing qualification on historical-corpus evidence.
+
+**Transfer implication:** The corpus is baseline evidence of historical behaviour, not a replayable evaluation set.
+
+---
+
 ## Pre-pilot verification versus pilot human-factors evaluation
 
 **Pre-pilot technical checks:** (1) Track an npm-generated `package-lock.json`, use `npm ci` from a clean clone and record an unmodified-tree provenance build; (2) complete the actual synthetic Governance capture/export integration check and its CLI verification, acknowledging L-09; (3) demonstrate in the actual UI that L-01/L-02/L-08/L-11 disclosures are visible, unambiguous and readily accessible; and (4) update the canonical register and evidence record. These checks do **not** constitute Gate A acceptance.
@@ -469,4 +525,4 @@ Outstanding verification and update triggers before Gate A exit:
 - **Operator transfer:** Any missing operational knowledge discovered while drafting the Gate B Operator Guide or in the stranger test must be logged and assessed; Gate B findings must not be retrospectively described as Gate A validation.
 - **UI disclosure:** Verify that the transfer-facing limitations are intelligible and accessible in the actual UI; this register alone does not establish UI disclosure.
 
-**Protocol Authority review questions:** Are L-01–L-21 accurately characterised? Are there documented, evidenced omissions? Which open items are transfer blockers versus accepted limitations? Do not mark the register or Gate A exit COMPLETE before these questions are disposed of.
+**Protocol Authority review questions:** Are L-01–L-23 accurately characterised? Are there documented, evidenced omissions? Which open items are transfer blockers versus accepted limitations? Do not mark the register or Gate A exit COMPLETE before these questions are disposed of.
