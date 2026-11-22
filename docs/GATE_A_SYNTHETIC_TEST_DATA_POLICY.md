@@ -31,7 +31,7 @@ Do not enter, upload, paste, link for ingestion, or otherwise submit:
 - Confidential live institutional decisions, incident reports, internal correspondence or unpublished service material without separate authority.
 - Informally supplied real cases, screenshots, exports or attachments containing any of the above.
 - Credentials, access tokens, private URLs, or other secrets.
-- Material labelled 'de-identified' where contextual detail, rare events, dates or combinations of attributes could reasonably reveal a person or confidential case.
+- Any material derived from a specific real case, including material labelled 'de-identified', however well anonymised (see Section 1).
 
 An operator must not treat an LLM's assurance that material is anonymous as evidence of de-identification.
 
@@ -55,7 +55,7 @@ Generated outputs can repeat input text, infer apparently specific facts, or con
 - Store and share artefacts only in the designated project/evaluation location with access restricted to authorised participants. Do not place restricted material in public repositories, issues, PRs or demonstration links.
 - Review artefacts before export or publication for accidental personal, confidential or secret material.
 - Record which artefacts were produced and where they were stored; do not assume exports or browser downloads are centrally retained or automatically deleted.
-- Retain only what is necessary to reproduce the evaluation and its audit trail. The evaluator must record the chosen retention location, responsible custodian and deletion/review date before transfer. **No universal retention period or automatic deletion mechanism is established here.**
+- Retain only what is necessary to reproduce the evaluation and its audit trail. The evaluator must record the chosen retention location, responsible custodian and deletion/review date before the first internal live RC2 run. **No universal retention period or automatic deletion mechanism is established here.**
 - Delete unintended local copies and record any exception under a documented handling arrangement established **before the first internal live RC2 run** (see Sections 7 and 10). Do not claim deletion from model providers or external services without evidence.
 
 ## 6. External services and provider handling
