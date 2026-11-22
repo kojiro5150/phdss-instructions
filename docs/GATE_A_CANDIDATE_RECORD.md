@@ -17,7 +17,7 @@ This record freezes a transfer candidate and sets out the evidence against each 
 | 1 | Freeze `7649eb4ed5f07072a29a7c5758040d2f9ecd9828` as the Gate A transfer candidate | APPROVED |
 | 2 | L-14 compensating controls (§5) | ACCEPTED with amendments (now incorporated) |
 | 3 | Gate A closure route | **C: remain OPEN.** No exception-based closure authorised |
-| 4 | Release-candidate tag `v3.0.0-gateA-rc1` | AUTHORISED subject to verifying the exact target commit. **Held: see §7** |
+| 4 | Release-candidate tag `v3.0.0-gateA-rc1` | AUTHORISED conditionally, **DEFERRED** by Protocol Authority until live Governance export testing, UI disclosure inspection, and review are completed (§9); exact target commit must be verified before tagging |
 | 5 | CI validation and controlled live Governance export testing | AUTHORISED as verification activities, not deployment approval |
 | 6 | L-18 and L-21 | PENDING evidence-based disposition |
 | 7 | Transfer or deployment | NOT AUTHORISED |
@@ -146,7 +146,7 @@ The register is in Review Candidate status and is not accepted as Gate A-complet
 
 | # | Criterion | Status | Basis |
 |---|---|---|---|
-| 1 | Clean, versioned, tagged release build | NOT MET | Candidate frozen; release tag held (below) |
+| 1 | Clean, versioned, tagged release build | NOT MET | Candidate frozen; release tag deferred by Protocol Authority pending live export testing, UI inspection, and review (§9) |
 | 2 | `npm run validate` passes unmodified | MET at candidate commit; re-verify at tag | §4.1 (CI and local) |
 | 3 | Limitations register complete and accurate | NOT MET | Not accepted; L-13, L-14, L-19, L-20, L-22, L-23 OPEN; L-18, L-21 pending disposition |
 | 4 | Synthetic-only test-data policy | MET | §6 |
@@ -156,7 +156,7 @@ The register is in Review Candidate status and is not accepted as Gate A-complet
 
 **Does QUALIFIED satisfy Gate A?** No. `GATE_A_ENTRY.md` §4 requires every criterion to be "demonstrably met" and defines no qualified closure. Route C was selected accordingly.
 
-**Release tag held.** Decision 4 authorises the tag. `GATE_A_TRANSFER_CANDIDATE_VALIDATION_PROTOCOL.md` §2.8 says to tag only after the full validation sequence (including the Governance export test and UI inspection) and Protocol Authority review, and not in a documentation PR. That protocol is still marked DRAFT. Its sequence conflicts with tagging now, so the tag is held for Protocol Authority confirmation. Target verified: `7649eb4ed5f07072a29a7c5758040d2f9ecd9828`.
+**Release tag held.** Decision 4 authorises the tag. `GATE_A_TRANSFER_CANDIDATE_VALIDATION_PROTOCOL.md` §2.8 says to tag only after the full validation sequence (including the Governance export test and UI inspection) and Protocol Authority review, and not in a documentation PR. That protocol is still marked DRAFT. The Protocol Authority confirmed on 22 November 2026 that tagging is deferred until the live Governance export test, UI disclosure inspection, and review are completed (§9); this is an explicit decision, not an approval of the draft protocol. Target verified: `7649eb4ed5f07072a29a7c5758040d2f9ecd9828`.
 
 **CI on a tag.** The workflow triggers on pushes to `main` and `v2.0` and on pull requests to `main`. It has no tag or manual trigger. A tag push will not run CI unless the workflow is changed, which this PR does not do.
 
@@ -168,7 +168,7 @@ The register is in Review Candidate status and is not accepted as Gate A-complet
 
 | Action | Owner | Status |
 |---|---|---|
-| Confirm tag timing (now, or after protocol §2 steps 5 to 7) | Protocol Authority | Pending |
+| Create release-candidate tag only after live Governance export testing, UI disclosure inspection, and review are completed, with exact target verified | Engineering, subject to Protocol Authority decision in §9 | DEFERRED; prerequisites outstanding |
 | Governance end-to-end export test per protocol §3 | Protocol Authority (operator) | Authorised, not run |
 | jsDelivr half of control 4 | Anyone with unrestricted network | Outstanding |
 | UI disclosure inspection | Protocol Authority or reviewer | Not run |
