@@ -182,9 +182,14 @@ export async function verifyGovernanceProvenance({manifest,stageRecords,expected
           ||e.model_settings.max_tokens!==16000||e.model_settings.temperature!==0.8||e.model_settings.web_search!==false
           ||!e.system_prompt||!e.user_message)
           fail("compression model request metadata incomplete: "+ref.event_id);
-        if(!["success","rejected"].includes(e.status))fail("invalid model compression status: "+ref.event_id);
+        if(e.phase==="request"){
+          if(e.status!=="pending"||e.selected||e.raw_response!==null||e.final_response!==null)
+            fail("invalid pre-call compression request event: "+ref.event_id);
+        }else if(e.phase==="result"){
+          if(!["success","rejected"].includes(e.status))fail("invalid model compression result status: "+ref.event_id);
+        }else fail("invalid model compression phase: "+ref.event_id);
       }else if(e.mode==="deterministic"){
-        if(e.status!=="fallback"||!e.selected||e.model!==null)
+        if(e.status!=="fallback"||e.phase!=="fallback"||!e.selected||e.model!==null)
           fail("invalid deterministic fallback: "+ref.event_id);
       }else fail("invalid compression mode: "+ref.event_id);
       if(e.selected&&(e.final_response==null||!e.final_response.length))
@@ -212,10 +217,22 @@ export async function verifyGovernanceProvenance({manifest,stageRecords,expected
       else if(selected.length===1&&resultsByParent.get(parent)!==selected[0].final_response_sha256)
         fail("selected compression output differs from consumed brief: "+parent);
       if(list.length){
-        const modeled=list.filter(x=>x.mode==="model");
-        for(let i=0;i<modeled.length;i++){
-          if(modeled[i].attempt_index!==i+1)fail("missing or out-of-order compression attempt: "+parent);
+        const requests=list.filter(x=>x.mode==="model"&&x.phase==="request");
+        const responses=list.filter(x=>x.mode==="model"&&x.phase==="result");
+        if(requests.length!==responses.length)fail("compression request/result pairing incomplete: "+parent);
+        for(let i=0;i<requests.length;i++){
+          const req=requests[i],res=responses.find(x=>x.attempt_index===req.attempt_index);
+          if(req.attempt_index!==i+1||!res||list.indexOf(req)>=list.indexOf(res)){
+            fail("missing or out-of-order compression attempt: "+parent);continue;
+          }
+          if(req.system_prompt_sha256!==res.system_prompt_sha256
+            ||req.user_message_sha256!==res.user_message_sha256
+            ||req.source_output_sha256!==res.source_output_sha256
+            ||req.model!==res.model||JSON.stringify(req.model_settings)!==JSON.stringify(res.model_settings))
+            fail("compression request/result input identity mismatch: "+parent);
         }
+        for(const res of responses)if(!requests.some(x=>x.attempt_index===res.attempt_index))
+          fail("compression result lacks preceding request: "+parent);
         if(list[list.length-1].selected!==true)fail("compression selected event not final: "+parent);
       }
     }
