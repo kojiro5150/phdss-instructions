@@ -1,6 +1,6 @@
 # Gate A — Transfer-Readiness Entry Record
 
-**Status:** OPEN — entry conditions partially met; outstanding requirements listed  
+**Status:** OPEN — entry conditions partially met; outstanding requirements listed; candidate frozen 22 Nov 2026 (closure route C)  
 **Date opened:** 10 October 2026  
 **Gate A question:** Is the technical and evidentiary baseline stable enough to hand over?  
 **Required result:** Frozen build, provenance, validation, limitations, data policy
@@ -64,13 +64,13 @@ Advisory provenance tests do not on their own establish Governance-mode provenan
 
 | Requirement | Status | Notes |
 |---|---|---|
-| Frozen build (tagged release) | NOT YET | v2.0.0 tag exists; no post-v2 release tag |
-| Limitations register complete | IN PROGRESS | `docs/LIMITATIONS_REGISTER.md` opened with this PR |
-| Synthetic-only test-data policy documented | NOT YET | Policy must be written and explicit |
-| Transfer-candidate validation run | NOT YET | Clean `npm run validate` on frozen tagged build |
+| Frozen build (tagged release) | PARTIAL | Candidate `7649eb4` frozen by Protocol Authority 22 Nov 2026; release tag `v3.0.0-gateA-rc1` authorised, not yet created. See `docs/GATE_A_CANDIDATE_RECORD.md` |
+| Limitations register complete | REVIEW CANDIDATE | Not yet accepted as Gate A-complete; L-13, L-14, L-19, L-20, L-22, L-23 OPEN; L-18, L-21 pending Protocol Authority disposition |
+| Synthetic-only test-data policy documented | MET | `docs/GATE_A_SYNTHETIC_TEST_DATA_POLICY.md` (PR #81) |
+| Transfer-candidate validation run | PARTIAL | Validate and build pass at `7649eb4`; Governance end-to-end export and UI inspection not run |
 | Known limitations disclosed in UI | PARTIAL | Scanner warning semantics disclosed; participation status interim disclosure in place |
-| `npm run validate` passing on frozen build | NOT VERIFIED | Must be verified at the tagged commit |
-| Governance-mode provenance parity | NOT VERIFIED | Advisory provenance tests do not establish Governance parity; requires specific verification |
+| `npm run validate` passing on frozen build | PASS at candidate commit; re-verify at tag | CI success on `7649eb4` (2 Nov 2026) and clean local run (22 Nov 2026) |
+| Governance-mode provenance parity | NOT VERIFIED | L-14 OPEN and QUALIFIED; live export test not run |
 
 **Gate B requirements** (not Gate A blockers; required before Gate B closes):
 
@@ -128,3 +128,4 @@ Decision Ledger work may proceed in parallel with Gate A documentation completio
 | 2026-10-10 | Pre-Gate tranche closed at F01 by Protocol Authority decision |
 | 2026-10-10 | Branch tidy: 3 branches merged, 3 experiment branches closed without merge |
 | 2026-10-10 | Gate A entry record opened (this document) |
+| 2026-11-22 | Candidate `7649eb4` frozen; L-14 controls accepted; closure route C selected; §2 status table reconciled (exit criteria unchanged). See `docs/GATE_A_CANDIDATE_RECORD.md` |
