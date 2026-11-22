@@ -10,11 +10,14 @@ const DIGITAL=["ai","artificial intelligence","machine learning","algorithm","au
 const POLICY=["minister","ministerial","government","legislation","regulation","statutory","compliance","public accountability","parliament","parliamentary","mandated change","policy reform","governance obligation"];
 const ECON=["budget","cost","savings","affordability","efficiency","return on investment","roi","value for money","funding","expenditure","allocation","business case","financial pressure","procurement","investment"];
 
+const PIN_LIVED="94c5851146d849957af9610935a85f674c6ab05d";
+const PIN_BASELINE="22b662999e01462fc4008446885a38df2cf735ad";
+const expectedSourceForFile=(file,overrides)=>overrides&&overrides[file]||((file==="lived.md")?PIN_LIVED:PIN_BASELINE);
 const sha=v=>crypto.createHash("sha256").update(Buffer.from(String(v??""),"utf8")).digest("hex");
 const sameSet=(a,b)=>a.length===b.length&&a.every(x=>b.includes(x));
 function adaptive(text){const s=String(text||"").toLowerCase();if(AI.some(k=>s.includes(k)))return"digital";const d=DIGITAL.some(k=>s.includes(k));const e=ECON.some(k=>s.includes(k));if(d&&e)return"economics";if(d)return"digital";if(POLICY.some(k=>s.includes(k)))return"policy";if(e)return"economics";return"behaviour";}
 
-export async function verifyGovernanceProvenance({manifest,stageRecords,expectedDeployment=null,repoSlug="kojiro5150/phdss-instructions",sourceLoader=null,ledgerDocument=null}){
+export async function verifyGovernanceProvenance({manifest,stageRecords,expectedDeployment=null,repoSlug="kojiro5150/phdss-instructions",sourceLoader=null,ledgerDocument=null,compressionEvents=[],expectedInstructionSources=null}){
   const failures=[],stages=[],fail=m=>failures.push(m);
   const by={};for(const r of stageRecords){if(by[r.stage_id]){fail("duplicate stage record: "+r.stage_id);continue;}by[r.stage_id]=r;}
 
@@ -41,19 +44,22 @@ export async function verifyGovernanceProvenance({manifest,stageRecords,expected
     expectedOmitted=ALL.filter(id=>!expectedActive.includes(id));
   }catch(e){modeDerivationError=e.message;}
 
-  async function sourceHash(record,file){
+  async function sourceHash(record,file,sourceCommit){
     if(record.instruction_normalization_version!=="trim_v1") throw new Error("unsupported normalization");
     let text;
-    if(sourceLoader) text=await sourceLoader(record.instruction_commit,file);
+    if(sourceLoader) text=await sourceLoader(sourceCommit||record.instruction_commit,file);
     else{
-      const res=await fetch("https://raw.githubusercontent.com/"+repoSlug+"/"+record.instruction_commit+"/"+file);
+      const res=await fetch("https://raw.githubusercontent.com/"+repoSlug+"/"+(sourceCommit||record.instruction_commit)+"/"+file);
       if(!res.ok) throw new Error("source unavailable");
       text=await res.text();
     }
     return sha(String(text).trim());
   }
 
-  if(manifest.schema!=="phdss.governance-provenance.v1") fail("unsupported manifest schema");
+  const isRC2=manifest.schema==="phdss.governance-provenance.v2";
+  if(!isRC2&&manifest.schema!=="phdss.governance-provenance.v1") fail("unsupported manifest schema");
+  if(isRC2&&!Array.isArray(manifest.compression_events))fail("RC2 manifest missing compression references");
+  if(isRC2&&(!manifest.instruction_sources||typeof manifest.instruction_sources!=="object"))fail("RC2 manifest missing instruction source records");
   if(manifest.run_type!=="GOVERNANCE") fail("manifest run_type must be GOVERNANCE");
   if(expectedDeployment&&manifest.deployment_commit!==expectedDeployment) fail("deployment commit mismatch");
 
@@ -63,7 +69,8 @@ export async function verifyGovernanceProvenance({manifest,stageRecords,expected
     if(!r){stages.push({stage_id:ref.stage_id,stage_provenance_status:"INVALID",reason:"missing record"});fail("manifest references missing stage record: "+ref.stage_id);continue;}
     let reason=null;
     const stageSchema=r.schema;
-    if(stageSchema!=="phdss.governance-stage-provenance.v1"&&stageSchema!=="phdss.governance-stage-provenance.v2") reason="unsupported stage schema";
+    if(stageSchema!=="phdss.governance-stage-provenance.v1"&&stageSchema!=="phdss.governance-stage-provenance.v2"&&stageSchema!=="phdss.governance-stage-provenance.v3") reason="unsupported stage schema";
+    if(!reason&&isRC2&&stageSchema!=="phdss.governance-stage-provenance.v3")reason="RC2 stage must use v3 source attribution schema";
     else if(r.decision_id!==manifest.decision_id) reason="decision_id mismatch";
     else if(r.deployment_commit!==manifest.deployment_commit) reason="deployment commit mismatch";
     else if(r.instruction_commit!==manifest.instruction_commit) reason="instruction commit mismatch";
@@ -86,7 +93,7 @@ export async function verifyGovernanceProvenance({manifest,stageRecords,expected
     // v2 schema: validate raw_output hash and transform fields on successful stages.
     // raw_output must not be null on a successful stage — null is only valid for
     // skipped or failed stages where output capture did not occur.
-    if(!reason&&stageSchema==="phdss.governance-stage-provenance.v2"&&r.status==="success"){
+    if(!reason&&(stageSchema==="phdss.governance-stage-provenance.v2"||stageSchema==="phdss.governance-stage-provenance.v3")&&r.status==="success"){
       if(r.raw_output==null) reason="v2 successful stage has null raw_output";
       else if(r.raw_output_sha256!==sha(r.raw_output)) reason="raw_output hash mismatch";
       else if(r.output_transform==null) reason="v2 stage missing output_transform";
@@ -95,7 +102,7 @@ export async function verifyGovernanceProvenance({manifest,stageRecords,expected
     if(!reason){
       for(let i=0;i<r.instruction_files.length;i++){
         try{
-          if(await sourceHash(r,r.instruction_files[i])!==r.instruction_runtime_sha256[i]){reason="instruction source hash mismatch for "+r.instruction_files[i];break;}
+          if(await sourceHash(r,r.instruction_files[i],stageSchema==="phdss.governance-stage-provenance.v3"?r.instruction_source_commits[i]:null)!==r.instruction_runtime_sha256[i]){reason="instruction source hash mismatch for "+r.instruction_files[i];break;}
           sourceVerifiedCount++;
         }catch(e){reason="instruction source unavailable at declared commit for "+r.instruction_files[i];break;}
       }
