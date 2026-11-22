@@ -45,7 +45,7 @@ A structured multi-Director AI reasoning system for institutional decisions. It 
 | `v2.0.0` | Sealed constitutional baseline (`docs/V2_RELEASE.md`) |
 | `eval-baseline-2026-11-03` → `7649eb4` | Evaluation baseline and frozen Gate A candidate. Preserve |
 | `91202fa` (main) | Candidate plus limitation-characterisation docs, tests and fixtures; no runtime change |
-| `v3.0.0-gateA-rc1` | Authorised, not created. Timing awaits Protocol Authority confirmation |
+| `v3.0.0-gateA-rc1` | Conditionally authorised but deferred by Protocol Authority until live Governance export testing, UI disclosure inspection, and review are completed; not created |
 
 ---
 
@@ -107,7 +107,7 @@ Canonical source: `docs/LIMITATIONS_REGISTER.md` at `91202fa` (SHA-256 `56b86295
 
 ## 7. Outstanding decisions (Protocol Authority)
 
-1. Release tag timing: now, or after the protocol §2 validation sequence.
+1. Release tag timing decided 22 November 2026: DEFERRED. Outstanding execution prerequisites are live Governance export testing, UI disclosure inspection, and review; verify exact candidate SHA before creating the tag.
 2. L-18 and L-21 dispositions (L-21 closes on a representation decision, with no numerical split threshold).
 3. Acceptance of the limitations register as Gate A-complete.
 4. Gate A exit, as a separate explicit decision once all seven criteria are demonstrably met.
