@@ -2318,7 +2318,7 @@ function PHDSS() {
   } catch(exportError) {
     window.alert("Governance export blocked: "+(exportError&&exportError.message||String(exportError)));
   }
-}}} style={{padding:"8px 18px",borderRadius:8,border:"1px solid #C4B5FD",background:"#F5F3FF",color:"#6D28D9",fontSize:12,fontWeight:600,cursor:"pointer"}}>Export Provenance</button>}
+}} style={{padding:"8px 18px",borderRadius:8,border:"1px solid #C4B5FD",background:"#F5F3FF",color:"#6D28D9",fontSize:12,fontWeight:600,cursor:"pointer"}}>Export Provenance</button>}
                 {ledger.length>0&&<button onClick={function(){downloadJson("phdss-ledger_"+new Date().toISOString().slice(0,10)+(ledger.length>1?"__"+ledger.length+"_":"")+".json",{schema_version:LEDGER_SCHEMA,generated_at:new Date().toISOString(),record_count:ledger.length,decisions:ledger});}} style={{padding:"8px 18px",borderRadius:8,border:"none",background:"linear-gradient(135deg,#A78BFA,#7C3AED)",color:"#FFFFFF",fontSize:12,fontWeight:600,cursor:"pointer"}}>Export JSON</button>}
               </div>
             </div>
