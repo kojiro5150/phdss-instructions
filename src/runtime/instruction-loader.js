@@ -37,8 +37,17 @@ function runtimeFetch(fetchImpl) {
   throw new Error("fetch is unavailable");
 }
 
+export function instructionSourceCommit(key) {
+  if (!Object.prototype.hasOwnProperty.call(INSTRUCTION_FILES,key)) throw new Error("unknown instruction key: "+key);
+  return key==="lived"?INSTRUCTION_COMMIT:BASELINE_INSTRUCTION_COMMIT;
+}
+
+export function instructionSourceUrl(key) {
+  return (key==="lived"?LIVED_GITHUB_BASE:GITHUB_BASE)+INSTRUCTION_FILES[key];
+}
+
 export async function fetchInstructionFile(key, fetchImpl) {
-  var url = (key === "lived" ? LIVED_GITHUB_BASE : GITHUB_BASE) + INSTRUCTION_FILES[key];
+  var url = instructionSourceUrl(key);
   try {
     var res = await runtimeFetch(fetchImpl)(url);
     if (!res.ok) return null;
@@ -50,12 +59,17 @@ export async function fetchInstructionFile(key, fetchImpl) {
 export async function loadAllInstructions(onProgress, fetchImpl) {
   var keys = Object.keys(INSTRUCTION_FILES);
   var loaded = {};
+  var sources = {};
   var failed = [];
   await Promise.all(keys.map(async function(key) {
     var content = await fetchInstructionFile(key, fetchImpl);
-    if (content) { loaded[key] = content; }
+    if (content) {
+      loaded[key] = content;
+      // Capture the exact immutable commit and URL used by this fetch route.
+      sources[key]={file:INSTRUCTION_FILES[key],commit:instructionSourceCommit(key),url:instructionSourceUrl(key)};
+    }
     else { failed.push(key); }
     if (onProgress) onProgress(Object.keys(loaded).length + failed.length, keys.length);
   }));
-  return { loaded, failed };
+  return { loaded, failed, sources };
 }
