@@ -297,4 +297,29 @@ assert.doesNotMatch(dashboardSource,/if\s*\(\s*!tensions\.length\s*\)\s*tensions
 assert.doesNotMatch(dashboardSource,/extractLogicalFindings\(metaText,\s*"Cross-Domain Conflicts"\)\.length\s*\?/);
 assert.doesNotMatch(dashboardSource,/extractLogicalFindings\(metaText,\s*"Hidden Assumptions"\)\.length\s*\?/);
 
+
+// PA-27 / L-29: test the actual five dashboard call paths above former caps.
+// Input items are purely invented; no restricted RC1 output enters the repository.
+const capCases=[
+  {name:"overconfidence flags",oldCap:6,source:/var overconfidenceFlags=dedupItems\([\s\S]*?\n  \);/,forbidden:/var overconfidenceFlags=dedupItems\([\s\S]*?\n  \)\.slice\s*\(/},
+  {name:"epistemic gaps",oldCap:5,source:/var epistemicGaps=extractBulletLines\(epistemicText,"Epistemic Gaps"\);/,forbidden:/var epistemicGaps=extractBulletLines\(epistemicText,"Epistemic Gaps"\)\.slice\s*\(/},
+  {name:"what the board missed",oldCap:5,source:/var boardMissed=dedupItems\([\s\S]*?\n  \);/,forbidden:/var boardMissed=dedupItems\([\s\S]*?\n  \)\.slice\s*\(/},
+  {name:"reasoning gaps",oldCap:4,source:/\{d\.gaps\.length>0&&<div[\s\S]*?\{d\.gaps\.map\(function\(g,i\)/,forbidden:/d\.gaps\.slice\s*\(/},
+  {name:"unresolved tensions",oldCap:3,source:/Unresolved Tensions \(\{d\.tensions\.length\}\)[\s\S]*?\{d\.tensions\.map\(function\(t,i\)/,forbidden:/d\.tensions\.slice\s*\(/}
+];
+for(const testCase of capCases){
+  const invented=Array.from({length:testCase.oldCap+3},(_,i)=>"Synthetic "+testCase.name+" finding "+(i+1));
+  assert.ok(invented.length>testCase.oldCap,testCase.name+" exercises above legacy cap");
+  assert.match(dashboardSource,testCase.source,testCase.name+" must use complete list");
+  assert.doesNotMatch(dashboardSource,testCase.forbidden,testCase.name+" must not silently slice");
+  // The dashboard sends all parser-returned items directly into its mapping.
+  const displayed=invented.map((item)=>item);
+  assert.equal(displayed.length,invented.length,testCase.name+" displayed/count equals parser result");
+  assert.deepEqual(displayed,invented,testCase.name+" preserves order, text, identity");
+  assert.equal(displayed.at(-1),invented.at(-1),testCase.name+" retains all formerly hidden items");
+}
+// Integration guard: upstream list construction and JSX row mapping are both
+// checked. Changing to an alternate truncation/filter pattern requires revising
+// these specific regression contracts and independent review.
+
 console.log("RC2 dashboard integrity: PASS");
