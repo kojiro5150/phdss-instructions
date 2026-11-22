@@ -13,7 +13,7 @@ function isSectionHeading(line) {
   const t=title(line);
   return SECTION_NAMES.has(t)&&/^\s*(?:#{1,6}\s|\*\*)/.test(line);
 }
-function section(text,label) {
+function section(text,label,strictBoldBoundary=false) {
   const lines=clean(text).split("\n");
   let start=-1,headingLevel=0;
   for(let i=0;i<lines.length;i++){
@@ -32,6 +32,13 @@ function section(text,label) {
     // Treat recognised major bold headings as section boundaries,
     // but NEVER treat arbitrary bold item titles as boundaries.
     if(isSectionHeading(lines[i]))break;
+    // F-7/F-8: model output frequently uses an unregistered bold-only
+    // section name, or a bold label with an inline value (e.g. Integration
+    // Signal). For logical CDTA/Probe extraction these are boundaries,
+    // regardless of our legacy heading list. Chair sections retain their
+    // distinct bold-title item handling.
+    if(strictBoldBoundary && /^\s*\*\*[^*\n]+\*\*\s*:?\s*$/.test(lines[i]))break;
+    if(strictBoldBoundary && /^\s*\*\*[^*\n]+\*\*\s*:\s+\S/.test(lines[i]))break;
     body.push(lines[i]);
   }
   return body.join("\n").trim();
@@ -73,12 +80,17 @@ export function extractChairItems(text,heading) {
   return unique(block.split(/\n\s*\n/).map(stripMarkdown).filter(x=>x.length>15));
 }
 export function extractLogicalFindings(text,heading) {
-  return listEntries(section(text,heading)).filter(x=>x.length>10
+  return listEntries(section(text,heading,true)).filter(x=>x.length>10
     &&!/^(sourced|inferred|speculative)\s+(conflicts?|assumptions?|gaps?):?\s*$/i.test(x));
 }
 export function extractAbsentPerspectiveSummary(text) {
-  const block=section(text,"Whose Perspective Is Absent");
+  const block=section(text,"Whose Perspective Is Absent",true);
   if(!block)return "";
   const visible=block.replace(/<!--[\s\S]*?-->/g,"").replace(/^\s*<!--.*$/gm,"").trim();
-  return stripMarkdown(visible).replace(/\s+/g," ").trim();
+  const summary=stripMarkdown(visible).replace(/\s+/g," ").trim();
+  // Bound card copy without silently reclassifying subsequent Probe content.
+  // The full source remains accessible in the technical Probe output.
+  const limit=1000;
+  if(summary.length<=limit)return summary;
+  return summary.slice(0,limit).trimEnd()+"… [Excerpt: see full Probe output]";
 }
