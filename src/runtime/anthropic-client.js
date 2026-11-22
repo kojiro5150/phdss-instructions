@@ -1,5 +1,7 @@
 export const ANTHROPIC_MESSAGES_URL = "https://api.anthropic.com/v1/messages";
 export const SYNTHESIS_MODEL = "claude-sonnet-4-6";
+// Single source for the settings actually dispatched by compression model calls.
+export const SYNTHESIS_REQUEST_SETTINGS = Object.freeze({max_tokens:16000,temperature:0.8});
 export const API_TEST_MODEL = "claude-haiku-4-5-20251001";
 
 function runtimeFetch(fetchImpl) {
@@ -36,7 +38,7 @@ export function installApiKeyInterceptor(apiKey, windowObj) {
 }
 
 export async function apiCall(systemPrompt, userMessage, useWebSearch, fetchImpl) {
-  var body = { model:SYNTHESIS_MODEL, max_tokens:16000, temperature:0.8, system:systemPrompt, messages:[{role:"user", content:userMessage}] };
+  var body = { model:SYNTHESIS_MODEL, ...SYNTHESIS_REQUEST_SETTINGS, system:systemPrompt, messages:[{role:"user", content:userMessage}] };
   if (useWebSearch) body.tools = [{type:"web_search_20250305", name:"web_search"}];
   var response = await runtimeFetch(fetchImpl)(ANTHROPIC_MESSAGES_URL, {
     method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)
@@ -63,7 +65,7 @@ export async function callClaude_synthesis(systemPrompt, userMessage, autoContin
       while (result.stopReason==="max_tokens" && autoContinue && passCount < 2) {
         passCount++;
         var contBody = {
-          model:SYNTHESIS_MODEL, max_tokens:16000, temperature:0.8,
+          model:SYNTHESIS_MODEL, ...SYNTHESIS_REQUEST_SETTINGS,
           system: systemPrompt,
           messages: [
             {role:"user",      content: userMessage},
