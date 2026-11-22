@@ -37,8 +37,10 @@ function section(text,label,strictBoldBoundary=false) {
     // Signal). For logical CDTA/Probe extraction these are boundaries,
     // regardless of our legacy heading list. Chair sections retain their
     // distinct bold-title item handling.
-    if(strictBoldBoundary && /^\s*\*\*[^*\n]+\*\*\s*:?\s*$/.test(lines[i]))break;
-    if(strictBoldBoundary && /^\s*\*\*[^*\n]+\*\*\s*:\s+\S/.test(lines[i]))break;
+    // Sonnet also emits numbered items as **1. Title.**; an item is NOT a new section.
+    const boldNumberedItem=/^\s*\*\*\s*\d+[.)]\s+/.test(lines[i]);
+    if(strictBoldBoundary && !boldNumberedItem && /^\s*\*\*[^*\n]+\*\*\s*:?\s*$/.test(lines[i]))break;
+    if(strictBoldBoundary && !boldNumberedItem && /^\s*\*\*[^*\n]+\*\*\s*:\s+\S/.test(lines[i]))break;
     body.push(lines[i]);
   }
   return body.join("\n").trim();
@@ -53,18 +55,18 @@ function unique(items) {
 }
 function listEntries(block) {
   const lines=clean(block).split("\n");
-  const numbered=lines.some(line=>/^\s*\d+[.)]\s+/.test(line));
+  const numbered=lines.some(line=>/^\s*(?:\*\*\s*)?\d+[.)]\s+/.test(line));
   const bulleted=!numbered&&lines.some(line=>/^\s*[-•]\s+/.test(line));
   const out=[];
   for(const original of lines){
     const t=original.trim();
     if(!t||/^<!--/.test(t))continue;
-    const number=/^\s*\d+[.)]\s+/.test(original);
+    const number=/^\s*(?:\*\*\s*)?\d+[.)]\s+/.test(original);
     const topBullet=/^[-•]\s+/.test(original);
     const boldHeading=/^\*\*[^*]{3,}\*\*\s*[-—:]?/.test(t);
     const startsNew=numbered?number:(bulleted?topBullet:boldHeading);
     if(startsNew) {
-      const entry=t.replace(/^\d+[.)]\s+|^[-•]\s+/,"").trim();
+      const entry=t.replace(/^(?:\*\*\s*)?\d+[.)]\s+|^[-•]\s+/,"").trim();
       out.push(entry);
     } else if(out.length&&!/^#{1,6}\s/.test(t)) {
       out[out.length-1]+=" "+t;
