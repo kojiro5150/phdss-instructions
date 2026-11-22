@@ -2,6 +2,8 @@
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import {makeCompressionEvent,compressionEventRef} from "../src/runtime/compression-provenance.js";
+import {compressDirectorOutput,compressSynthesisOutput} from "../src/runtime/governance-compression.js";
+import {validDirectorBrief} from "./fixtures/governance-record-contracts.js";
 import {createGovernanceExportBundle} from "../src/runtime/governance-export-bundle.js";
 import {verifyGovernanceProvenance} from "../scripts/verify-governance-provenance-v2.mjs";
 import {verifyGovernanceBundle} from "../scripts/verify-governance-bundle.mjs";
@@ -126,4 +128,53 @@ await invalid("wrong selected brief",mutate(b=>{
   b.files["manifest.json"].compression_results.find(x=>x.parent_stage_id==="chair").brief_sha256=sha("wrong");
   refreshInventory(b);
 }),/selected compression output differs/);
+// The actual model-facing compressor must record request BEFORE each invocation.
+const observed=[];
+let modelCalls=0;
+const brief=await compressDirectorOutput("Safety","Synthetic complete Director analysis",{
+  stageId:"safety",
+  apiCallImpl:async function(){modelCalls++;return {text:modelCalls===1?"{}":JSON.stringify(validDirectorBrief)};},
+  onCompressionProvenance:async event=>{observed.push(event);}
+});
+assert.equal(modelCalls,2);
+assert.equal(observed.length,4);
+assert.deepEqual(observed.map(x=>[x.phase,x.status,x.selected]),[
+  ["request","pending",false],["result","rejected",false],
+  ["request","pending",false],["result","success",true]
+]);
+assert.equal(observed[0].system_prompt_sha256,observed[1].system_prompt_sha256);
+assert.equal(observed[0].user_message_sha256,observed[1].user_message_sha256);
+assert.equal(sha(brief),observed[3].final_response_sha256);
+
+// A provenance failure before dispatch must fail closed, with no model call.
+let unsafeCalls=0;
+await assert.rejects(compressDirectorOutput("Safety","Synthetic full analysis",{
+  stageId:"safety",
+  apiCallImpl:async function(){unsafeCalls++;return {text:JSON.stringify(validDirectorBrief)};},
+  onCompressionProvenance:async function(){throw new Error("pre-call provenance unavailable");}
+}),/pre-call provenance unavailable/);
+assert.equal(unsafeCalls,0,"do not issue a model request without its provenance request record");
+
+const synthEvents=[];
+await compressSynthesisOutput("Decision Surface Map","Synthetic synthesis full analysis",{
+  apiCallImpl:async function(){return {text:"{}"};},
+  onCompressionProvenance:async event=>{synthEvents.push(event);}
+});
+assert.equal(synthEvents.length,5,"two model requests/results and one deterministic fallback");
+assert.deepEqual(synthEvents.map(x=>x.phase),["request","result","request","result","fallback"]);
+assert.equal(synthEvents.at(-1).selected,true);
+assert.equal(synthEvents.at(-1).status,"fallback");
+
+await invalid("missing pre-call request",mutate(b=>{
+  delete b.files["compression/compression_director_systems_attempt_1_request.json"];
+  refreshInventory(b);
+}),/bundle file set/);
+await invalid("reordered request/result",mutate(b=>{
+  const refs=b.files["manifest.json"].compression_events;
+  const a=refs.findIndex(x=>x.event_id==="compression:director:systems:attempt:1:request");
+  const z=refs.findIndex(x=>x.event_id==="compression:director:systems:attempt:1:result");
+  [refs[a],refs[z]]=[refs[z],refs[a]];
+  refreshInventory(b);
+}),/missing or out-of-order compression attempt/);
+
 console.log("RC2 compressed-call, composite-source and single-bundle independent verification: PASS");
