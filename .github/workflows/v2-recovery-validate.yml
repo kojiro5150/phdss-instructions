@@ -8,20 +8,6 @@ on:
   pull_request:
     branches:
       - main
-    paths:
-      - "App_FINAL.jsx"
-      - "*.md"
-      - "package.json"
-      - "index.html"
-      - "src/**"
-      - "vite.config.js"
-      - ".github/scripts/**"
-      - ".github/workflows/v2-recovery-validate.yml"
-      - "docs/AUTHORITY_*.md"
-      - "docs/FIXTURE_SCHEMA.md"
-      - "docs/GOVERNANCE_RECORD_CONTRACT.md"
-      - "tests/fixtures/**"
-      - "test/**"
 
 jobs:
   validate-recovery-contract:
