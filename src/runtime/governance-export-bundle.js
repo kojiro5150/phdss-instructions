@@ -25,6 +25,25 @@ export async function createGovernanceExportBundle(input) {
   for(const stage of stageValues)insert("stages/"+safeKey(stage.stage_id)+".json",stage);
   for(const event of events)insert("compression/"+safeKey(event.event_id)+".json",event);
 
+  // Do not hand operators a bundle that already lacks an F-5 selected chain.
+  if(!Array.isArray(manifest.compression_events)||!Array.isArray(manifest.compression_results))
+    throw new Error("RC2 compression inventories required");
+  const byParent=new Map();
+  for(const event of events){
+    if(!byParent.has(event.parent_stage_id))byParent.set(event.parent_stage_id,[]);
+    byParent.get(event.parent_stage_id).push(event);
+  }
+  for(const stage of stageValues){
+    if(stage.schema!=="phdss.governance-stage-provenance.v3")
+      throw new Error("RC2 stage source schema required: "+stage.stage_id);
+    if(stage.status!=="success"||stage.stage_id==="comparator")continue;
+    const selected=(byParent.get(stage.stage_id)||[]).filter(x=>x.selected);
+    const result=manifest.compression_results.filter(x=>x.parent_stage_id===stage.stage_id);
+    if(selected.length!==1||result.length!==1
+      ||selected[0].final_response_sha256!==result[0].brief_sha256
+      ||selected[0].source_output_sha256!==stage.output_sha256)
+      throw new Error("incomplete selected Governance Brief chain: "+stage.stage_id);
+  }
   const expectedStages=(manifest.stages||[]).map(x=>"stages/"+safeKey(x.stage_id)+".json");
   const expectedEvents=(manifest.compression_events||[]).map(x=>"compression/"+safeKey(x.event_id)+".json");
   const expected=["manifest.json","ledger.json",...expectedStages,...expectedEvents];
