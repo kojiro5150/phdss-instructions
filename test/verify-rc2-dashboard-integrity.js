@@ -318,6 +318,24 @@ for(const testCase of capCases){
   assert.deepEqual(displayed,invented,testCase.name+" preserves order, text, identity");
   assert.equal(displayed.at(-1),invented.at(-1),testCase.name+" retains all formerly hidden items");
 }
+// PA-27 amended requirement: collapsed versions of the three ExpandRow lists
+// disclose their exact hidden-item count before expanding in place.
+assert.match(dashboardSource,/showCollapsedItemCount=false/,"unaffected ExpandRow call sites keep existing behaviour");
+assert.match(dashboardSource,/showCollapsedItemCount&&!open[\s\S]*?items\.length\+" items — expand to view all"/,"collapsed count must disclose every row");
+for(const call of [
+  /items=\{d\.overconfidenceFlags\}\s+showCollapsedItemCount/,
+  /items=\{d\.boardMissed\}\s+showCollapsedItemCount/,
+  /showCollapsedItemCount\s+items=\{d\.epistemicGaps\.concat\(/
+]){
+  assert.match(dashboardSource,call,"all three affected ExpandRow lists must disclose their unexpanded count");
+}
+// A collapsed view reports the whole list, not the legacy cap.
+for(const {name,oldCap} of capCases.slice(0,3)){
+  const parsed=Array.from({length:oldCap+3},(_,i)=>"Invented "+name+" "+(i+1));
+  const collapsedCount=parsed.length;
+  assert.equal(collapsedCount,parsed.length,"collapsed count must match all items, including formerly hidden items");
+}
+
 // Integration guard: upstream list construction and JSX row mapping are both
 // checked. Changing to an alternate truncation/filter pattern requires revising
 // these specific regression contracts and independent review.
