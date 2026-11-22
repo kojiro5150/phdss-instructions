@@ -944,7 +944,7 @@ function ExpandRow({label,count,items,color="#64748B",emptyMsg="None detected",b
           {items.map(function(item,i){
             return item&&item.groupLabel
               ? <div key={i} style={{fontSize:10,fontWeight:700,padding:"8px 4px 3px",color:"#475569",borderBottom:"1px solid "+border}}>{item.text+" (group label — not a counted finding)"}</div>
-              : <div key={i} style={{fontSize:11,padding:"6px 10px",borderRadius:7,background:bg,border:"1px solid "+border,color:textColor,lineHeight:1.55}}>{item.text||item}</div>;
+              : <div key={i} style={{fontSize:11,padding:"6px 10px",borderRadius:7,background:bg,border:"1px solid "+border,color:textColor,lineHeight:1.55}}>{item&&item.ambiguousHeading?"[Possible heading — retained as a finding] "+item.text:(item.text||item)}</div>;
           })}
         </div>
       }
