@@ -1,11 +1,11 @@
 # Gate A — Transfer-Readiness Entry Record
 
-**Status:** OPEN — entry conditions partially met; outstanding requirements listed  
+**Status:** RC1 ATTEMPT CLOSED — NOT PASSED (Protocol Authority, 22 November 2026); RC2 is a separate planned Gate A attempt, not yet built or frozen  
 **Date opened:** 10 October 2026  
 **Gate A question:** Is the technical and evidentiary baseline stable enough to hand over?  
 **Required result:** Frozen build, provenance, validation, limitations, data policy
 
-This document records the conditions under which PHDSS has entered Gate A, the outstanding requirements before Gate A can be closed, and the exit criteria. Writing this document does not establish that Gate A exit conditions are met.
+This document records the original Gate A entry conditions, unchanged exit criteria and the RC1 closeout. RC1 did not meet Gate A exit; RC2 is separately authorised for preparation only. No transfer, deployment, merge or tag is authorised. See `docs/GATE_A_CANDIDATE_RECORD.md` §10 for RC1's criterion-by-criterion disposition.
 
 ---
 
@@ -58,19 +58,19 @@ Advisory provenance tests do not on their own establish Governance-mode provenan
 
 ---
 
-## 2. Outstanding Gate A requirements
+## 2. RC1 Gate A closeout assessment (22 November 2026)
 
-**Gate A requirements** (required before Gate A closes):
+**Gate A requirements** (unchanged exit criteria; this table records the RC1 outcome, not future RC2 results):
 
 | Requirement | Status | Notes |
 |---|---|---|
-| Frozen build (tagged release) | NOT YET | v2.0.0 tag exists; no post-v2 release tag |
-| Limitations register complete | IN PROGRESS | `docs/LIMITATIONS_REGISTER.md` opened with this PR |
-| Synthetic-only test-data policy documented | NOT YET | Policy must be written and explicit |
-| Transfer-candidate validation run | NOT YET | Clean `npm run validate` on frozen tagged build |
-| Known limitations disclosed in UI | PARTIAL | Scanner warning semantics disclosed; participation status interim disclosure in place |
-| `npm run validate` passing on frozen build | NOT VERIFIED | Must be verified at the tagged commit |
-| Governance-mode provenance parity | NOT VERIFIED | Advisory provenance tests do not establish Governance parity; requires specific verification |
+| Frozen build (tagged release) | **NOT MET** | Candidate `7649eb4` frozen, but no release tag created. Historical conditional tag approval superseded by PA-01: **do not create an RC1 tag**. See `docs/GATE_A_CANDIDATE_RECORD.md` §10. |
+| Limitations register complete | **NOT MET** | Register remains review candidate. L-24 and F-5–F-9 require registration or linked disposition; existing limitations (including L-14) remain. |
+| Synthetic-only test-data policy documented | **NOT MET — PA-11 purposive interpretation** | Literal requirement (documented and explicit) is satisfied, but the policy file remains `PROPOSED — Protocol Authority review required` and approval is not evidenced. Earlier MET was recorded without checking that status (reviewer omission); PA-11 supersedes it without changing §4 criterion wording. Separately, RC1's live test was **ineligible** because pre-run policy §4 checks were not completed. PA-12 review authorised; PA-12a approval still pending. |
+| Transfer-candidate validation run | **PARTIAL; not acceptance evidence** | Live CORE run `DR-20261122-115931-4417e9` performed. 13-stage provenance export verified and independently reproduced after L-24 recovery deviation; run **ineligible** for synthetic transfer study. UI inspection **partial** (exports and two screenshots); full §2.6 walkthrough not completed. |
+| Known limitations disclosed in UI | **NOT MET** | Previously recorded scanner disclosure; participation-verification banner observed in the reviewed screenshot. However, F-6 (silent Chair truncation), F-7 (incorrect counts) and F-8 (instruction comment displacing an absent perspective) demonstrate material representation defects. Full UI walkthrough not completed. |
+| `npm run validate` passing on frozen build | **MET at candidate commit only** | CI success on `7649eb4` (2 Nov 2026) and clean local run (22 Nov 2026). No RC1 release tag exists; re-verification at an RC1 tag is not applicable. |
+| Governance-mode provenance parity | **NOT MET** | Independent verifier reproduced VALID for all 13 captured stages; however model-mediated Governance Brief compression calls are not provenance-captured (F-5), and L-14 instruction-source attribution remains qualified. |
 
 **Gate B requirements** (not Gate A blockers; required before Gate B closes):
 
@@ -111,7 +111,7 @@ Operator Guide v1 and Evaluator Protocol v1 are Gate B requirements. They are no
 
 ## 5. Decision Ledger and v3 surface work
 
-The persistent governed Decision Ledger is the stated next v3 implementation priority after Gate A closes.
+The persistent governed Decision Ledger is the stated next v3 implementation priority after Gate A is passed.
 
 It must not delay Gate A unless the agreed Gate A scope explicitly requires persistence. The current Gate A scope does not require it.
 
@@ -128,3 +128,6 @@ Decision Ledger work may proceed in parallel with Gate A documentation completio
 | 2026-10-10 | Pre-Gate tranche closed at F01 by Protocol Authority decision |
 | 2026-10-10 | Branch tidy: 3 branches merged, 3 experiment branches closed without merge |
 | 2026-10-10 | Gate A entry record opened (this document) |
+| 2026-11-22 | Candidate `7649eb4` frozen; L-14 controls accepted; closure route C selected; §2 status table reconciled (exit criteria unchanged). See `docs/GATE_A_CANDIDATE_RECORD.md` |
+| 2026-11-22 | Protocol Authority closed **RC1 Gate A — NOT PASSED** (PA-01) and authorised a **separate RC2** preparation (PA-02 onward). PA-09 includes L-14 and PA-10 includes L-24; PA-11 adopts purposive Criterion 4; PA-12 authorises policy review, but PA-12a policy approval remains pending. RC1 live Governance export test performed and independently reviewed; UI inspection partial; original RC1 run ineligible under synthetic-data policy. The seven exit criteria in §4 are unchanged. See `docs/GATE_A_CANDIDATE_RECORD.md` §10. |
+| 2026-11-22 | PA-13 authorised **documentation commits to draft PR #93 only**; no merge, tag, deployment, transfer or RC2 engineering approved under PA-13. Amendments to this entry record prepared with ChatGPT assistance. |
