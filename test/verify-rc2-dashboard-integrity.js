@@ -379,6 +379,12 @@ assert.deepEqual(negative.map(x=>x.text),[
   "Repeated audit observation"
 ],"negative controls preserve all distinct meaning and clean formatting only");
 assert.equal(dashboardFindingCount(negative),6);
+
+const ambiguity=buildDashboardFindings("**Overconfidence Flags**\n**Unfamiliar provenance heading**\n- A concrete substantive observation\n**Summary**","Overconfidence Flags");
+assert.equal(dashboardFindingCount(ambiguity),2,"unknown heading is kept and counted instead of dropped");
+assert.equal(ambiguity[0].ambiguousHeading,true,"unknown heading is explicitly flagged");
+assert.match(dashboardSource,/item&&item\.ambiguousHeading\?"\[Possible heading — retained as a finding\]/,"operator sees uncertainty marker");
+
 assert.match(dashboardSource,/showCollapsedItemCount&&!open[\s\S]*?dashboardFindingCount\(items\)/,"collapsed disclosure counts findings not grouping");
 assert.match(dashboardSource,/collapsedFindingCount=\{dashboardFindingCount\(d\.epistemicGaps\)\}/,"composite-score note excluded from AI Integrity count");
 for(const pattern of [
