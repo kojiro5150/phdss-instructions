@@ -10,11 +10,14 @@ const DIGITAL=["ai","artificial intelligence","machine learning","algorithm","au
 const POLICY=["minister","ministerial","government","legislation","regulation","statutory","compliance","public accountability","parliament","parliamentary","mandated change","policy reform","governance obligation"];
 const ECON=["budget","cost","savings","affordability","efficiency","return on investment","roi","value for money","funding","expenditure","allocation","business case","financial pressure","procurement","investment"];
 
+const PIN_LIVED="94c5851146d849957af9610935a85f674c6ab05d";
+const PIN_BASELINE="22b662999e01462fc4008446885a38df2cf735ad";
+const expectedSourceForFile=(file,overrides)=>overrides&&overrides[file]||((file==="lived.md")?PIN_LIVED:PIN_BASELINE);
 const sha=v=>crypto.createHash("sha256").update(Buffer.from(String(v??""),"utf8")).digest("hex");
 const sameSet=(a,b)=>a.length===b.length&&a.every(x=>b.includes(x));
 function adaptive(text){const s=String(text||"").toLowerCase();if(AI.some(k=>s.includes(k)))return"digital";const d=DIGITAL.some(k=>s.includes(k));const e=ECON.some(k=>s.includes(k));if(d&&e)return"economics";if(d)return"digital";if(POLICY.some(k=>s.includes(k)))return"policy";if(e)return"economics";return"behaviour";}
 
-export async function verifyGovernanceProvenance({manifest,stageRecords,expectedDeployment=null,repoSlug="kojiro5150/phdss-instructions",sourceLoader=null,ledgerDocument=null}){
+export async function verifyGovernanceProvenance({manifest,stageRecords,expectedDeployment=null,repoSlug="kojiro5150/phdss-instructions",sourceLoader=null,ledgerDocument=null,compressionEvents=[],expectedInstructionSources=null}){
   const failures=[],stages=[],fail=m=>failures.push(m);
   const by={};for(const r of stageRecords){if(by[r.stage_id]){fail("duplicate stage record: "+r.stage_id);continue;}by[r.stage_id]=r;}
 
@@ -41,19 +44,22 @@ export async function verifyGovernanceProvenance({manifest,stageRecords,expected
     expectedOmitted=ALL.filter(id=>!expectedActive.includes(id));
   }catch(e){modeDerivationError=e.message;}
 
-  async function sourceHash(record,file){
+  async function sourceHash(record,file,sourceCommit){
     if(record.instruction_normalization_version!=="trim_v1") throw new Error("unsupported normalization");
     let text;
-    if(sourceLoader) text=await sourceLoader(record.instruction_commit,file);
+    if(sourceLoader) text=await sourceLoader(sourceCommit||record.instruction_commit,file);
     else{
-      const res=await fetch("https://raw.githubusercontent.com/"+repoSlug+"/"+record.instruction_commit+"/"+file);
+      const res=await fetch("https://raw.githubusercontent.com/"+repoSlug+"/"+(sourceCommit||record.instruction_commit)+"/"+file);
       if(!res.ok) throw new Error("source unavailable");
       text=await res.text();
     }
     return sha(String(text).trim());
   }
 
-  if(manifest.schema!=="phdss.governance-provenance.v1") fail("unsupported manifest schema");
+  const isRC2=manifest.schema==="phdss.governance-provenance.v2";
+  if(!isRC2&&manifest.schema!=="phdss.governance-provenance.v1") fail("unsupported manifest schema");
+  if(isRC2&&!Array.isArray(manifest.compression_events))fail("RC2 manifest missing compression references");
+  if(isRC2&&(!manifest.instruction_sources||typeof manifest.instruction_sources!=="object"))fail("RC2 manifest missing instruction source records");
   if(manifest.run_type!=="GOVERNANCE") fail("manifest run_type must be GOVERNANCE");
   if(expectedDeployment&&manifest.deployment_commit!==expectedDeployment) fail("deployment commit mismatch");
 
@@ -63,7 +69,8 @@ export async function verifyGovernanceProvenance({manifest,stageRecords,expected
     if(!r){stages.push({stage_id:ref.stage_id,stage_provenance_status:"INVALID",reason:"missing record"});fail("manifest references missing stage record: "+ref.stage_id);continue;}
     let reason=null;
     const stageSchema=r.schema;
-    if(stageSchema!=="phdss.governance-stage-provenance.v1"&&stageSchema!=="phdss.governance-stage-provenance.v2") reason="unsupported stage schema";
+    if(stageSchema!=="phdss.governance-stage-provenance.v1"&&stageSchema!=="phdss.governance-stage-provenance.v2"&&stageSchema!=="phdss.governance-stage-provenance.v3") reason="unsupported stage schema";
+    if(!reason&&isRC2&&stageSchema!=="phdss.governance-stage-provenance.v3")reason="RC2 stage must use v3 source attribution schema";
     else if(r.decision_id!==manifest.decision_id) reason="decision_id mismatch";
     else if(r.deployment_commit!==manifest.deployment_commit) reason="deployment commit mismatch";
     else if(r.instruction_commit!==manifest.instruction_commit) reason="instruction commit mismatch";
@@ -83,10 +90,32 @@ export async function verifyGovernanceProvenance({manifest,stageRecords,expected
     if(!reason&&ref.status!==r.status) reason="manifest stage status mismatch";
     if(!reason&&r.stage_id==="chair"&&!r.authority_repair) reason="Chair authority repair metadata missing";
     if(!reason&&(!Array.isArray(r.instruction_files)||!Array.isArray(r.instruction_runtime_sha256)||r.instruction_files.length===0||r.instruction_files.length!==r.instruction_runtime_sha256.length)) reason="instruction provenance incomplete";
+    // L-14: v3 source attribution is independent of byte equality at another pin.
+    if(!reason&&stageSchema==="phdss.governance-stage-provenance.v3"){
+      if(!Array.isArray(r.instruction_source_commits)||!Array.isArray(r.instruction_source_urls)
+        ||r.instruction_source_commits.length!==r.instruction_files.length
+        ||r.instruction_source_urls.length!==r.instruction_files.length){
+        reason="per-file instruction source attribution incomplete";
+      } else {
+        for(let i=0;i<r.instruction_files.length;i++){
+          const file=r.instruction_files[i];
+          const key=file.endsWith(".md")?file.slice(0,-3):file;
+          const actual=r.instruction_source_commits[i];
+          const expected=expectedSourceForFile(file,expectedInstructionSources);
+          const expectedUrl="https://cdn.jsdelivr.net/gh/"+repoSlug+"@"+actual+"/"+file;
+          const captured=manifest.instruction_sources&&manifest.instruction_sources[key];
+          if(!actual||actual!==expected){reason="instruction source commit attribution mismatch for "+file;break;}
+          if(r.instruction_source_urls[i]!==expectedUrl){reason="instruction source URL mismatch for "+file;break;}
+          if(!captured||captured.commit!==actual||captured.url!==expectedUrl||captured.file!==file){
+            reason="loaded source record mismatch for "+file;break;
+          }
+        }
+      }
+    }
     // v2 schema: validate raw_output hash and transform fields on successful stages.
     // raw_output must not be null on a successful stage — null is only valid for
     // skipped or failed stages where output capture did not occur.
-    if(!reason&&stageSchema==="phdss.governance-stage-provenance.v2"&&r.status==="success"){
+    if(!reason&&(stageSchema==="phdss.governance-stage-provenance.v2"||stageSchema==="phdss.governance-stage-provenance.v3")&&r.status==="success"){
       if(r.raw_output==null) reason="v2 successful stage has null raw_output";
       else if(r.raw_output_sha256!==sha(r.raw_output)) reason="raw_output hash mismatch";
       else if(r.output_transform==null) reason="v2 stage missing output_transform";
@@ -95,7 +124,7 @@ export async function verifyGovernanceProvenance({manifest,stageRecords,expected
     if(!reason){
       for(let i=0;i<r.instruction_files.length;i++){
         try{
-          if(await sourceHash(r,r.instruction_files[i])!==r.instruction_runtime_sha256[i]){reason="instruction source hash mismatch for "+r.instruction_files[i];break;}
+          if(await sourceHash(r,r.instruction_files[i],stageSchema==="phdss.governance-stage-provenance.v3"?r.instruction_source_commits[i]:null)!==r.instruction_runtime_sha256[i]){reason="instruction source hash mismatch for "+r.instruction_files[i];break;}
           sourceVerifiedCount++;
         }catch(e){reason="instruction source unavailable at declared commit for "+r.instruction_files[i];break;}
       }
@@ -117,6 +146,101 @@ export async function verifyGovernanceProvenance({manifest,stageRecords,expected
   for(const id of(manifest.omitted_directors||[])){const sid="director:"+id;if(by[sid]&&by[sid].status!=="skipped")fail("omitted Director was invoked: "+id);}
   for(const sid of["surface_map","epistemic_audit","cross_domain_tension_analysis","adversarial_probe","chair"]){if(!by[sid])fail("mandatory stage missing: "+sid);else if(by[sid].status==="skipped")fail("mandatory stage incorrectly skipped: "+sid);}
   for(const sid of["reality_anchor","stress_test","comparator"]) if(!by[sid]) fail("conditional/degradable stage missing explicit record: "+sid);
+
+  // F-5: v2 manifest must account for EVERY compression attempt (not merely
+  // the final transformed Governance Brief) and link each selected output to
+  // the actual brief used by the run. Fail closed on omissions and alteration.
+  if(isRC2){
+    const refs=manifest.compression_events||[];
+    const results=manifest.compression_results;
+    if(!Array.isArray(results))fail("RC2 manifest missing selected brief output inventory");
+    const seenEvents=new Set(),seenResults=new Set(),eventsByParent=new Map();
+    const actualEvents=Array.isArray(compressionEvents)?compressionEvents:[];
+    const eventsById=new Map();
+    for(const event of actualEvents){
+      if(eventsById.has(event.event_id))fail("duplicate compression event: "+event.event_id);
+      eventsById.set(event.event_id,event);
+    }
+    for(const ref of refs){
+      if(seenEvents.has(ref.event_id))fail("duplicate compression ref: "+ref.event_id);
+      seenEvents.add(ref.event_id);
+      const e=eventsById.get(ref.event_id);
+      if(!e){fail("missing compression event: "+ref.event_id);continue;}
+      if(e.schema!=="phdss.governance-compression-event.v1")fail("unsupported compression event schema: "+ref.event_id);
+      if(e.event_id!==ref.event_id||e.parent_stage_id!==ref.parent_stage_id
+        ||e.status!==ref.status||e.selected!==ref.selected||sha(JSON.stringify(e))!==ref.event_sha256)
+        fail("compression reference or event hash mismatch: "+ref.event_id);
+      for(const [field,hashField] of [["system_prompt","system_prompt_sha256"],["user_message","user_message_sha256"],["raw_response","raw_response_sha256"],["final_response","final_response_sha256"]]){
+        const expected=e[field]==null?null:sha(e[field]);
+        if(e[hashField]!==expected)fail("compression "+field+" hash mismatch: "+ref.event_id);
+      }
+      if(!by[e.parent_stage_id])fail("compression parent stage absent: "+ref.event_id);
+      else if(by[e.parent_stage_id].output_sha256!==e.source_output_sha256)
+        fail("compression source hash does not match parent stage: "+ref.event_id);
+      if(e.mode==="model"){
+        if(e.model!=="claude-sonnet-4-6"||!e.model_settings
+          ||e.model_settings.max_tokens!==16000||e.model_settings.temperature!==0.8||e.model_settings.web_search!==false
+          ||!e.system_prompt||!e.user_message)
+          fail("compression model request metadata incomplete: "+ref.event_id);
+        if(e.phase==="request"){
+          if(e.status!=="pending"||e.selected||e.raw_response!==null||e.final_response!==null)
+            fail("invalid pre-call compression request event: "+ref.event_id);
+        }else if(e.phase==="result"){
+          if(!["success","rejected"].includes(e.status))fail("invalid model compression result status: "+ref.event_id);
+        }else fail("invalid model compression phase: "+ref.event_id);
+      }else if(e.mode==="deterministic"){
+        if(e.status!=="fallback"||e.phase!=="fallback"||!e.selected||e.model!==null)
+          fail("invalid deterministic fallback: "+ref.event_id);
+      }else fail("invalid compression mode: "+ref.event_id);
+      if(e.selected&&(e.final_response==null||!e.final_response.length))
+        fail("selected compression missing output: "+ref.event_id);
+      if(e.selected&&!["success","fallback"].includes(e.status))
+        fail("rejected compression marked selected: "+ref.event_id);
+      if(!Number.isInteger(e.attempt_index)||e.attempt_index<0)
+        fail("invalid compression attempt index: "+ref.event_id);
+      if(!eventsByParent.has(e.parent_stage_id))eventsByParent.set(e.parent_stage_id,[]);
+      eventsByParent.get(e.parent_stage_id).push(e);
+    }
+    for(const event of actualEvents)if(!seenEvents.has(event.event_id))fail("unreferenced compression event: "+event.event_id);
+    const resultsByParent=new Map();
+    for(const result of results||[]){
+      if(seenResults.has(result.parent_stage_id))fail("duplicate selected brief ref: "+result.parent_stage_id);
+      seenResults.add(result.parent_stage_id);
+      resultsByParent.set(result.parent_stage_id,result.brief_sha256);
+    }
+    const mustCompress=stageRecords.filter(x=>x.status==="success"&&x.stage_id!=="comparator").map(x=>x.stage_id);
+    for(const parent of mustCompress){
+      const list=eventsByParent.get(parent)||[];
+      const selected=list.filter(x=>x.selected);
+      if(selected.length!==1)fail("missing or multiple selected compression events: "+parent);
+      if(!resultsByParent.has(parent))fail("missing consumed brief hash: "+parent);
+      else if(selected.length===1&&resultsByParent.get(parent)!==selected[0].final_response_sha256)
+        fail("selected compression output differs from consumed brief: "+parent);
+      if(list.length){
+        const requests=list.filter(x=>x.mode==="model"&&x.phase==="request");
+        const responses=list.filter(x=>x.mode==="model"&&x.phase==="result");
+        if(requests.length!==responses.length)fail("compression request/result pairing incomplete: "+parent);
+        for(let i=0;i<requests.length;i++){
+          const req=requests[i],res=responses.find(x=>x.attempt_index===req.attempt_index);
+          if(req.attempt_index!==i+1||!res||list.indexOf(req)>=list.indexOf(res)){
+            fail("missing or out-of-order compression attempt: "+parent);continue;
+          }
+          if(req.system_prompt_sha256!==res.system_prompt_sha256
+            ||req.user_message_sha256!==res.user_message_sha256
+            ||req.source_output_sha256!==res.source_output_sha256
+            ||req.model!==res.model||JSON.stringify(req.model_settings)!==JSON.stringify(res.model_settings))
+            fail("compression request/result input identity mismatch: "+parent);
+        }
+        for(const res of responses)if(!requests.some(x=>x.attempt_index===res.attempt_index))
+          fail("compression result lacks preceding request: "+parent);
+        if(list[list.length-1].selected!==true)fail("compression selected event not final: "+parent);
+      }
+    }
+    for(const parent of eventsByParent.keys())if(!mustCompress.includes(parent))
+      fail("compression event for unsuccessful or unexpected stage: "+parent);
+    for(const parent of resultsByParent.keys())if(!mustCompress.includes(parent))
+      fail("unmatched compressed brief output ref: "+parent);
+  }
 
   let ledgerVerification={provided:false,status:"NOT_CHECKED",method:"SHA-256 over UTF-8 bytes of JSON.stringify(decision_record)",expected_sha256:manifest.final_ledger_sha256||null,computed_sha256:null};
   if(ledgerDocument){
@@ -151,7 +275,7 @@ export async function verifyGovernanceProvenance({manifest,stageRecords,expected
     deployment_commit:manifest.deployment_commit
   };
 
-  return {schema:"phdss.governance-provenance-verification.v2",decision_id:manifest.decision_id,run_provenance_status:failures.length?"INVALID":"VALID",verification_context:verificationContext,ledger_verification:ledgerVerification,stages,failures};
+  return {schema:isRC2?"phdss.governance-provenance-verification.v3":"phdss.governance-provenance-verification.v2",decision_id:manifest.decision_id,run_provenance_status:failures.length?"INVALID":"VALID",verification_context:verificationContext,ledger_verification:ledgerVerification,stages,failures};
 }
 
 const invoked=process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href;

@@ -11,6 +11,8 @@
 // Strategy: split on heading boundaries, fingerprint each block, drop duplicates.
 import { useState, useRef, useEffect } from "react";
 import { scanLivedNegativeScope } from "./src/runtime/lived-negative-scope-guardrail.js";
+import { extractChairItems, extractLogicalFindings, extractAbsentPerspectiveSummary } from "./src/runtime/dashboard-integrity.js";
+import { createGovernanceExportBundle } from "./src/runtime/governance-export-bundle.js";
 import {
   TRUSTED_DOMAINS,
   ANALYSIS_MODES,
@@ -466,18 +468,18 @@ function parseDashboard(decision, dirOutputs, meta, stress, chair, dialogueHisto
   // Fix: only filter short items (under 80 chars) that match the framing pattern.
   // Content lines are substantively longer and should pass through regardless.
   var conflicts = dedupExtracted(
-    extractMetaItems(metaText, "Cross-Domain Conflicts")
+    extractLogicalFindings(metaText, "Cross-Domain Conflicts")
       .filter(function(c){
         var t = c.trim();
         if (PREAMBLE_LINE.test(t)) return false;
         if (t.length < 80 && CONFLICT_FRAMING.test(t)) return false;
         return true;
       })
-  ).slice(0,8);
+  );
   var assumptions = dedupExtracted(
-    extractMetaItems(metaText, "Hidden Assumptions")
+    extractLogicalFindings(metaText, "Hidden Assumptions")
       .filter(function(a){ return !PREAMBLE_LINE.test(a.trim()) && !ASSUMPTION_FRAMING.test(a.trim()); })
-  ).slice(0,8);
+  );
   // P2.1: post-extraction validation — warn if source has more items than extracted
   (function(){
     var sourcedBlocks=(metaText.match(/\*\*(SOURCED|INFERRED)\*\*/gi)||[]).length;
@@ -485,16 +487,12 @@ function parseDashboard(decision, dirOutputs, meta, stress, chair, dialogueHisto
       console.warn("PHDSS extraction: META has "+sourcedBlocks+" SOURCED/INFERRED blocks but only "+(conflicts.length+assumptions.length)+" conflicts+assumptions extracted — possible under-extraction");
     }
   })();
-  var gaps=extractBulletLines(metaText,"Reasoning Gaps");
-  // FIX: Use dedupExtracted (content fingerprint) not dedupItems (text normalise only) to
-  // prevent the same tension block appearing twice when Executive Layer addition causes
-  // extractBulletLines and extractSection to both find the same content in the META output.
-  var tensionsRaw=extractBulletLines(metaText,"Unresolved Tensions").concat(
-    extractSection(metaText,"Unresolved Tensions").split("\n")
-      .map(function(l){return l.trim().replace(/^[-•\d.]+\s*/,"").trim();})
-      .filter(function(l){return l.length>15&&!l.match(/^(Sourced|Inferred|Speculative)/i)&&!l.match(/^Unresolved Tensions/i);})
-  );
-  var tensions=dedupExtracted(tensionsRaw).slice(0,5);
+  var gaps=extractLogicalFindings(metaText,"Reasoning Gaps");
+  // R96-5: no silent fallback to the known-defective legacy counter.
+  // F-7: count each logical tension exactly once, using the same
+  // section-boundary semantics as conflicts, assumptions and reasoning gaps.
+  var tensions=extractLogicalFindings(metaText,"Unresolved Tensions");
+  // R96-5: zero is reported as zero, not replaced by untrusted legacy extraction.
   var integrationSignal=safeMatch(metaText,/Integration Signal\*?\*?:?\s*\*{0,2}(HIGH|MEDIUM|LOW)\*{0,2}/i,1)||"-";
   // FIX 5: Extract the rationale that follows the Integration Signal label (up to end of line)
   var integrationRationale=(function(){
@@ -760,7 +758,9 @@ function parseDashboard(decision, dirOutputs, meta, stress, chair, dialogueHisto
 
     return dedupItems(raw).filter(function(s){ return s.length > 10; });
   }
-  var conditions = extractConditionLines(chairText).slice(0,6);
+  var conditions = extractChairItems(chairText,"Decision Conditions");
+  if(!conditions.length) conditions = extractConditionLines(chairText);
+  // F-6: never silently cap substantive Chair conditions.
   // P2.1: warn if chair text has numbered condition blocks but we extracted very few
   (function(){
     var numberedItems=(chairText.match(/^\s*\d+\.\s+\*\*/gm)||[]).length;
@@ -768,9 +768,9 @@ function parseDashboard(decision, dirOutputs, meta, stress, chair, dialogueHisto
       console.warn("PHDSS extraction: Chair has "+numberedItems+" numbered bold items but only "+conditions.length+" conditions extracted — possible under-extraction");
     }
   })();
-  var tradeoffs=dedupItems(extractBulletLines(chairText,"Key Trade-offs").concat(
-    extractSection(chairText,"Key Trade-offs").split("\n").filter(function(l){return l.trim()&&!l.startsWith("**");}))
-  ).slice(0,5);
+  var tradeoffs=extractChairItems(chairText,"Key Trade-offs");
+  if(!tradeoffs.length) tradeoffs=dedupItems(extractBulletLines(chairText,"Key Trade-offs"));
+  // F-6: preserve all source trade-offs, including heading/body pairs.
   var keyDiscovery=extractSection(chairText,"Key Discovery");
   var acceptedRisk=extractSection(chairText,"Accepted Residual Risk");
   var conflictCount=conflicts.filter(function(c){return c.length>10;}).length;
@@ -1021,7 +1021,7 @@ function TransparencyDashboard({decision,dirOutputs,meta,stress,chair,epistemic,
     });
   }
   var biasSummary=d.biasSignals?d.biasSignals.split(/[.!?]/)[0].trim():"";
-  var absentSummary=d.absentPerspectives?d.absentPerspectives.split(/[.!?]/)[0].trim():"";
+  var absentSummary=extractAbsentPerspectiveSummary(probe);
   var briefReady=d.decisionBriefStatus&&d.decisionBriefStatus!=="-";
   var briefColor=d.isPartialEvidenceBrief?"#B45309":briefReady?"#0369A1":"#64748B";
   var briefBg=d.isPartialEvidenceBrief?"#FFFBEB":briefReady?"#EFF6FF":"#F8FAFC";
@@ -1827,6 +1827,7 @@ function PHDSS() {
 
   // --- INSTRUCTION FILE STATE ---
   var [instructions,setInstructions]=useState({});
+  var [instructionSources,setInstructionSources]=useState({});
   var [instrLoadState,setInstrLoadState]=useState("idle"); // idle | loading | ready | partial | failed
   var [instrProgress,setInstrProgress]=useState({loaded:0,total:21,failed:[]});
 
@@ -1838,6 +1839,7 @@ function PHDSS() {
       setInstrProgress(function(p){ return Object.assign({},p,{loaded:done,total:total}); });
     }).then(function(result){
       setInstructions(result.loaded);
+      setInstructionSources(result.sources||{});
       setInstrProgress(function(p){ return Object.assign({},p,{failed:result.failed}); });
       if(result.failed.length===0) setInstrLoadState("ready");
       else if(Object.keys(result.loaded).length>0) setInstrLoadState("partial");
@@ -1926,6 +1928,29 @@ function PHDSS() {
     setDialogueHistory([]); setDirectorResultsRef([]); setExpandedDirs({});
 
     var eventHandler=function(type,payload){
+      // Preserve streaming evidence even when a later stage fails before a run
+      // manifest can be generated. A defective run must remain exportable.
+      if(type==="governance-provenance-stage"){
+        setGovernanceProvenance(function(prev){
+          var next=prev||{manifest:null,stages:{},compression_events:[]};
+          return {...next,stages:{...next.stages,[payload.stage_id]:payload.record}};
+        });
+        return;
+      }
+      if(type==="governance-compression-event"){
+        setGovernanceProvenance(function(prev){
+          var next=prev||{manifest:null,stages:{},compression_events:[]};
+          return {...next,compression_events:[...(next.compression_events||[]),payload.event]};
+        });
+        return;
+      }
+      if(type==="governance-provenance-manifest"){
+        setGovernanceProvenance(function(prev){
+          var next=prev||{manifest:null,stages:{},compression_events:[]};
+          return {...next,manifest:payload.manifest,stages:payload.stages||next.stages};
+        });
+        return;
+      }
       if(type==="active-directors"){
         setActiveDirectorsRef(payload.activeDir);
         setOmittedDirectorsRef(payload.omittedDir);
@@ -1994,14 +2019,14 @@ function PHDSS() {
     try {
       pipelineState=await runGovernancePipeline({
         decision:decision,decisionId:decisionId,decisionSignal:decisionSignal,orgContext:orgContext,
-        analysisMode:analysisMode,chairSelectedIds:chairSelectedIds,docs:docs,instructions:instructions,
+        analysisMode:analysisMode,chairSelectedIds:chairSelectedIds,docs:docs,instructions:instructions,instructionSources:instructionSources,
         webSearch:webSearch,publicWebSearch:publicWebSearch,sessionEvidence:sessionEvidence,
         autoContinue:autoContinue,totalLoadedDocs:totalLoadedDocs,instrLoadState:instrLoadState,
         ctx:getSessionContext(),priorStressTestResult:stressTestResult,
         deploymentCommit:(import.meta.env&&import.meta.env.VITE_GIT_COMMIT)||"UNRECORDED"
       },{},eventHandler);
 
-      if(pipelineState&&pipelineState.governanceProvenance&&pipelineState.governanceProvenance.manifest){
+      if(pipelineState&&pipelineState.governanceProvenance){
         setGovernanceProvenance(pipelineState.governanceProvenance);
       }
 
@@ -2297,14 +2322,22 @@ function PHDSS() {
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
               <div><div style={{fontSize:13,fontWeight:700,color:"#0F172A",marginBottom:3}}>Decision Ledger</div><div style={{fontSize:12,color:"#64748B"}}>{ledger.length} decision{ledger.length!==1?"s":""} recorded this session.</div></div>
               <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                {governanceProvenance&&governanceProvenance.manifest&&<button onClick={function(){
-                  var manifest=governanceProvenance.manifest;
-                  downloadJson("PHDSS_"+manifest.decision_id+"_governance_manifest.json",manifest);
-                  Object.keys(governanceProvenance.stages||{}).forEach(function(stageId){
-                    var safeStage=stageId.replace(/[^A-Za-z0-9_-]+/g,"_");
-                    downloadJson("PHDSS_"+manifest.decision_id+"_"+safeStage+"_request.json",governanceProvenance.stages[stageId]);
-                  });
-                }} style={{padding:"8px 18px",borderRadius:8,border:"1px solid #C4B5FD",background:"#F5F3FF",color:"#6D28D9",fontSize:12,fontWeight:600,cursor:"pointer"}}>Export Provenance</button>}
+                {governanceProvenance&&(governanceProvenance.manifest||Object.keys(governanceProvenance.stages||{}).length||governanceProvenance.compression_events&&governanceProvenance.compression_events.length)&&<button onClick={async function(){
+  try {
+    var manifest=governanceProvenance.manifest||null;
+    var decisionKey=manifest&&manifest.decision_id||decisionId;
+    var ledgerRecord=ledger.find(function(rec){return rec.decision_id===decisionKey;})||null;
+    var bundle=await createGovernanceExportBundle({
+      manifest:manifest,
+      stages:governanceProvenance.stages||{},
+      compression_events:governanceProvenance.compression_events||[],
+      ledger_record:ledgerRecord
+    });
+    downloadJson("PHDSS_"+bundle.decision_id+"_governance_bundle"+(bundle.status==="INCOMPLETE/INVALID"?"_INCOMPLETE":"")+".json",bundle);
+  } catch(exportError) {
+    window.alert("Governance export blocked: "+(exportError&&exportError.message||String(exportError)));
+  }
+}} style={{padding:"8px 18px",borderRadius:8,border:"1px solid #C4B5FD",background:"#F5F3FF",color:"#6D28D9",fontSize:12,fontWeight:600,cursor:"pointer"}}>Export Provenance</button>}
                 {ledger.length>0&&<button onClick={function(){downloadJson("phdss-ledger_"+new Date().toISOString().slice(0,10)+(ledger.length>1?"__"+ledger.length+"_":"")+".json",{schema_version:LEDGER_SCHEMA,generated_at:new Date().toISOString(),record_count:ledger.length,decisions:ledger});}} style={{padding:"8px 18px",borderRadius:8,border:"none",background:"linear-gradient(135deg,#A78BFA,#7C3AED)",color:"#FFFFFF",fontSize:12,fontWeight:600,cursor:"pointer"}}>Export JSON</button>}
               </div>
             </div>
