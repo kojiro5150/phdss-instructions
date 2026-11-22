@@ -1,4 +1,4 @@
-import { SYNTHESIS_MODEL } from "./anthropic-client.js";
+import { SYNTHESIS_MODEL, SYNTHESIS_REQUEST_SETTINGS } from "./anthropic-client.js";
 
 export const GOVERNANCE_PROVENANCE_SCHEMA="phdss.governance-provenance.v1";
 export const GOVERNANCE_PROVENANCE_SCHEMA_RC2="phdss.governance-provenance.v2";
@@ -66,11 +66,7 @@ export async function createGovernanceStageRequest(input){
     instruction_source_commits:instruction.instruction_source_commits,
     instruction_source_urls:instruction.instruction_source_urls,
     model:SYNTHESIS_MODEL,
-    model_settings:{
-      max_tokens:16000,
-      temperature:0.8,
-      auto_continue:!!input.auto_continue
-    },
+    model_settings:{...SYNTHESIS_REQUEST_SETTINGS,auto_continue:!!input.auto_continue},
     web_search:!!input.web_search,
     system_prompt:String(input.system_prompt||""),
     system_prompt_sha256:input.system_prompt==null?null:await sha256Text(input.system_prompt),
@@ -164,7 +160,7 @@ export function createSkippedGovernanceStage(input){
     instruction_source_commits:[],
     instruction_source_urls:[],
     model:SYNTHESIS_MODEL,
-    model_settings:{max_tokens:16000,temperature:0.8,auto_continue:!!input.auto_continue},
+    model_settings:{...SYNTHESIS_REQUEST_SETTINGS,auto_continue:!!input.auto_continue},
     web_search:false,
     system_prompt:"",
     system_prompt_sha256:null,
@@ -196,7 +192,7 @@ export async function createGovernanceManifest(input){
     decision_text:input.decision_text||null,
     chair_selected_directors:(input.chair_selected_directors||[]).slice(),
     model:SYNTHESIS_MODEL,
-    model_settings:{max_tokens:16000,temperature:0.8,auto_continue:!!input.auto_continue},
+    model_settings:{...SYNTHESIS_REQUEST_SETTINGS,auto_continue:!!input.auto_continue},
     web_search:!!input.web_search,
     public_web_search:!!input.public_web_search,
     session_evidence_count:input.session_evidence_count||0,
