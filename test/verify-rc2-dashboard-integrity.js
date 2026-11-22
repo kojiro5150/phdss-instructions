@@ -214,4 +214,75 @@ assert.match(longSummary,/^\bAboriginal and Torres Strait Islander/);
 assert.match(longSummary,/\[Excerpt: see full Probe output\]$/);
 assert.ok(longSummary.length<1100);
 
+
+// R96-4: real Sonnet structure, but entirely invented content.
+// Number is INSIDE the bold span: **1. Title.** followed by a body paragraph.
+// Bold section boundaries and in-line label/value must terminate the list.
+const nestedBoldNumberCDTA=[
+  "**Cross-Domain Conflicts**",
+  "**1. Safety versus throughput.**",
+  "Invented conflict details for the first item.",
+  "**2. Equity versus standardisation.**",
+  "Invented conflict details for the second item.",
+  "**3. Privacy versus transparency.**",
+  "Invented conflict details for the third item.",
+  "**4. Cost versus continuity.**",
+  "Invented conflict details for the fourth item.",
+  "**Hidden Assumptions**",
+  "**1. Uniform network connectivity.**",
+  "Invented assumption about remote sites.",
+  "**2. Staff have spare capacity.**",
+  "Invented assumption about workloads.",
+  "**3. All records are accurate.**",
+  "Invented assumption about measurements.",
+  "**4. Consent is continuous.**",
+  "Invented assumption about permissions.",
+  "**Reasoning Gaps**",
+  "**1. No comparator is measured.**",
+  "Invented details about absent comparison evidence.",
+  "**2. Current process is uncharacterised.**",
+  "Invented details about baseline uncertainty.",
+  "**3. Recovery is untested.**",
+  "Invented details about fallback readiness.",
+  "**4. Accountability mapping is incomplete.**",
+  "Invented details about governance roles.",
+  "**Coverage Limitations**",
+  "1. First limitation unrelated to reasoning gaps.",
+  "2. Second limitation unrelated to reasoning gaps.",
+  "3. Third limitation unrelated to reasoning gaps.",
+  "4. Fourth limitation unrelated to reasoning gaps.",
+  "5. Fifth limitation unrelated to reasoning gaps.",
+  "6. Sixth limitation unrelated to reasoning gaps.",
+  "7. Seventh limitation unrelated to reasoning gaps.",
+  "8. Eighth limitation unrelated to reasoning gaps.",
+  "9. Ninth limitation unrelated to reasoning gaps.",
+  "**Unresolved Tensions**",
+  "**1. Consistency can conflict with choice.**",
+  "Invented tension about local options.",
+  "**2. Speed can conflict with assurance.**",
+  "Invented tension about review time.",
+  "**3. Simplicity can conflict with depth.**",
+  "Invented tension about explanation quality.",
+  "**4. Scale can conflict with participation.**",
+  "Invented tension about input burden.",
+  "**Integration Signal**: MEDIUM — further review required.",
+  "**Unlisted Results Context**",
+  "Nothing in this trailing section should enter the tension count."
+].join("\n");
+for(const h of ["Cross-Domain Conflicts","Hidden Assumptions","Reasoning Gaps","Unresolved Tensions"]){
+  const parsed=extractLogicalFindings(nestedBoldNumberCDTA,h);
+  assert.equal(parsed.length,4,"inside-bold model numbering in "+h);
+  assert.ok(parsed.every(x=>!x.includes("Coverage Limitations")&&!x.includes("Integration Signal")),"no next-section leakage for "+h);
+  assert.ok(parsed.every(x=>!x.startsWith("**")&&!/^\d+\./.test(x)),"no numbering residue for "+h);
+}
+const gapParsed=extractLogicalFindings(nestedBoldNumberCDTA,"Reasoning Gaps");
+assert.match(gapParsed[0],/No comparator is measured/);
+assert.match(gapParsed[0],/absent comparison evidence/);
+assert.match(gapParsed.at(-1),/governance roles/);
+const tensionParsed=extractLogicalFindings(nestedBoldNumberCDTA,"Unresolved Tensions");
+assert.match(tensionParsed.at(-1),/Scale can conflict with participation/);
+assert.match(tensionParsed.at(-1),/input burden/);
+// Empty/new-parser failure MUST remain empty, never silently revive legacy count.
+assert.deepEqual(extractLogicalFindings("**Reasoning Gaps**\n**Coverage Limitations**\n1. Not a gap.","Reasoning Gaps"),[]);
+
 console.log("RC2 dashboard integrity: PASS");
