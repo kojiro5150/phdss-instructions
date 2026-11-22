@@ -275,7 +275,7 @@ export async function verifyGovernanceProvenance({manifest,stageRecords,expected
     deployment_commit:manifest.deployment_commit
   };
 
-  return {schema:"phdss.governance-provenance-verification.v2",decision_id:manifest.decision_id,run_provenance_status:failures.length?"INVALID":"VALID",verification_context:verificationContext,ledger_verification:ledgerVerification,stages,failures};
+  return {schema:isRC2?"phdss.governance-provenance-verification.v3":"phdss.governance-provenance-verification.v2",decision_id:manifest.decision_id,run_provenance_status:failures.length?"INVALID":"VALID",verification_context:verificationContext,ledger_verification:ledgerVerification,stages,failures};
 }
 
 const invoked=process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href;
