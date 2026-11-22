@@ -177,4 +177,51 @@ await invalid("reordered request/result",mutate(b=>{
   refreshInventory(b);
 }),/missing or out-of-order compression attempt/);
 
+
+// R96-3: preserve defective-run evidence even when provenance cannot validate.
+// The independent verifier still rejects, but an investigator receives the
+// original incomplete components, inventory and explicit failure codes.
+const brokenManifest=structuredClone(manifest);
+brokenManifest.compression_results=brokenManifest.compression_results.filter(x=>x.parent_stage_id!=="chair");
+const retained=await createGovernanceExportBundle({
+  manifest:brokenManifest,stages:originalStages,compression_events:events,
+  ledger_record:{decision_id:ledger.decision_id,record:"Conflicting invented Ledger result"}
+});
+assert.equal(retained.status,"INCOMPLETE/INVALID");
+assert.equal(retained.export_validation.status,"INCOMPLETE/INVALID");
+assert.ok(retained.export_validation.checks.some(x=>x.code==="LEDGER_HASH_MISMATCH"));
+assert.ok(retained.export_validation.checks.some(x=>x.code==="SELECTED_BRIEF_CHAIN_INCOMPLETE"));
+assert.equal(retained.files["manifest.json"].compression_results.length,manifest.compression_results.length-1);
+assert.equal(retained.files["stages/chair.json"].stage_id,"chair");
+assert.ok(retained.files["compression/compression_chair_attempt_1_result.json"]);
+const retainedResult=await verifyGovernanceBundle({bundle:retained,sourceLoader});
+assert.equal(retainedResult.status,"INVALID");
+assert.match(JSON.stringify(retainedResult.errors),/export reports incomplete\/invalid/);
+
+const missingStage=await createGovernanceExportBundle({
+  manifest,stages:originalStages.filter(x=>x.stage_id!=="chair"),
+  compression_events:events,ledger_record:ledger
+});
+assert.equal(missingStage.status,"INCOMPLETE/INVALID");
+assert.ok(missingStage.export_validation.checks.some(x=>x.code==="BUNDLE_FILE_SET_MISMATCH"));
+assert.equal(await verifyGovernanceBundle({bundle:missingStage,sourceLoader}).then(x=>x.status),"INVALID");
+
+const interrupted=await createGovernanceExportBundle({
+  manifest:null,stages:{orphan:{stage_id:"orphan",status:"failed",error:"Invented interruption"}},
+  compression_events:[],ledger_record:null
+});
+assert.equal(interrupted.status,"INCOMPLETE/INVALID");
+assert.equal(interrupted.files["stages/orphan.json"].error,"Invented interruption");
+assert.ok(interrupted.inventory.file_count>=3);
+assert.equal(await verifyGovernanceBundle({bundle:interrupted,sourceLoader}).then(x=>x.status),"INVALID");
+
+// Duplicate/colliding records must be retained, not overwritten during export.
+const duplicated=await createGovernanceExportBundle({
+  manifest,stages:[...originalStages,structuredClone(originalStages[0])],
+  compression_events:events,ledger_record:ledger
+});
+assert.equal(duplicated.status,"INCOMPLETE/INVALID");
+assert.ok(duplicated.export_validation.checks.some(x=>x.code==="DUPLICATE_COMPONENT"));
+assert.ok(Object.keys(duplicated.files).some(x=>x.includes("__duplicate_1.json")));
+
 console.log("RC2 compressed-call, composite-source and single-bundle independent verification: PASS");
