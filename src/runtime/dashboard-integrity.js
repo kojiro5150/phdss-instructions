@@ -151,7 +151,10 @@ export function buildDashboardFindings(text,heading) {
     const seen=seenByGroup.get(group);
     if(seen.has(cleaned))continue;
     seen.add(cleaned);
-    out.push({text:cleaned,sourceGroup:group||null});
+    // A bold-only unrecognised heading may be either a finding or a label:
+    // retain and flag the ambiguity instead of silently classifying it away.
+    const ambiguousHeading=/^\*\*[^*\n]+\*\*:?\s*$/.test(line);
+    out.push({text:cleaned,sourceGroup:group||null,ambiguousHeading});
   }
   return out;
 }
