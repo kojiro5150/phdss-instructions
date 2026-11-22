@@ -475,11 +475,11 @@ function parseDashboard(decision, dirOutputs, meta, stress, chair, dialogueHisto
         if (t.length < 80 && CONFLICT_FRAMING.test(t)) return false;
         return true;
       })
-  ).slice(0,8);
+  );
   var assumptions = dedupExtracted(
     (extractLogicalFindings(metaText, "Hidden Assumptions").length ? extractLogicalFindings(metaText, "Hidden Assumptions") : extractMetaItems(metaText, "Hidden Assumptions"))
       .filter(function(a){ return !PREAMBLE_LINE.test(a.trim()) && !ASSUMPTION_FRAMING.test(a.trim()); })
-  ).slice(0,8);
+  );
   // P2.1: post-extraction validation — warn if source has more items than extracted
   (function(){
     var sourcedBlocks=(metaText.match(/\*\*(SOURCED|INFERRED)\*\*/gi)||[]).length;
@@ -489,15 +489,10 @@ function parseDashboard(decision, dirOutputs, meta, stress, chair, dialogueHisto
   })();
   var gaps=extractLogicalFindings(metaText,"Reasoning Gaps");
   if(!gaps.length) gaps=extractBulletLines(metaText,"Reasoning Gaps");
-  // FIX: Use dedupExtracted (content fingerprint) not dedupItems (text normalise only) to
-  // prevent the same tension block appearing twice when Executive Layer addition causes
-  // extractBulletLines and extractSection to both find the same content in the META output.
-  var tensionsRaw=extractBulletLines(metaText,"Unresolved Tensions").concat(
-    extractSection(metaText,"Unresolved Tensions").split("\n")
-      .map(function(l){return l.trim().replace(/^[-•\d.]+\s*/,"").trim();})
-      .filter(function(l){return l.length>15&&!l.match(/^(Sourced|Inferred|Speculative)/i)&&!l.match(/^Unresolved Tensions/i);})
-  );
-  var tensions=dedupExtracted(tensionsRaw).slice(0,5);
+  // F-7: count each logical tension exactly once, using the same
+  // section-boundary semantics as conflicts, assumptions and reasoning gaps.
+  var tensions=extractLogicalFindings(metaText,"Unresolved Tensions");
+  if(!tensions.length) tensions=dedupExtracted(extractBulletLines(metaText,"Unresolved Tensions"));
   var integrationSignal=safeMatch(metaText,/Integration Signal\*?\*?:?\s*\*{0,2}(HIGH|MEDIUM|LOW)\*{0,2}/i,1)||"-";
   // FIX 5: Extract the rationale that follows the Integration Signal label (up to end of line)
   var integrationRationale=(function(){
