@@ -207,6 +207,7 @@ export async function createGovernanceManifest(input){
       return {stage_id:record.stage_id,status:record.status,output_sha256:record.output_sha256||null};
     }),
     compression_events:Array.isArray(input.compression_events)?input.compression_events.map(function(ref){return Object.assign({},ref);}):undefined,
+    compression_results:Array.isArray(input.compression_results)?input.compression_results.map(function(ref){return Object.assign({},ref);}):undefined,
     final_ledger_sha256:input.final_ledger==null?null:await sha256Text(JSON.stringify(input.final_ledger))
   };
 }
