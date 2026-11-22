@@ -395,4 +395,58 @@ for(const pattern of [
 assert.match(dashboardSource,/item&&item\.groupLabel[\s\S]*?group label — not a counted finding/,"group labels must display with explicit status");
 for(const pattern of [/d\.gaps\.slice\s*\(/,/d\.tensions\.slice\s*\(/])assert.doesNotMatch(dashboardSource,pattern);
 
+
+// R98-5: instruction-declared Layer 1 boundaries govern the Epistemic Gaps
+// dashboard section; two heading forms must stop the list and not misattribute
+// coverage analysis or health-score drivers as cross-cutting gaps.
+const epistemicBoundaries=[
+  "**Epistemic Gaps**",
+  "1. Invented primary gap about unavailable evidence",
+  "**Cross-cutting gaps:**",
+  ...Array.from({length:6},(_,i)=>(i+2)+". Invented cross-domain evidence gap "+(i+1)),
+  "**Coverage Impact on Epistemic Quality**",
+  "This paragraph belongs to coverage impact, not the gaps list.",
+  "**Epistemic Health Score**: WEAK",
+  "This paragraph is a health-score driver, not an epistemic gap."
+].join("\n");
+const bounded=buildDashboardFindings(epistemicBoundaries,"Epistemic Gaps");
+assert.equal(dashboardFindingCount(bounded),7,"R98-5: seven epistemic findings");
+assert.equal(bounded.filter(item=>item.groupLabel).length,1,"R98-5: one cross-cutting group label");
+assert.ok(!bounded.some(item=>/coverage impact|health-score driver/i.test(item.text)),"R98-5: no following section leakage");
+const boldColonBoundary=[
+  "**Epistemic Gaps**",
+  "1. Invented gap about unavailable benchmark",
+  "**Epistemic Health Score**: WEAK — lacking comparable data",
+  "The score's paragraph must not become a second gap."
+].join("\n");
+assert.equal(dashboardFindingCount(buildDashboardFindings(boldColonBoundary,"Epistemic Gaps")),1,"R98-5: bold-colon inline score is a hard section boundary");
+// R98-6: each bold Director subheading and its explanatory paragraph is one
+// flag. Four Director flags must remain four, without clipping or double count.
+const fourFlags=[
+  "**Overconfidence Flags**",
+  "**Director Alpha**",
+  "The Alpha claim lacks a confidence interval.",
+  "**Director Beta**",
+  "The Beta claim rests on an unvalidated baseline.",
+  "**Director Gamma**",
+  "The Gamma claim assumes absent cross-site evidence.",
+  "**Director Delta**",
+  "The Delta claim overstates local generalisability.",
+  "**Systematic Bias Signals**",
+  "Unrelated downstream discussion"
+].join("\n");
+const combinedFlags=buildDashboardFindings(fourFlags,"Overconfidence Flags");
+assert.equal(dashboardFindingCount(combinedFlags),4,"R98-6: four Director flags, not eight rows");
+for(const [index,name] of ["Alpha","Beta","Gamma","Delta"].entries()){
+  assert.match(combinedFlags[index].text,new RegExp("Director "+name),"R98-6: heading preserved");
+  assert.match(combinedFlags[index].text,/claim/,"R98-6: explanatory paragraph joined");
+}
+assert.ok(!combinedFlags.some(item=>item.text.includes("Unrelated downstream")),"R98-6: later section is excluded");
+// Negative: neither a colon ending nor --- inside a legitimate flag paragraph
+// triggers removal or a false boundary.
+const flagNegative=buildDashboardFindings("**Overconfidence Flags**\n**Director Epsilon**\nThe underlying warning ends in a colon: \nAnd this observation contains --- within text.\n**Systematic Bias Signals**","Overconfidence Flags");
+assert.equal(dashboardFindingCount(flagNegative),1);
+assert.match(flagNegative[0].text,/colon:/);
+assert.match(flagNegative[0].text,/--- within text/);
+
 console.log("RC2 dashboard integrity: PASS");
