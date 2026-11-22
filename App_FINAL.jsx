@@ -1831,6 +1831,7 @@ function PHDSS() {
 
   // --- INSTRUCTION FILE STATE ---
   var [instructions,setInstructions]=useState({});
+  var [instructionSources,setInstructionSources]=useState({});
   var [instrLoadState,setInstrLoadState]=useState("idle"); // idle | loading | ready | partial | failed
   var [instrProgress,setInstrProgress]=useState({loaded:0,total:21,failed:[]});
 
@@ -1842,6 +1843,7 @@ function PHDSS() {
       setInstrProgress(function(p){ return Object.assign({},p,{loaded:done,total:total}); });
     }).then(function(result){
       setInstructions(result.loaded);
+      setInstructionSources(result.sources||{});
       setInstrProgress(function(p){ return Object.assign({},p,{failed:result.failed}); });
       if(result.failed.length===0) setInstrLoadState("ready");
       else if(Object.keys(result.loaded).length>0) setInstrLoadState("partial");
@@ -1998,7 +2000,7 @@ function PHDSS() {
     try {
       pipelineState=await runGovernancePipeline({
         decision:decision,decisionId:decisionId,decisionSignal:decisionSignal,orgContext:orgContext,
-        analysisMode:analysisMode,chairSelectedIds:chairSelectedIds,docs:docs,instructions:instructions,
+        analysisMode:analysisMode,chairSelectedIds:chairSelectedIds,docs:docs,instructions:instructions,instructionSources:instructionSources,
         webSearch:webSearch,publicWebSearch:publicWebSearch,sessionEvidence:sessionEvidence,
         autoContinue:autoContinue,totalLoadedDocs:totalLoadedDocs,instrLoadState:instrLoadState,
         ctx:getSessionContext(),priorStressTestResult:stressTestResult,
