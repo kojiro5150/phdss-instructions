@@ -4,7 +4,7 @@
 **Gate A status:** RC1 ATTEMPT CLOSED — NOT PASSED (Protocol Authority decision 22 November 2026); separate RC2 in preparation
 **Decision date:** 22 November 2026
 **Protocol Authority:** Sam Hayward
-**Prepared by:** Claude (engineering support); evidence gathered 22 November 2026, 00:25 to 00:30 UTC
+**Prepared by:** Claude (engineering support); evidence gathered 22 November 2026, 00:25 to 00:30 UTC. **Amendment attribution:** §§4.3, 7, 8 and 10 amended by ChatGPT under PA-13, 22 November 2026.
 
 This record documents the historical RC1 freeze and its subsequent closure. The original freeze decision was accurate when made; the Protocol Authority has since closed the RC1 attempt as NOT PASSED (see dated §10 addendum). This is not authorisation to release, merge, deploy or transfer.
 
@@ -81,7 +81,7 @@ Evidence files: `tests/evidence/gate-a/rc1-2026-11-22/`.
 
 | Protocol step | Status |
 |---|---|
-| Governance end-to-end export test (protocol §3) | **PERFORMED on frozen RC1**: decision `DR-20261122-115931-4417e9`; 13 stage records and manifest recovered after four-file targeted browser workaround (L-24); verifier VALID, independently reproduced byte-identically, two negative controls INVALID as expected. **Criterion 6 NOT MET**: compression model calls not captured (F-5), and source attribution L-14 remains qualified. Run ineligible for synthetic transfer study due to absent pre-run checks. |
+| Governance end-to-end export test (protocol §3) | **PERFORMED on frozen RC1**: decision `DR-20261122-115931-4417e9`; manifest and first nine stage records delivered normally; final four stage records recovered by targeted browser workaround (L-24); verifier VALID, independently reproduced byte-identically, two negative controls INVALID as expected. **Criterion 6 NOT MET**: compression model calls not captured (F-5), and source attribution L-14 remains qualified. Run ineligible for synthetic transfer study due to absent pre-run checks. |
 | UI disclosure inspection (protocol §2.6) | **PARTIAL INSPECTION PERFORMED**: Chair/five Director UI exports compared exactly, Comparator displayed-field parity supported visually, and two dashboard screenshots reviewed. Full §2.6 limitations walkthrough **NOT COMPLETED**. Material F-6 to F-8 established; **Criterion 7 NOT MET**. |
 | Build verification after deployment | NOT RUN: candidate not deployed |
 
@@ -146,9 +146,9 @@ The register is in Review Candidate status and is not accepted as Gate A-complet
 
 | # | Criterion | Status | Basis |
 |---|---|---|---|
-| 1 | Clean, versioned, tagged release build | NOT MET | Candidate frozen; release tag deferred by Protocol Authority pending live export testing, UI inspection, and review (§9) |
+| 1 | Clean, versioned, tagged release build | **NOT MET** | RC1 tag never created; conditional historical tag plan superseded by PA-01 RC1 closure (§10). No RC1 release-candidate tag is authorised now. |
 | 2 | `npm run validate` passes unmodified | MET at candidate commit; re-verify at tag | §4.1 (CI and local) |
-| 3 | Limitations register complete and accurate | NOT MET | Not accepted; L-13, L-14, L-19, L-20, L-22, L-23 OPEN; L-18, L-21 pending disposition |
+| 3 | Limitations register complete and accurate | **NOT MET** | Register not accepted; L-24 remains in draft and F-5–F-9 await registration, alongside existing open limitations (including L-14). See RC1 closure (§10). |
 | 4 | Synthetic-only test-data policy | **NOT MET — PA-11 purposive interpretation** | Policy is documented and explicit as the literal criterion says, but its own status remains `PROPOSED — Protocol Authority review required`; policy approval not evidenced. Earlier MET was written by reviewer without inspecting that status and is superseded by PA-11. Separately, RC1 run omitted §4 pre-run checks and is ineligible. |
 | 5 | Deployment provenance and instruction-pin verification on tagged build | PARTIAL | Build and pins verified locally; no tag; not deployed; L-14 |
 | 6 | Governance-mode provenance parity | **NOT MET** | 13-stage verifier VALID and independently reproduced, but Governance Brief compression calls are outside stage provenance (F-5); L-14 source attribution remains qualified. |
@@ -156,7 +156,7 @@ The register is in Review Candidate status and is not accepted as Gate A-complet
 
 **Does QUALIFIED satisfy Gate A?** No. `GATE_A_ENTRY.md` §4 requires every criterion to be "demonstrably met" and defines no qualified closure. Route C was selected accordingly.
 
-**Release tag deferred.** Decision 4 authorises the tag. `GATE_A_TRANSFER_CANDIDATE_VALIDATION_PROTOCOL.md` §2.8 says to tag only after the full validation sequence (including the Governance export test and UI inspection) and Protocol Authority review, and not in a documentation PR. That protocol is still marked DRAFT. The Protocol Authority confirmed on 22 November 2026 that tagging is deferred until the live Governance export test, UI disclosure inspection, and review are completed (§9); this is an explicit decision, not an approval of the draft protocol. Target verified: `7649eb4ed5f07072a29a7c5758040d2f9ecd9828`.
+**Historical tag condition (now superseded by PA-01).** Decision 4 originally authorised the tag conditionally. `GATE_A_TRANSFER_CANDIDATE_VALIDATION_PROTOCOL.md` §2.8 says to tag only after the full validation sequence (including the Governance export test and UI inspection) and Protocol Authority review, and not in a documentation PR. That protocol is still marked DRAFT. The Protocol Authority originally deferred tagging until the live Governance export test, UI disclosure inspection, and review. PA-01 subsequently closed RC1 as NOT PASSED; **no RC1 tag is now to be created** (§10). The historical conditional decision is not current release authority. Target originally verified: `7649eb4ed5f07072a29a7c5758040d2f9ecd9828`.
 
 **CI on a tag.** The workflow triggers on pushes to `main` and `v2.0` and on pull requests to `main`. It has no tag or manual trigger. A tag push will not run CI unless the workflow is changed, which this PR does not do.
 
@@ -168,7 +168,7 @@ The register is in Review Candidate status and is not accepted as Gate A-complet
 
 | Action | Owner | Status |
 |---|---|---|
-| Create release-candidate tag only after live Governance export testing, UI disclosure inspection, and review are completed, with exact target verified | Engineering, subject to Protocol Authority decision in §9 | DEFERRED; prerequisites outstanding |
+| RC1 release-candidate tag | Protocol Authority / engineering | **SUPERSEDED by PA-01: no RC1 release-candidate tag is to be created.** Historical conditional authorisation in §1 and §9 is no longer operative. |
 | Governance end-to-end export test per protocol §3 | Protocol Authority (operator); independent reviewer | **PERFORMED**; 13-stage verification VALID and independently reproduced; limitations F-5 and L-14 prevent Criterion 6 parity. |
 | jsDelivr half of control 4 | Protocol Authority (Mac operator); ChatGPT (report and post-run script inspection); Claude (git cross-check and script author) | COMPLETED for sampled retrieval times; report integrity and all 42 reported hashes independently cross-checked against git. Independence qualified: Claude authored the script, and ChatGPT reviewed it after execution; neither AI independently repeated CDN retrieval (§5.3). |
 | UI disclosure inspection | Protocol Authority and reviewer | **PARTIAL INSPECTION PERFORMED** (exports and two screenshots); full §2.6 walkthrough NOT COMPLETED; F-6–F-8 established, Criterion 7 NOT MET. |
@@ -187,15 +187,17 @@ The register is in Review Candidate status and is not accepted as Gate A-complet
 | Closure route | C (remain OPEN) | 2026-11-22 |
 | Release tag timing | **DEFERRED by Protocol Authority** until the live Governance export test, UI disclosure inspection, and review are completed; no tag creation authorised before these conditions | 2026-11-22 |
 | Independent review | | |
+| RC1 closure — PA-01 | **RC1 Gate A NOT PASSED**; supersedes historical Route C and conditional tag timing; no RC1 tag to be created | 2026-11-22 |
+| PA-13 documentation authority | Approved by Protocol Authority in ChatGPT conversation, 22 November 2026, in response to the PA-13 approval request; documentation commits on PR #93 only, no merge/tag/runtime changes | 2026-11-22 |
 
 
 ---
 
 ## 10. Closure addendum — 22 November 2026 (subsequent to historical freeze)
 
-**Authority:** Protocol Authority decisions PA-01–PA-12, confirmed 22 November 2026; PA-13 separately authorises documentation-only amendments to this draft PR. Full authority record: `docs/GATE_A_RC1_CLOSURE_RC2_PREPARATION_DECISION.md` (to be added in a separately reviewed documentation commit). These decisions supersede the historical Route C / conditional RC1-tag language in §§1 and 9 **only as to present action**; historical wording is preserved as evidence of the previous state. **No RC1 release-candidate tag is to be created.**
+**Authority:** Protocol Authority decisions PA-01–PA-12, confirmed 22 November 2026; PA-13, explicitly approved by the Protocol Authority in the ChatGPT conversation on 22 November 2026 (reply: `Approve PA-13`), separately authorises documentation-only amendments to this draft PR. Full authority record: `docs/GATE_A_RC1_CLOSURE_RC2_PREPARATION_DECISION.md` (to be added in a separately reviewed documentation commit). These decisions supersede the historical Route C / conditional RC1-tag language in §§1 and 9 **only as to present action**; historical wording is preserved as evidence of the previous state. **No RC1 release-candidate tag is to be created.**
 
-**RC1 identity:** frozen runtime `7649eb4ed5f07072a29a7c5758040d2f9ecd9828`; run `DR-20261122-115931-4417e9` (synthetic-looking operator scenario, not a pre-approved fixture). The manifest, all 13 stage records, Ledger, verifier output, independent review, and displayed-field checks were retained outside this PR. The original exports and hashes must not be rewritten. The enclosing evidence package must be labelled `SYNTHETIC EVALUATION — NOT A LIVE CASE` rather than retrofitting that label into hashed originals.
+**RC1 identity:** frozen runtime `7649eb4ed5f07072a29a7c5758040d2f9ecd9828`; run `DR-20261122-115931-4417e9` (not a pre-approved fixture). **Eligibility record:** Operator-generated synthetic test scenario; no patient information or organisational case evidence supplied. Pre-run checks under policy §4 not completed; run **not eligible** for the synthetic transfer study. Retained as Gate A defect-discovery and regression evidence.. The manifest, all 13 stage records, Ledger, verifier output, independent review, and displayed-field checks were retained outside this PR. The original exports and hashes must not be rewritten. The enclosing evidence package must be labelled `SYNTHETIC EVALUATION — NOT A LIVE CASE` rather than retrofitting that label into hashed originals.
 
 **RC1 seven-criterion determination:**
 
