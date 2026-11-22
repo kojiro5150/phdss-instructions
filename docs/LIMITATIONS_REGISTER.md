@@ -637,7 +637,7 @@ The second is not a function of the first. A single HALT among thirteen Director
 **Status:** OPEN — remediation proposed; authorisation pending (PA-27 not yet approved as at this documentation draft)  
 **Discovered:** Independent PR #96 Round 3 review, 22 November 2026, on merged reviewed head `7800c7ac5c1bea0a4499a555c3f618c95e9487a6`  
 **Component:** `App_FINAL.jsx` Transparency Dashboard; five bounded display lists  
-**Evidence:** Independent reviewer RC1 restricted replay and source inspection (review file `PR96_RC2_PHASE_A_REVIEW.md`, Round 3); recorded headings/counts and visible-list comparison; underlying source retained in restricted custody.
+**Evidence:** Independent reviewer RC1 restricted replay and source inspection (review file `PR96_RC2_PHASE_A_REVIEW.md`, Round 3, **retained outside the public repository**); recorded headings/counts and visible-list comparison; underlying source retained in restricted custody.
 
 **Limitation:** Five separate UI paths silently cap the number of items displayed without a `showing N of M` notice or immediate disclosure of omitted items:
 

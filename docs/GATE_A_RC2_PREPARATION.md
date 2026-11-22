@@ -86,7 +86,7 @@ This checklist prevents completion of the six remediation items from being confu
 
 The PA-12 review must identify and record unresolved implementation requirements. For an **internal fully synthetic RC2 evaluation**, these include all prospective fixture and prohibited-data checks, build/instruction/evidence settings, restricted storage, custodian and retention. Before the **first external run**, the handling and incident procedure, contacts, access, retention/deletion-review rules, service/provider configurations and sharing/publication requirements must be established. A de-identified-data study needs its **own separately governed protocol and prospective eligibility determination**; it is not covered by the internal synthetic RC2 permission. Neither external/de-identified requirement automatically blocks internal fully synthetic RC2 testing, once PA-12a and its internal-run conditions are satisfied.
 
-PR #93 already contains five public files under `tests/evidence/gate-a/rc1-2026-11-22/` (build log, two validation logs and two source-hash reports). An independent reviewer reported preliminary low-risk screening, but **no publication-review decision is yet recorded by the named approver**. This remains a separate Protocol Authority action and cannot be supplied by ChatGPT's description. Record exact file identities, reviewed prohibited/confidential material, secrets, prompts/responses, licensing and re-identification risks, publication decision and custodian/retention requirements. **Do not claim the publication review is complete** or publish further raw evaluation artefacts under PA-13.
+PR #93 contained five public files under `tests/evidence/gate-a/rc1-2026-11-22/` (build log, two validation logs and two source-hash reports). **PA-14 expressly approved their continued public publication retrospectively on 22 November 2026**, as recorded in PR #93's description and limited **only to the exact five listed Git blob SHAs**. These files were already public before that decision; PA-14 does not rewrite that chronology or approve any altered/new version, restricted RC1 prompt/response, stage records, Ledger or screenshot. The separately recorded **PA-15** approved updating PR #93's description; it was metadata-only. A new publication of evidence remains subject to separate prospective review.
 
 ---
 
@@ -103,7 +103,7 @@ PR #93 already contains five public files under `tests/evidence/gate-a/rc1-2026-
 | PA-12a version-specific policy approval | **APPROVED** on 22 November 2026, SHA-256 `d24baff9…c773f2c`; first fixture and run authorisations remain separate |
 | RC2 fixture registration / pre-run checks | **NOT DONE** |
 | RC2 live run, complete UI walkthrough, independent assessment and Gate A determination | **NOT DONE** |
-| PR #93 publication review of existing five evidence files | **Historical original status only**; this PA-26 PR does not imply a new publication review or permission to publish restricted RC1 material. Consult the dated PA-23/PR #95 decisions for exact dispositions. |
+| PR #93 publication review of existing five evidence files | **APPROVED RETROSPECTIVELY UNDER PA-14** (22 November 2026), exactly five blob SHAs recorded in PR #93 description. No approval for modifications or additional restricted RC1 material; PA-15 authorised only PR-description metadata correction. |
 | Decision record v0.5 and its repository addition | **INDEPENDENTLY REVIEWED AND ACCEPTED, 22 NOVEMBER 2026** |
 | This RC2 preparation document | **PENDING independent diff review** |
 
