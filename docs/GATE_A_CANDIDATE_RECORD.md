@@ -1,12 +1,12 @@
 # Gate A: Candidate Freeze, Evidence and Exception Record
 
-**Status:** FINAL for independent review (draft PR; not merged)
-**Gate A status:** OPEN (closure route C)
+**Status:** HISTORICAL RC1 FREEZE RECORD — see closure addendum (§10); draft PR, not merged
+**Gate A status:** RC1 ATTEMPT CLOSED — NOT PASSED (Protocol Authority decision 22 November 2026); separate RC2 in preparation
 **Decision date:** 22 November 2026
 **Protocol Authority:** Sam Hayward
 **Prepared by:** Claude (engineering support); evidence gathered 22 November 2026, 00:25 to 00:30 UTC
 
-This record freezes a transfer candidate and sets out the evidence against each Gate A exit criterion (`docs/GATE_A_ENTRY.md` §4). It does not close Gate A, does not mark any criterion PASS that has not been demonstrated, and does not authorise transfer or deployment.
+This record documents the historical RC1 freeze and its subsequent closure. The original freeze decision was accurate when made; the Protocol Authority has since closed the RC1 attempt as NOT PASSED (see dated §10 addendum). This is not authorisation to release, merge, deploy or transfer.
 
 ---
 
@@ -77,12 +77,12 @@ Evidence files: `tests/evidence/gate-a/rc1-2026-11-22/`.
 
 **Interpretation.** Claim A says the candidate passes the suite it was evaluated under. Claim B says the unchanged runtime also passes the later characterisation tests. Claim B does not retrospectively change what was evaluated at the baseline. Neither claim establishes Governance provenance parity, behavioural reliability or Gate A exit.
 
-### 4.3 Not yet run
+### 4.3 RC1 live-run and UI-inspection outcomes (updated after original freeze record)
 
 | Protocol step | Status |
 |---|---|
-| Governance end-to-end export test (protocol §3) | NOT RUN. Needs the Protocol Authority to operate the live app with model access |
-| UI disclosure inspection (protocol §2.6) | NOT RUN |
+| Governance end-to-end export test (protocol §3) | **PERFORMED on frozen RC1**: decision `DR-20261122-115931-4417e9`; 13 stage records and manifest recovered after four-file targeted browser workaround (L-24); verifier VALID, independently reproduced byte-identically, two negative controls INVALID as expected. **Criterion 6 NOT MET**: compression model calls not captured (F-5), and source attribution L-14 remains qualified. Run ineligible for synthetic transfer study due to absent pre-run checks. |
+| UI disclosure inspection (protocol §2.6) | **PARTIAL INSPECTION PERFORMED**: Chair/five Director UI exports compared exactly, Comparator displayed-field parity supported visually, and two dashboard screenshots reviewed. Full §2.6 limitations walkthrough **NOT COMPLETED**. Material F-6 to F-8 established; **Criterion 7 NOT MET**. |
 | Build verification after deployment | NOT RUN: candidate not deployed |
 
 ---
@@ -149,10 +149,10 @@ The register is in Review Candidate status and is not accepted as Gate A-complet
 | 1 | Clean, versioned, tagged release build | NOT MET | Candidate frozen; release tag deferred by Protocol Authority pending live export testing, UI inspection, and review (§9) |
 | 2 | `npm run validate` passes unmodified | MET at candidate commit; re-verify at tag | §4.1 (CI and local) |
 | 3 | Limitations register complete and accurate | NOT MET | Not accepted; L-13, L-14, L-19, L-20, L-22, L-23 OPEN; L-18, L-21 pending disposition |
-| 4 | Synthetic-only test-data policy | MET | §6 |
+| 4 | Synthetic-only test-data policy | **NOT MET — PA-11 purposive interpretation** | Policy is documented and explicit as the literal criterion says, but its own status remains `PROPOSED — Protocol Authority review required`; policy approval not evidenced. Earlier MET was written by reviewer without inspecting that status and is superseded by PA-11. Separately, RC1 run omitted §4 pre-run checks and is ineligible. |
 | 5 | Deployment provenance and instruction-pin verification on tagged build | PARTIAL | Build and pins verified locally; no tag; not deployed; L-14 |
-| 6 | Governance-mode provenance parity | NOT VERIFIED; L-14 QUALIFIED | Live export test not run |
-| 7 | Limitations intelligible to a non-builder | PARTIAL | UI inspection not run; no independent reader |
+| 6 | Governance-mode provenance parity | **NOT MET** | 13-stage verifier VALID and independently reproduced, but Governance Brief compression calls are outside stage provenance (F-5); L-14 source attribution remains qualified. |
+| 7 | Limitations intelligible to a non-builder | **NOT MET** | Partial UI inspection showed F-6 silent content omissions, F-7 incorrect counts and F-8 instruction-text displacement; full §2.6 walkthrough not completed. |
 
 **Does QUALIFIED satisfy Gate A?** No. `GATE_A_ENTRY.md` §4 requires every criterion to be "demonstrably met" and defines no qualified closure. Route C was selected accordingly.
 
@@ -169,9 +169,9 @@ The register is in Review Candidate status and is not accepted as Gate A-complet
 | Action | Owner | Status |
 |---|---|---|
 | Create release-candidate tag only after live Governance export testing, UI disclosure inspection, and review are completed, with exact target verified | Engineering, subject to Protocol Authority decision in §9 | DEFERRED; prerequisites outstanding |
-| Governance end-to-end export test per protocol §3 | Protocol Authority (operator) | Authorised, not run |
+| Governance end-to-end export test per protocol §3 | Protocol Authority (operator); independent reviewer | **PERFORMED**; 13-stage verification VALID and independently reproduced; limitations F-5 and L-14 prevent Criterion 6 parity. |
 | jsDelivr half of control 4 | Protocol Authority (Mac operator); ChatGPT (report and post-run script inspection); Claude (git cross-check and script author) | COMPLETED for sampled retrieval times; report integrity and all 42 reported hashes independently cross-checked against git. Independence qualified: Claude authored the script, and ChatGPT reviewed it after execution; neither AI independently repeated CDN retrieval (§5.3). |
-| UI disclosure inspection | Protocol Authority or reviewer | Not run |
+| UI disclosure inspection | Protocol Authority and reviewer | **PARTIAL INSPECTION PERFORMED** (exports and two screenshots); full §2.6 walkthrough NOT COMPLETED; F-6–F-8 established, Criterion 7 NOT MET. |
 | L-18 and L-21 dispositions | Protocol Authority | Pending evidence |
 | Confirm branch protection requires CI | Protocol Authority (repo admin) | Not verified |
 | Independent review of this record | Reviewer | Requested via draft PR |
@@ -187,3 +187,30 @@ The register is in Review Candidate status and is not accepted as Gate A-complet
 | Closure route | C (remain OPEN) | 2026-11-22 |
 | Release tag timing | **DEFERRED by Protocol Authority** until the live Governance export test, UI disclosure inspection, and review are completed; no tag creation authorised before these conditions | 2026-11-22 |
 | Independent review | | |
+
+
+---
+
+## 10. Closure addendum — 22 November 2026 (subsequent to historical freeze)
+
+**Authority:** Protocol Authority decisions PA-01–PA-12, confirmed 22 November 2026; PA-13 separately authorises documentation-only amendments to this draft PR. Full authority record: `docs/GATE_A_RC1_CLOSURE_RC2_PREPARATION_DECISION.md` (to be added in a separately reviewed documentation commit). These decisions supersede the historical Route C / conditional RC1-tag language in §§1 and 9 **only as to present action**; historical wording is preserved as evidence of the previous state. **No RC1 release-candidate tag is to be created.**
+
+**RC1 identity:** frozen runtime `7649eb4ed5f07072a29a7c5758040d2f9ecd9828`; run `DR-20261122-115931-4417e9` (synthetic-looking operator scenario, not a pre-approved fixture). The manifest, all 13 stage records, Ledger, verifier output, independent review, and displayed-field checks were retained outside this PR. The original exports and hashes must not be rewritten. The enclosing evidence package must be labelled `SYNTHETIC EVALUATION — NOT A LIVE CASE` rather than retrofitting that label into hashed originals.
+
+**RC1 seven-criterion determination:**
+
+| # | Exit criterion | RC1 closeout status |
+|---|---|---|
+| 1 | Clean, versioned, tagged release | **NOT MET** — tag not created |
+| 2 | `npm run validate` | **MET at candidate commit** (CI and local), not at a nonexistent release tag |
+| 3 | Complete limitations register | **NOT MET** — L-24 and F-5–F-9 not yet incorporated in accepted register |
+| 4 | Documented synthetic-only policy | **NOT MET by PA-11 purposive interpretation** — literal wording of criterion is satisfied, but policy itself remains PROPOSED / unapproved; earlier MET recorded without checking policy status |
+| 5 | Deployment provenance / pin verification | **PARTIAL** — frozen build/pin checks, L-14 source-attribution limitation, not deployed or tagged |
+| 6 | Governance provenance parity | **NOT MET** — independent 13-stage verifier VALID and two negative controls succeeded, but Governance Brief compression calls uncovered (F-5), L-14 persists |
+| 7 | Intelligible limitations | **NOT MET** — F-6 to F-8 demonstrated in partial UI inspection; full §2.6 walkthrough not completed |
+
+**Independent review boundaries:** Verifier outcome `phdss.governance-provenance-verification.v2: VALID`, reproduced byte-for-byte at clean `7649eb4` checkout (`bf0ceb6d388f38c995bf02b95638c3cb430bbddbbc687287e2246f40c884dfb5`). Missing comparator stage and tampered Chair output both produced INVALID. This demonstrates integrity of the *captured* stages, not the missing compression events, source truth, internal transform replay, or correctness of model-generated citations. The Comparator panel comparison was visual and covers displayed fields only; six other stage UI exports were character-exact. L-09 second Chair repair pass was **NOT EXERCISED**. Chrome initially delivered 10 of 14 exports; the missing final four were recovered using a targeted console filter. RC1 remains **INELIGIBLE** for the synthetic transfer study under policy §4 because pre-run eligibility checks were absent; ineligibility cannot be corrected retrospectively.
+
+**Findings and decisions:** F-5 (uncaptured compression) blocks Criterion 6. F-6 (Chair content truncation), F-7 (double counts) and F-8 (instruction comments displacing Aboriginal and Torres Strait Islander perspective) block Criterion 7. F-9 (misattributed / unsupported citation) has a **qualified-acceptance disposition with a documented evidence-verification control**, not a verified citation. RC2 is a **separate** future Gate A attempt, not a continuation/re-tag of RC1. Scope: F-5–F-8, L-14 and L-24; no RC2 build/freeze exists. PA-12a prospective synthetic-policy approval remains **PENDING**, required before RC2 fixture registration and live run, but not before deterministic engineering work. No transfer, merge, tag, deployment or runtime mutation is authorised by this addendum.
+
+**Evidence handling/publication:** Original run payloads (approximately 1.8 MB) are NOT authorised for public commit under PA-13. The five pre-existing public files under `tests/evidence/gate-a/rc1-2026-11-22/` require a documented publication review; an independent reviewer's preliminary low-risk screen is not a substitute for that review. No publication review is claimed completed here.
