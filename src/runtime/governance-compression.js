@@ -103,6 +103,9 @@ export async function compressDirectorOutput(directorLabel, fullOutput, runtime)
     const suffix=attempt===0?"":"\n\nYour previous extraction attempt was unusable. Return the complete JSON object with every governance_record field present. Do not truncate it.";
     const system=compressionSystem();
     const user="Director: "+directorLabel+"\n\nFull Director Output:\n"+source+suffix;
+    const requestId="compression:"+parent+":attempt:"+(attempt+1);
+    // The request sidecar is emitted and hashed BEFORE the model call.
+    await capture({event_id:requestId+":request",phase:"request",mode:"model",attempt_index:attempt+1,status:"pending",selected:false,system_prompt:system,user_message:user});
     let raw=null,txt=null;
     try {
       raw=await apiCallFor(runtime)(system,user,false,runtime&&runtime.fetchImpl);
@@ -110,11 +113,11 @@ export async function compressDirectorOutput(directorLabel, fullOutput, runtime)
       if(!isValidDirectorBriefText(txt))throw new Error("invalid Director Governance Brief schema");
       const assessment=assessProvenanceMonotonicity(source,txt);
       if(assessment.violates)throw new Error("Director Governance Brief provenance violation: "+assessment.reason);
-      await capture({event_id:"compression:"+parent+":attempt:"+(attempt+1),mode:"model",attempt_index:attempt+1,status:"success",selected:true,system_prompt:system,user_message:user,raw_response:raw.text,final_response:txt});
+      await capture({event_id:requestId+":result",phase:"result",mode:"model",attempt_index:attempt+1,status:"success",selected:true,system_prompt:system,user_message:user,raw_response:raw.text,final_response:txt});
       return txt;
     } catch(e) {
       lastError=e.message||String(e);
-      await capture({event_id:"compression:"+parent+":attempt:"+(attempt+1),mode:"model",attempt_index:attempt+1,status:"rejected",selected:false,system_prompt:system,user_message:user,raw_response:raw&&raw.text!=null?raw.text:null,final_response:txt,error:lastError});
+      await capture({event_id:requestId+":result",phase:"result",mode:"model",attempt_index:attempt+1,status:"rejected",selected:false,system_prompt:system,user_message:user,raw_response:raw&&raw.text!=null?raw.text:null,final_response:txt,error:lastError});
     }
   }
   const fallback=deterministicDirectorBrief(directorLabel,source,lastError);
@@ -169,6 +172,9 @@ export async function compressSynthesisOutput(moduleLabel,fullOutput,runtime) {
     const suffix=attempt===0?"":"\n\nYour previous extraction attempt was unusable. Return the complete JSON object exactly as requested.";
     const system=synthesisBriefSystem(moduleLabel);
     const user="Module: "+moduleLabel+"\n\nFull Module Output:\n"+source+suffix;
+    const requestId="compression:"+parent+":attempt:"+(attempt+1);
+    // The request sidecar is emitted and hashed BEFORE the model call.
+    await capture({event_id:requestId+":request",phase:"request",mode:"model",attempt_index:attempt+1,status:"pending",selected:false,system_prompt:system,user_message:user});
     let raw=null,txt=null;
     try {
       raw=await apiCallFor(runtime)(system,user,false,runtime&&runtime.fetchImpl);
@@ -178,11 +184,11 @@ export async function compressSynthesisOutput(moduleLabel,fullOutput,runtime) {
       if(assessment.violates)throw new Error("synthesis Governance Brief provenance violation: "+assessment.reason);
       const authority=assessAuthorityBoundary(parent,txt);
       if(authority.violates)throw new Error("synthesis Governance Brief authority violation: "+authority.reason);
-      await capture({event_id:"compression:"+parent+":attempt:"+(attempt+1),mode:"model",attempt_index:attempt+1,status:"success",selected:true,system_prompt:system,user_message:user,raw_response:raw.text,final_response:txt});
+      await capture({event_id:requestId+":result",phase:"result",mode:"model",attempt_index:attempt+1,status:"success",selected:true,system_prompt:system,user_message:user,raw_response:raw.text,final_response:txt});
       return txt;
     } catch(e) {
       lastError=e.message||String(e);
-      await capture({event_id:"compression:"+parent+":attempt:"+(attempt+1),mode:"model",attempt_index:attempt+1,status:"rejected",selected:false,system_prompt:system,user_message:user,raw_response:raw&&raw.text!=null?raw.text:null,final_response:txt,error:lastError});
+      await capture({event_id:requestId+":result",phase:"result",mode:"model",attempt_index:attempt+1,status:"rejected",selected:false,system_prompt:system,user_message:user,raw_response:raw&&raw.text!=null?raw.text:null,final_response:txt,error:lastError});
     }
   }
   const fallback=deterministicSynthesisBrief(moduleLabel,source,lastError);
