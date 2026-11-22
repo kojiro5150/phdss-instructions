@@ -86,4 +86,62 @@ assert.match(absent,/Aboriginal and Torres Strait Islander/);
 assert.doesNotMatch(absent,/NOTE|<!--|instruction guard/);
 assert.match(absent,/independently verified/);
 assert.equal(extractAbsentPerspectiveSummary("## Whose Perspective Is Absent\n<!-- NOTE! -->"),"");
+
+// Bold-section and sub-bullet formatting variants must retain item identity.
+const boldChair=[
+  "**Decision Conditions**",
+  "These introductory words are not conditions.",
+  "**Independent sign-off** — The sign-off remains a human decision.",
+  "**Accessible records** — Evidence is legible to reviewers.",
+  "**Escalation process** — Teams can report exceptions.",
+  "**Safe rollback** — Operations can be stopped.",
+  "**Published limits** — Uncertainty remains visible.",
+  "**Audit ownership** — Custodians retain review responsibility.",
+  "**Key Trade-offs**",
+  "**Speed vs deliberation**",
+  "Deliberation is slow but improves scrutiny.",
+  "**Uniformity vs local need**",
+  "Local teams may need adaptations.",
+  "**Privacy vs oversight**",
+  "Oversight must not reveal identities.",
+  "**Cost vs resilience**",
+  "Redundancy costs resources.",
+  "**Automation vs autonomy**",
+  "Human discretion must remain.",
+  "**Coverage vs accuracy**",
+  "Coverage may dilute accuracy.",
+  "**Accepted Residual Risk**",
+  "Unknown implementation risks."
+].join("\n");
+assert.equal(extractChairItems(boldChair,"Decision Conditions").length,6);
+assert.equal(extractChairItems(boldChair,"Key Trade-offs").length,6);
+assert.match(extractChairItems(boldChair,"Key Trade-offs")[5],/Coverage vs accuracy/);
+
+const boldMeta=[
+  "**Cross-Domain Conflicts**",
+  "1. **Safety vs throughput**",
+  "   - Supporting material concerns human review.",
+  "2. **Equity vs scale**",
+  "   - Supporting material concerns local context.",
+  "3. **Access vs control**",
+  "   - Supporting material concerns restricted access.",
+  "4. **Speed vs accountability**",
+  "   - Supporting material concerns challenge and sign-off.",
+  "**Hidden Assumptions**",
+  "1. **Staff availability** — Availability has not been established.",
+  "2. **Network reliability** — Reliability has not been established.",
+  "3. **Cultural safety** — Safety has not been established.",
+  "4. **Ongoing funding** — Funding has not been established.",
+  "**Reasoning Gaps**",
+  "1. **No comparator** — There is no comparator.",
+  "2. **No baseline** — There is no baseline.",
+  "3. **No fallback** — There is no fallback.",
+  "4. **No ownership** — There is no ownership.",
+  "**Unresolved Tensions**"
+].join("\n");
+for(const h of ["Cross-Domain Conflicts","Hidden Assumptions","Reasoning Gaps"]){
+  assert.equal(extractLogicalFindings(boldMeta,h).length,4,"bold "+h);
+}
+assert.match(extractLogicalFindings(boldMeta,"Cross-Domain Conflicts")[0],/Supporting material/);
+
 console.log("RC2 dashboard integrity: PASS");
