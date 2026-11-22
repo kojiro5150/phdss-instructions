@@ -136,7 +136,7 @@ export function buildDashboardFindings(text,heading) {
   let group="";
   // R98-6: one bold Director heading and its following paragraph form
   // one parser-returned flag, not two separate findings.
-  const sourceLines=heading==="Overconfidence Flags"?joinDirectorFlagParagraphs(block):block.split("\\n");
+  const sourceLines=heading==="Overconfidence Flags"?joinDirectorFlagParagraphs(block):block.split("\n");
   for(const original of sourceLines){
     const line=original.trim();
     if(!line||isHorizontalRule(line))continue;
@@ -201,7 +201,7 @@ function dashboardSection(text,heading) {
     // Layer 1 headings may be bold-only or bold followed by ": value".
     // Only known instruction-declared section headings terminate this section.
     if(/^\*\*[A-Za-z][^*\n]+\*\*\s*(?::[ \t]*.*)?$/.test(t)&&!dashboardGroup(t,heading)){
-      const name=title(t);
+      const name=title(t).split(":")[0].trim();
       // Known section boundary is definitive. For unknown headings, preserve
       // the text as an ambiguous finding rather than silently drop it.
       if(endHeadings.has(name))break;
