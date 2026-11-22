@@ -357,3 +357,32 @@ A successful live Governance run with independently verified hashes is required 
 
 > **Governance provenance has been demonstrated on a live runtime execution.**
 
+---
+
+## RC2 additive provenance extension — PA-24 (engineering candidate, 22 November 2026)
+
+**Status:** Proposed engineering implementation under PA-24; not an RC2 freeze, independent evaluation result or Gate A approval. Historical v1 manifests and v1/v2 stage evidence remain historical and are not retroactively promoted.
+
+### RC2 version identities
+
+- Run manifest: `phdss.governance-provenance.v2` (additive to v1).
+- Stage provenance: `phdss.governance-stage-provenance.v3` (additive per-file source attribution to v2).
+- Compression event: `phdss.governance-compression-event.v1` (first-class attempts, request/result lifecycle and deterministic fallback).
+- Verification result: `phdss.governance-provenance-verification.v3` for RC2 v2 manifests; existing v2 result for historical v1 manifests.
+- Single bundle and inventory: `phdss.governance-export-bundle.v1` and `phdss.governance-export-inventory.v1`.
+
+### Source attribution under composite pins (L-14)
+
+The existing `instruction_commit` records the historical lived-instruction pin for compatibility and is **not** evidence that all 21 files loaded from that commit. Each v3 stage must contain aligned `instruction_files`, `instruction_runtime_sha256`, `instruction_source_commits` and `instruction_source_urls` arrays. The run manifest records the actual file-fetch mapping in `instruction_sources`. The verifier compares declared source commit and CDN route with a separately specified, trusted pinned routing expectation before it checks normalized content bytes. **Identical content at a different Git commit does not establish correct source attribution.** Verifier trust in a pin expectation still requires independent confirmation of the tested build/deployment and its loader; the record alone is not a cryptographic attestation of a remote request.
+
+### Compression call capture (F-5 / L-25)
+
+Every model-bearing Governance Brief compression attempt first emits a `phase=request` sidecar containing its full system prompt, user message, model/settings and source-output hash, all hashed before API dispatch. Every request must be paired with a `phase=result` event, retaining its raw model response (or explicit error), accepted/rejected outcome, exact request linkage and any transformed accepted text. Deterministic fallbacks emit a separate selected event, with reason.
+
+The v2 run manifest inventories **every** event with a SHA-256 of exact JSON serialization and separately records the SHA-256 of **each actual Governance Brief used downstream or displayed**. The verifier rejects omitted/misaligned events, missing pre-call requests, out-of-order or duplicate attempts, altered prompts or responses, source/output mismatches, and selections whose final hash does not match the used brief. Compression provenance does not independently prove a model-provider execution occurred; external provider assurance is beyond this deterministic protocol.
+
+### Single-bundle completeness (L-24)
+
+A single JSON download must contain the v2 run manifest, all stage records, all first-class compression events and the exact matching Ledger record. An independent per-component inventory records each logical path, SHA-256 and UTF-8 byte length. The independent Node verifier checks the manifest inventory and linkage, rejects missing/modified/extra records, then runs the full v3 provenance verifier. Export fails visibly if the bundle cannot be made complete. No browser-specific multiple-download allowance or DevTools recovery is part of the acceptance route.
+
+**Evaluation boundary:** Passing deterministic tests or a structurally VALID verifier result cannot substitute for a new eligible RC2 live run, human/independent assessment, successful UI/export walkthrough, or any of the seven unchanged Gate A exit criteria.
