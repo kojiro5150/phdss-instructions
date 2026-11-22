@@ -1,6 +1,6 @@
 # Gate A — Transfer-Readiness Entry Record
 
-**Status:** RC1 ATTEMPT CLOSED — NOT PASSED (Protocol Authority, 22 November 2026); RC2 is a separate planned Gate A attempt, not yet built or frozen  
+**Status:** RC1 ATTEMPT CLOSED — NOT PASSED (Protocol Authority, 22 November 2026); RC2 Phase A repairs merged in PR #96 and independently accepted for engineering, but no RC2 release candidate frozen/tagged or eligible live Gate A validation completed  
 **Date opened:** 10 October 2026  
 **Gate A question:** Is the technical and evidentiary baseline stable enough to hand over?  
 **Required result:** Frozen build, provenance, validation, limitations, data policy
@@ -131,3 +131,6 @@ Decision Ledger work may proceed in parallel with Gate A documentation completio
 | 2026-11-22 | Candidate `7649eb4` frozen; L-14 controls accepted; closure route C selected; §2 status table reconciled (exit criteria unchanged). See `docs/GATE_A_CANDIDATE_RECORD.md` |
 | 2026-11-22 | Protocol Authority closed **RC1 Gate A — NOT PASSED** (PA-01) and authorised a **separate RC2** preparation (PA-02 onward). PA-09 includes L-14 and PA-10 includes L-24; PA-11 adopts purposive Criterion 4; PA-12 authorises policy review, but PA-12a policy approval remains pending. RC1 live Governance export test performed and independently reviewed; UI inspection partial; original RC1 run ineligible under synthetic-data policy. The seven exit criteria in §4 are unchanged. See `docs/GATE_A_CANDIDATE_RECORD.md` §10. |
 | 2026-11-22 | PA-13 authorised **documentation commits to draft PR #93 only**; no merge, tag, deployment, transfer or RC2 engineering approved under PA-13. Amendments to this entry record prepared with ChatGPT assistance. |
+| 2026-11-22 | **PA-12a** approved exact version of the fully synthetic policy, SHA-256 `d24baff959b852490a27499bc9482aa184c5496645b1a2e427eaacf79c773f2c`; the first fixture and first internal live run still require separate prospective approvals. Formal record proposed under **PA-26**. |
+| 2026-11-22 | **PA-24** separately authorised bounded RC2 Phase A engineering. Independent RC1 replay review accepted all six remediation items. **PA-25** authorised exact-head merge of PR #96, resulting in `main` commit `81ac31ab1993690181d5ec2ddbddfc66d2153763` and passing CI run 44992548340. This **does not** establish tagged-build evidence, Phase B testing or Gate A passage. |
+| 2026-11-22 | **PA-26** authorised one documentation-only reconciliation PR (independent review and separate merge reserved). L-29's five silent dashboard display caps registered as **OPEN — proposed** pending separate PA-27 decision. The unchanged seven Gate A exit criteria remain binding. |
