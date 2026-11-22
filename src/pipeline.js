@@ -25,6 +25,7 @@ import {
   finalizeGovernanceStage,
   createSkippedGovernanceStage,
   createGovernanceManifest,
+  sha256Text,
 } from "./runtime/governance-provenance.js";
 import {
   compressDirectorOutput,
@@ -548,6 +549,18 @@ export async function runGovernancePipeline(config,runtime,emit) {
     return brief;
   }
 
+  async function compressionResultRefs(){
+    var output=[];
+    for(const id of Object.keys(state.dirBriefs)) {
+      if(typeof state.dirBriefs[id]==="string") output.push({parent_stage_id:"director:"+id,brief_sha256:await sha256Text(state.dirBriefs[id])});
+    }
+    var map={surfacemap:"surface_map",epistemic:"epistemic_audit",meta:"cross_domain_tension_analysis",reality:"reality_anchor",probe:"adversarial_probe",stress:"stress_test",chair:"chair"};
+    for(const key of Object.keys(state.synthesisBriefs)){
+      if(typeof state.synthesisBriefs[key]==="string")output.push({parent_stage_id:map[key],brief_sha256:await sha256Text(state.synthesisBriefs[key])});
+    }
+    return output;
+  }
+
   try {
     var results_seq=[];
     for(var di=0;di<activeDir.length;di++){
@@ -874,6 +887,7 @@ export async function runGovernancePipeline(config,runtime,emit) {
         omitted_directors:omittedDir.map(function(d){return d.id;}),
         stages:stageRecords,
         compression_events:compressionRefs,
+        compression_results:await compressionResultRefs(),
         final_ledger:record
       });
       emit("governance-provenance-manifest",{manifest:state.governanceProvenance.manifest,stages:state.governanceProvenance.stages});
@@ -892,7 +906,7 @@ export async function runGovernancePipeline(config,runtime,emit) {
           instruction_commit:INSTRUCTION_COMMIT,instruction_sources:config.instructionSources||{},analysis_mode:config.analysisMode,decision_text:config.decision,chair_selected_directors:config.chairSelectedIds||[],auto_continue:config.autoContinue,
           web_search:config.webSearch,public_web_search:config.publicWebSearch,session_evidence_count:(config.sessionEvidence||[]).length,
           active_directors:activeDir.map(function(d){return d.id;}),omitted_directors:omittedDir.map(function(d){return d.id;}),
-          stages:fatalStages,compression_events:compressionRefsFatal,final_ledger:fatalRecord
+          stages:fatalStages,compression_events:compressionRefsFatal,compression_results:await compressionResultRefs(),final_ledger:fatalRecord
         });
         emit("governance-provenance-manifest",{manifest:state.governanceProvenance.manifest,stages:state.governanceProvenance.stages});
       } catch(e) {}
