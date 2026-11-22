@@ -147,6 +147,84 @@ export async function verifyGovernanceProvenance({manifest,stageRecords,expected
   for(const sid of["surface_map","epistemic_audit","cross_domain_tension_analysis","adversarial_probe","chair"]){if(!by[sid])fail("mandatory stage missing: "+sid);else if(by[sid].status==="skipped")fail("mandatory stage incorrectly skipped: "+sid);}
   for(const sid of["reality_anchor","stress_test","comparator"]) if(!by[sid]) fail("conditional/degradable stage missing explicit record: "+sid);
 
+  // F-5: v2 manifest must account for EVERY compression attempt (not merely
+  // the final transformed Governance Brief) and link each selected output to
+  // the actual brief used by the run. Fail closed on omissions and alteration.
+  if(isRC2){
+    const refs=manifest.compression_events||[];
+    const results=manifest.compression_results;
+    if(!Array.isArray(results))fail("RC2 manifest missing selected brief output inventory");
+    const seenEvents=new Set(),seenResults=new Set(),eventsByParent=new Map();
+    const actualEvents=Array.isArray(compressionEvents)?compressionEvents:[];
+    const eventsById=new Map();
+    for(const event of actualEvents){
+      if(eventsById.has(event.event_id))fail("duplicate compression event: "+event.event_id);
+      eventsById.set(event.event_id,event);
+    }
+    for(const ref of refs){
+      if(seenEvents.has(ref.event_id))fail("duplicate compression ref: "+ref.event_id);
+      seenEvents.add(ref.event_id);
+      const e=eventsById.get(ref.event_id);
+      if(!e){fail("missing compression event: "+ref.event_id);continue;}
+      if(e.schema!=="phdss.governance-compression-event.v1")fail("unsupported compression event schema: "+ref.event_id);
+      if(e.event_id!==ref.event_id||e.parent_stage_id!==ref.parent_stage_id
+        ||e.status!==ref.status||e.selected!==ref.selected||sha(JSON.stringify(e))!==ref.event_sha256)
+        fail("compression reference or event hash mismatch: "+ref.event_id);
+      for(const [field,hashField] of [["system_prompt","system_prompt_sha256"],["user_message","user_message_sha256"],["raw_response","raw_response_sha256"],["final_response","final_response_sha256"]]){
+        const expected=e[field]==null?null:sha(e[field]);
+        if(e[hashField]!==expected)fail("compression "+field+" hash mismatch: "+ref.event_id);
+      }
+      if(!by[e.parent_stage_id])fail("compression parent stage absent: "+ref.event_id);
+      else if(by[e.parent_stage_id].output_sha256!==e.source_output_sha256)
+        fail("compression source hash does not match parent stage: "+ref.event_id);
+      if(e.mode==="model"){
+        if(e.model!=="claude-sonnet-4-6"||!e.model_settings
+          ||e.model_settings.max_tokens!==16000||e.model_settings.temperature!==0.8||e.model_settings.web_search!==false
+          ||!e.system_prompt||!e.user_message)
+          fail("compression model request metadata incomplete: "+ref.event_id);
+        if(!["success","rejected"].includes(e.status))fail("invalid model compression status: "+ref.event_id);
+      }else if(e.mode==="deterministic"){
+        if(e.status!=="fallback"||!e.selected||e.model!==null)
+          fail("invalid deterministic fallback: "+ref.event_id);
+      }else fail("invalid compression mode: "+ref.event_id);
+      if(e.selected&&(e.final_response==null||!e.final_response.length))
+        fail("selected compression missing output: "+ref.event_id);
+      if(e.selected&&!["success","fallback"].includes(e.status))
+        fail("rejected compression marked selected: "+ref.event_id);
+      if(!Number.isInteger(e.attempt_index)||e.attempt_index<0)
+        fail("invalid compression attempt index: "+ref.event_id);
+      if(!eventsByParent.has(e.parent_stage_id))eventsByParent.set(e.parent_stage_id,[]);
+      eventsByParent.get(e.parent_stage_id).push(e);
+    }
+    for(const event of actualEvents)if(!seenEvents.has(event.event_id))fail("unreferenced compression event: "+event.event_id);
+    const resultsByParent=new Map();
+    for(const result of results||[]){
+      if(seenResults.has(result.parent_stage_id))fail("duplicate selected brief ref: "+result.parent_stage_id);
+      seenResults.add(result.parent_stage_id);
+      resultsByParent.set(result.parent_stage_id,result.brief_sha256);
+    }
+    const mustCompress=stageRecords.filter(x=>x.status==="success"&&x.stage_id!=="comparator").map(x=>x.stage_id);
+    for(const parent of mustCompress){
+      const list=eventsByParent.get(parent)||[];
+      const selected=list.filter(x=>x.selected);
+      if(selected.length!==1)fail("missing or multiple selected compression events: "+parent);
+      if(!resultsByParent.has(parent))fail("missing consumed brief hash: "+parent);
+      else if(selected.length===1&&resultsByParent.get(parent)!==selected[0].final_response_sha256)
+        fail("selected compression output differs from consumed brief: "+parent);
+      if(list.length){
+        const modeled=list.filter(x=>x.mode==="model");
+        for(let i=0;i<modeled.length;i++){
+          if(modeled[i].attempt_index!==i+1)fail("missing or out-of-order compression attempt: "+parent);
+        }
+        if(list[list.length-1].selected!==true)fail("compression selected event not final: "+parent);
+      }
+    }
+    for(const parent of eventsByParent.keys())if(!mustCompress.includes(parent))
+      fail("compression event for unsuccessful or unexpected stage: "+parent);
+    for(const parent of resultsByParent.keys())if(!mustCompress.includes(parent))
+      fail("unmatched compressed brief output ref: "+parent);
+  }
+
   let ledgerVerification={provided:false,status:"NOT_CHECKED",method:"SHA-256 over UTF-8 bytes of JSON.stringify(decision_record)",expected_sha256:manifest.final_ledger_sha256||null,computed_sha256:null};
   if(ledgerDocument){
     const decisions=Array.isArray(ledgerDocument.decisions)?ledgerDocument.decisions:[];
