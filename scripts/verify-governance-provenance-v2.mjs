@@ -90,6 +90,28 @@ export async function verifyGovernanceProvenance({manifest,stageRecords,expected
     if(!reason&&ref.status!==r.status) reason="manifest stage status mismatch";
     if(!reason&&r.stage_id==="chair"&&!r.authority_repair) reason="Chair authority repair metadata missing";
     if(!reason&&(!Array.isArray(r.instruction_files)||!Array.isArray(r.instruction_runtime_sha256)||r.instruction_files.length===0||r.instruction_files.length!==r.instruction_runtime_sha256.length)) reason="instruction provenance incomplete";
+    // L-14: v3 source attribution is independent of byte equality at another pin.
+    if(!reason&&stageSchema==="phdss.governance-stage-provenance.v3"){
+      if(!Array.isArray(r.instruction_source_commits)||!Array.isArray(r.instruction_source_urls)
+        ||r.instruction_source_commits.length!==r.instruction_files.length
+        ||r.instruction_source_urls.length!==r.instruction_files.length){
+        reason="per-file instruction source attribution incomplete";
+      } else {
+        for(let i=0;i<r.instruction_files.length;i++){
+          const file=r.instruction_files[i];
+          const key=file.endsWith(".md")?file.slice(0,-3):file;
+          const actual=r.instruction_source_commits[i];
+          const expected=expectedSourceForFile(file,expectedInstructionSources);
+          const expectedUrl="https://cdn.jsdelivr.net/gh/"+repoSlug+"@"+actual+"/"+file;
+          const captured=manifest.instruction_sources&&manifest.instruction_sources[key];
+          if(!actual||actual!==expected){reason="instruction source commit attribution mismatch for "+file;break;}
+          if(r.instruction_source_urls[i]!==expectedUrl){reason="instruction source URL mismatch for "+file;break;}
+          if(!captured||captured.commit!==actual||captured.url!==expectedUrl||captured.file!==file){
+            reason="loaded source record mismatch for "+file;break;
+          }
+        }
+      }
+    }
     // v2 schema: validate raw_output hash and transform fields on successful stages.
     // raw_output must not be null on a successful stage — null is only valid for
     // skipped or failed stages where output capture did not occur.
