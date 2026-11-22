@@ -11,7 +11,7 @@
 // Strategy: split on heading boundaries, fingerprint each block, drop duplicates.
 import { useState, useRef, useEffect } from "react";
 import { scanLivedNegativeScope } from "./src/runtime/lived-negative-scope-guardrail.js";
-import { extractChairItems, extractLogicalFindings, extractAbsentPerspectiveSummary } from "./src/runtime/dashboard-integrity.js";
+import { extractChairItems, extractLogicalFindings, extractAbsentPerspectiveSummary, buildDashboardFindings, buildDashboardLogicalFindings, dashboardFindingCount } from "./src/runtime/dashboard-integrity.js";
 import { createGovernanceExportBundle } from "./src/runtime/governance-export-bundle.js";
 import {
   TRUSTED_DOMAINS,
@@ -487,11 +487,11 @@ function parseDashboard(decision, dirOutputs, meta, stress, chair, dialogueHisto
       console.warn("PHDSS extraction: META has "+sourcedBlocks+" SOURCED/INFERRED blocks but only "+(conflicts.length+assumptions.length)+" conflicts+assumptions extracted — possible under-extraction");
     }
   })();
-  var gaps=extractLogicalFindings(metaText,"Reasoning Gaps");
+  var gaps=buildDashboardLogicalFindings(extractLogicalFindings(metaText,"Reasoning Gaps"));
   // R96-5: no silent fallback to the known-defective legacy counter.
   // F-7: count each logical tension exactly once, using the same
   // section-boundary semantics as conflicts, assumptions and reasoning gaps.
-  var tensions=extractLogicalFindings(metaText,"Unresolved Tensions");
+  var tensions=buildDashboardLogicalFindings(extractLogicalFindings(metaText,"Unresolved Tensions"));
   // R96-5: zero is reported as zero, not replaced by untrusted legacy extraction.
   var integrationSignal=safeMatch(metaText,/Integration Signal\*?\*?:?\s*\*{0,2}(HIGH|MEDIUM|LOW)\*{0,2}/i,1)||"-";
   // FIX 5: Extract the rationale that follows the Integration Signal label (up to end of line)
@@ -793,11 +793,9 @@ function parseDashboard(decision, dirOutputs, meta, stress, chair, dialogueHisto
   var governanceLevel=(!epistemicHealthGate&&traceabilityScore>=75&&coverageScore>=77)?"HIGH":traceabilityScore>=50?"MEDIUM":"LOW";
   // PA-27 / L-29: presentation must not truncate parser-returned items.
   // Render all five dashboard lists in source order; no content-based filtering here.
-  var overconfidenceFlags=dedupItems(extractBulletLines(epistemicText,"Overconfidence Flags").concat(
-    extractSection(epistemicText,"Overconfidence Flags").split("\n").filter(function(l){return l.trim()&&!l.startsWith("**");}))
-  );
+  var overconfidenceFlags=buildDashboardFindings(epistemicText,"Overconfidence Flags");
   var biasSignals=extractSection(epistemicText,"Systematic Bias Signals");
-  var epistemicGaps=extractBulletLines(epistemicText,"Epistemic Gaps");
+  var epistemicGaps=buildDashboardFindings(epistemicText,"Epistemic Gaps");
   var dirConfidence={};
   if(epistemicText){
     active.forEach(function(d){
@@ -807,9 +805,7 @@ function parseDashboard(decision, dirOutputs, meta, stress, chair, dialogueHisto
     });
   }
   var probeVerdict=findSignal(probeText,["BOARD REASONING SOUND","SIGNIFICANT GAPS","CONCLUSION CHALLENGED"]);
-  var boardMissed=dedupItems(extractBulletLines(probeText,"What the Board Missed").concat(
-    extractSection(probeText,"What the Board Missed").split("\n").filter(function(l){return l.trim()&&!l.startsWith("**");}))
-  );
+  var boardMissed=buildDashboardFindings(probeText,"What the Board Missed");
   var absentPerspectives=extractSection(probeText,"Whose Perspective Is Absent");
   var esNum=epistemicScore==="STRONG"?100:epistemicScore==="ADEQUATE"?65:epistemicScore==="WEAK"?30:epistemicScore==="COMPROMISED"?0:null;
   // Probe score: scale CONCLUSION CHALLENGED floor by coverage ratio.
@@ -930,7 +926,7 @@ function ModeBadge({mode}) {
 }
 
 
-function ExpandRow({label,count,items,color="#64748B",emptyMsg="None detected",bg="#F8FAFC",border="#E2E8F0",textColor="#334155",showCollapsedItemCount=false}) {
+function ExpandRow({label,count,items,color="#64748B",emptyMsg="None detected",bg="#F8FAFC",border="#E2E8F0",textColor="#334155",showCollapsedItemCount=false,collapsedFindingCount=null}) {
   var [open,setOpen]=useState(false);
   var hasItems=items&&items.length>0;
   return (
@@ -939,14 +935,16 @@ function ExpandRow({label,count,items,color="#64748B",emptyMsg="None detected",b
         <span style={{fontSize:12,color:"#475569"}}>{label}</span>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
           <span style={{fontSize:12,fontWeight:700,color:color}}>{count}</span>
-          {hasItems&&showCollapsedItemCount&&!open&&<span style={{fontSize:10,color:"#64748B"}}>{items.length+" items — expand to view all"}</span>}
+          {hasItems&&showCollapsedItemCount&&!open&&<span style={{fontSize:10,color:"#64748B"}}>{(collapsedFindingCount===null?dashboardFindingCount(items):collapsedFindingCount)+" findings — expand to view all"}</span>}
           {hasItems&&<span style={{fontSize:10,color:"#94A3B8"}}>{open?"▾":"▸"}</span>}
         </div>
       </div>
       {open&&hasItems&&
         <div style={{paddingBottom:10,display:"flex",flexDirection:"column",gap:5}}>
           {items.map(function(item,i){
-            return <div key={i} style={{fontSize:11,padding:"6px 10px",borderRadius:7,background:bg,border:"1px solid "+border,color:textColor,lineHeight:1.55}}>{item.text||item}</div>;
+            return item&&item.groupLabel
+              ? <div key={i} style={{fontSize:10,fontWeight:700,padding:"8px 4px 3px",color:"#475569",borderBottom:"1px solid "+border}}>{item.text+" (group label — not a counted finding)"}</div>
+              : <div key={i} style={{fontSize:11,padding:"6px 10px",borderRadius:7,background:bg,border:"1px solid "+border,color:textColor,lineHeight:1.55}}>{item.text||item}</div>;
           })}
         </div>
       }
@@ -1166,7 +1164,7 @@ function TransparencyDashboard({decision,dirOutputs,meta,stress,chair,epistemic,
           <ExpandRow label="Adversarial gap finding" count={d.probeVerdict||"-"} color={d.probeVerdict==="BOARD REASONING SOUND"?"#059669":d.probeVerdict==="SIGNIFICANT GAPS"?"#D97706":d.probeVerdict==="CONCLUSION CHALLENGED"?"#DC2626":"#94A3B8"} items={d.boardMissed} showCollapsedItemCount bg="#F5F3FF" border="#DDD6FE" textColor="#5B21B6"/>
           <ExpandRow label="Decision brief status" count={d.decisionBriefStatus||"-"} color={d.isPartialEvidenceBrief?"#B45309":briefReady?"#0369A1":"#94A3B8"} items={(d.decisionBriefClause?[d.decisionBriefClause]:[]).concat(d.conditions)} bg="#EFF6FF" border="#BFDBFE" textColor="#1E3A5F"/>
           <ExpandRow label="Fragility score" count={d.fragScore!=="-"?d.fragScore+"/10":(stressTestResult&&stressTestResult.run?"Not extracted":"N/A — not run")} color={d.fragScore!=="-"?fragColor:"#94A3B8"} items={d.allFragility.map(function(f){return "["+f.source+"] "+f.text;})} bg="#FFF5F5" border="#FECACA" textColor="#7F1D1D"/>
-          <ExpandRow label="AI Integrity score ⓘ" count={d.aiIntegrityScore!==null&&d.aiIntegrityScore!==undefined?d.aiIntegrityScore+"%":"-"} color={d.aiIntegrityScore>=70?"#059669":d.aiIntegrityScore>=40?"#D97706":"#DC2626"} showCollapsedItemCount items={d.epistemicGaps.concat(d.aiIntegrityScore!==null?["Composite: Epistemic health (60%) + Adversarial Probe (40%). Low scores indicate analytical uncertainty, not a system error."+(d.analysisMode!=="FULL"?" Expected range for "+d.analysisMode+" mode ("+d.activeDirectorCount+"/"+DIRECTORS.length+" directors) is lower than FULL mode — score is structurally depressed by partial coverage.":"")]:[])} bg="#FFF5F5" border="#FECACA" textColor="#7F1D1D"/>
+          <ExpandRow label="AI Integrity score ⓘ" collapsedFindingCount={dashboardFindingCount(d.epistemicGaps)} count={d.aiIntegrityScore!==null&&d.aiIntegrityScore!==undefined?d.aiIntegrityScore+"%":"-"} color={d.aiIntegrityScore>=70?"#059669":d.aiIntegrityScore>=40?"#D97706":"#DC2626"} showCollapsedItemCount items={d.epistemicGaps.concat(d.aiIntegrityScore!==null?["Composite: Epistemic health (60%) + Adversarial Probe (40%). Low scores indicate analytical uncertainty, not a system error."+(d.analysisMode!=="FULL"?" Expected range for "+d.analysisMode+" mode ("+d.activeDirectorCount+"/"+DIRECTORS.length+" directors) is lower than FULL mode — score is structurally depressed by partial coverage.":"")]:[])} bg="#FFF5F5" border="#FECACA" textColor="#7F1D1D"/>
         </div>
       </div>
 
