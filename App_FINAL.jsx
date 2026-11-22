@@ -930,7 +930,7 @@ function ModeBadge({mode}) {
 }
 
 
-function ExpandRow({label,count,items,color="#64748B",emptyMsg="None detected",bg="#F8FAFC",border="#E2E8F0",textColor="#334155"}) {
+function ExpandRow({label,count,items,color="#64748B",emptyMsg="None detected",bg="#F8FAFC",border="#E2E8F0",textColor="#334155",showCollapsedItemCount=false}) {
   var [open,setOpen]=useState(false);
   var hasItems=items&&items.length>0;
   return (
@@ -939,6 +939,7 @@ function ExpandRow({label,count,items,color="#64748B",emptyMsg="None detected",b
         <span style={{fontSize:12,color:"#475569"}}>{label}</span>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
           <span style={{fontSize:12,fontWeight:700,color:color}}>{count}</span>
+          {hasItems&&showCollapsedItemCount&&!open&&<span style={{fontSize:10,color:"#64748B"}}>{items.length+" items — expand to view all"}</span>}
           {hasItems&&<span style={{fontSize:10,color:"#94A3B8"}}>{open?"▾":"▸"}</span>}
         </div>
       </div>
@@ -1161,11 +1162,11 @@ function TransparencyDashboard({decision,dirOutputs,meta,stress,chair,epistemic,
           <ExpandRow label={"Active dir. fidelity ("+d.analysisMode+")"} count={d.covered+"/"+d.activeDirectorCount+" invoked directors"+(d.failedCount?" ("+d.failedCount+" failed)":"")} color={d.coverageScore===100?"#059669":d.coverageScore>=77?"#D97706":"#DC2626"} items={d.signals.filter(function(s){return s.signal==="PENDING"||s.signal==="FAILED";}).map(function(s){return s.label+(s.signal==="FAILED"?" — API FAILED":" — pending");})} bg="#F0FDF4" border="#BBF7D0" textColor="#065F46"/>
           <ExpandRow label="Signal balance" count={d.proceedCount+"P / "+d.cautionCount+"C / "+d.haltCount+" HALT"+(d.failedCount?" / "+d.failedCount+" ERR":"")} color={d.haltCount>3?"#DC2626":d.haltCount>0?"#D97706":"#059669"} items={d.signals.filter(function(s){return s.signal!=="PENDING"&&s.signal!=="FAILED";}).map(function(s){return s.label+": "+s.signal;})} bg="#F8FAFC" border="#E2E8F0" textColor="#334155"/>
           <ExpandRow label="Integration coherence" count={d.integrationSignal||"-"} color={d.integrationSignal==="HIGH"?"#059669":d.integrationSignal==="MEDIUM"?"#D97706":d.integrationSignal==="LOW"?"#DC2626":"#94A3B8"} items={(d.integrationRationale?["Rationale: "+d.integrationRationale]:[]).concat(d.tensions)} bg="#FFF7ED" border="#FED7AA" textColor="#92400E"/>
-          <ExpandRow label="Epistemic health" count={d.epistemicScore||"-"} color={d.epistemicScore==="STRONG"?"#059669":d.epistemicScore==="ADEQUATE"?"#D97706":(d.epistemicScore==="WEAK"||d.epistemicScore==="COMPROMISED")?"#DC2626":"#94A3B8"} items={d.overconfidenceFlags} bg="#FFF5F5" border="#FECACA" textColor="#7F1D1D"/>
-          <ExpandRow label="Adversarial gap finding" count={d.probeVerdict||"-"} color={d.probeVerdict==="BOARD REASONING SOUND"?"#059669":d.probeVerdict==="SIGNIFICANT GAPS"?"#D97706":d.probeVerdict==="CONCLUSION CHALLENGED"?"#DC2626":"#94A3B8"} items={d.boardMissed} bg="#F5F3FF" border="#DDD6FE" textColor="#5B21B6"/>
+          <ExpandRow label="Epistemic health" count={d.epistemicScore||"-"} color={d.epistemicScore==="STRONG"?"#059669":d.epistemicScore==="ADEQUATE"?"#D97706":(d.epistemicScore==="WEAK"||d.epistemicScore==="COMPROMISED")?"#DC2626":"#94A3B8"} items={d.overconfidenceFlags} showCollapsedItemCount bg="#FFF5F5" border="#FECACA" textColor="#7F1D1D"/>
+          <ExpandRow label="Adversarial gap finding" count={d.probeVerdict||"-"} color={d.probeVerdict==="BOARD REASONING SOUND"?"#059669":d.probeVerdict==="SIGNIFICANT GAPS"?"#D97706":d.probeVerdict==="CONCLUSION CHALLENGED"?"#DC2626":"#94A3B8"} items={d.boardMissed} showCollapsedItemCount bg="#F5F3FF" border="#DDD6FE" textColor="#5B21B6"/>
           <ExpandRow label="Decision brief status" count={d.decisionBriefStatus||"-"} color={d.isPartialEvidenceBrief?"#B45309":briefReady?"#0369A1":"#94A3B8"} items={(d.decisionBriefClause?[d.decisionBriefClause]:[]).concat(d.conditions)} bg="#EFF6FF" border="#BFDBFE" textColor="#1E3A5F"/>
           <ExpandRow label="Fragility score" count={d.fragScore!=="-"?d.fragScore+"/10":(stressTestResult&&stressTestResult.run?"Not extracted":"N/A — not run")} color={d.fragScore!=="-"?fragColor:"#94A3B8"} items={d.allFragility.map(function(f){return "["+f.source+"] "+f.text;})} bg="#FFF5F5" border="#FECACA" textColor="#7F1D1D"/>
-          <ExpandRow label="AI Integrity score ⓘ" count={d.aiIntegrityScore!==null&&d.aiIntegrityScore!==undefined?d.aiIntegrityScore+"%":"-"} color={d.aiIntegrityScore>=70?"#059669":d.aiIntegrityScore>=40?"#D97706":"#DC2626"} items={d.epistemicGaps.concat(d.aiIntegrityScore!==null?["Composite: Epistemic health (60%) + Adversarial Probe (40%). Low scores indicate analytical uncertainty, not a system error."+(d.analysisMode!=="FULL"?" Expected range for "+d.analysisMode+" mode ("+d.activeDirectorCount+"/"+DIRECTORS.length+" directors) is lower than FULL mode — score is structurally depressed by partial coverage.":"")]:[])} bg="#FFF5F5" border="#FECACA" textColor="#7F1D1D"/>
+          <ExpandRow label="AI Integrity score ⓘ" count={d.aiIntegrityScore!==null&&d.aiIntegrityScore!==undefined?d.aiIntegrityScore+"%":"-"} color={d.aiIntegrityScore>=70?"#059669":d.aiIntegrityScore>=40?"#D97706":"#DC2626"} showCollapsedItemCount items={d.epistemicGaps.concat(d.aiIntegrityScore!==null?["Composite: Epistemic health (60%) + Adversarial Probe (40%). Low scores indicate analytical uncertainty, not a system error."+(d.analysisMode!=="FULL"?" Expected range for "+d.analysisMode+" mode ("+d.activeDirectorCount+"/"+DIRECTORS.length+" directors) is lower than FULL mode — score is structurally depressed by partial coverage.":"")]:[])} bg="#FFF5F5" border="#FECACA" textColor="#7F1D1D"/>
         </div>
       </div>
 
