@@ -14,6 +14,7 @@ import {
   assessAuthorityBoundary,
 } from "../authority-contract.js";
 import { apiCall as defaultApiCall } from "./anthropic-client.js";
+import { emitCompressionEvent } from "./compression-provenance.js";
 
 function countMatches(text,pattern) {
   return (String(text||"").match(pattern)||[]).length;
@@ -88,26 +89,38 @@ function apiCallFor(runtime) {
 }
 
 export async function compressDirectorOutput(directorLabel, fullOutput, runtime) {
-  if (/^\[Director failed:/i.test((fullOutput||"").trim())) {
-    var failedBrief=JSON.stringify({director:directorLabel,signal:"FAILED",confidence:"LOW",core_judgment:"Director failed to complete. Full error: "+fullOutput,critical_risks:[],assumptions:[],prerequisites:[],view_change_triggers:[],coverage_limit:"Director did not complete.",regulatory_blockers:[],overflow_flags:["DIRECTOR_FAILED"],governance_record:{key_discovery:"Director did not complete.",primary_tension:"",signal_rationale:"",room_should_discuss:[],most_likely_to_benefit:[],most_exposed_to_failure:[],non_negotiable_conditions:[],governance_implication:""}});
+  const parent="director:"+(runtime&&runtime.stageId?runtime.stageId.replace(/^director:/,""):String(directorLabel).toLowerCase().replace(/[^a-z0-9]+/g,"_"));
+  const source=String(fullOutput||"");
+  const capture=async data=>emitCompressionEvent(runtime,Object.assign({parent_stage_id:parent,compression_kind:"director",source_output:source,captured_at:new Date().toISOString()},data));
+  if (/^\[Director failed:/i.test(source.trim())) {
+    const failedBrief=JSON.stringify({director:directorLabel,signal:"FAILED",confidence:"LOW",core_judgment:"Director failed to complete. Full error: "+fullOutput,critical_risks:[],assumptions:[],prerequisites:[],view_change_triggers:[],coverage_limit:"Director did not complete.",regulatory_blockers:[],overflow_flags:["DIRECTOR_FAILED"],governance_record:{key_discovery:"Director did not complete.",primary_tension:"",signal_rationale:"",room_should_discuss:[],most_likely_to_benefit:[],most_exposed_to_failure:[],non_negotiable_conditions:[],governance_implication:""}});
     if(!isValidDirectorBriefText(failedBrief)) throw new Error("invalid failed Director Governance Brief schema");
+    await capture({event_id:"compression:"+parent+":fallback:0",mode:"deterministic",attempt_index:0,status:"fallback",selected:true,final_response:failedBrief,error:"Director failed before compression"});
     return failedBrief;
   }
-  var lastError="";
-  for (var attempt=0;attempt<2;attempt++) {
+  let lastError="";
+  for(let attempt=0;attempt<2;attempt++) {
+    const suffix=attempt===0?"":"\n\nYour previous extraction attempt was unusable. Return the complete JSON object with every governance_record field present. Do not truncate it.";
+    const system=compressionSystem();
+    const user="Director: "+directorLabel+"\n\nFull Director Output:\n"+source+suffix;
+    let raw=null,txt=null;
     try {
-      var suffix=attempt===0?"":"\n\nYour previous extraction attempt was unusable. Return the complete JSON object with every governance_record field present. Do not truncate it.";
-      var raw=await apiCallFor(runtime)(compressionSystem(),"Director: "+directorLabel+"\n\nFull Director Output:\n"+fullOutput+suffix,false);
-      var txt=stripJsonFenceText(raw.text);
-      if(!isValidDirectorBriefText(txt)) throw new Error("invalid Director Governance Brief schema");
-      var provenanceAssessment=assessProvenanceMonotonicity(fullOutput,txt);
-      if(provenanceAssessment.violates) throw new Error("Director Governance Brief provenance violation: "+provenanceAssessment.reason);
+      raw=await apiCallFor(runtime)(system,user,false,runtime&&runtime.fetchImpl);
+      txt=stripJsonFenceText(raw.text);
+      if(!isValidDirectorBriefText(txt))throw new Error("invalid Director Governance Brief schema");
+      const assessment=assessProvenanceMonotonicity(source,txt);
+      if(assessment.violates)throw new Error("Director Governance Brief provenance violation: "+assessment.reason);
+      await capture({event_id:"compression:"+parent+":attempt:"+(attempt+1),mode:"model",attempt_index:attempt+1,status:"success",selected:true,system_prompt:system,user_message:user,raw_response:raw.text,final_response:txt});
       return txt;
-    } catch(e) { lastError=e.message||String(e); }
+    } catch(e) {
+      lastError=e.message||String(e);
+      await capture({event_id:"compression:"+parent+":attempt:"+(attempt+1),mode:"model",attempt_index:attempt+1,status:"rejected",selected:false,system_prompt:system,user_message:user,raw_response:raw&&raw.text!=null?raw.text:null,final_response:txt,error:lastError});
+    }
   }
-  var fallbackBrief=deterministicDirectorBrief(directorLabel,fullOutput,lastError);
-  if(!isValidDirectorBriefText(fallbackBrief)) throw new Error("invalid deterministic Director Governance Brief schema");
-  return fallbackBrief;
+  const fallback=deterministicDirectorBrief(directorLabel,source,lastError);
+  if(!isValidDirectorBriefText(fallback))throw new Error("invalid deterministic Director Governance Brief schema");
+  await capture({event_id:"compression:"+parent+":fallback:3",mode:"deterministic",attempt_index:3,status:"fallback",selected:true,final_response:fallback,error:lastError});
+  return fallback;
 }
 
 export function synthesisLayerForModule(moduleLabel) {
@@ -142,28 +155,40 @@ export function deterministicSynthesisBrief(moduleLabel,fullOutput,reason) {
 }
 
 export async function compressSynthesisOutput(moduleLabel,fullOutput,runtime) {
-  if(!fullOutput||fullOutput.length<10) {
-    var emptyFallback=deterministicSynthesisBrief(moduleLabel,fullOutput,"module did not produce output");
-    if(!isValidSynthesisBriefText(emptyFallback,moduleLabel)) throw new Error("invalid empty synthesis Governance Brief schema");
-    return emptyFallback;
+  const parent=synthesisLayerForModule(moduleLabel);
+  const source=String(fullOutput||"");
+  const capture=async data=>emitCompressionEvent(runtime,Object.assign({parent_stage_id:parent,compression_kind:"synthesis",source_output:source,captured_at:new Date().toISOString()},data));
+  if(!source||source.length<10) {
+    const fallback=deterministicSynthesisBrief(moduleLabel,source,"module did not produce output");
+    if(!isValidSynthesisBriefText(fallback,moduleLabel))throw new Error("invalid empty synthesis Governance Brief schema");
+    await capture({event_id:"compression:"+parent+":fallback:0",mode:"deterministic",attempt_index:0,status:"fallback",selected:true,final_response:fallback,error:"empty source output"});
+    return fallback;
   }
-  var lastError="";
-  for(var attempt=0;attempt<2;attempt++) {
+  let lastError="";
+  for(let attempt=0;attempt<2;attempt++) {
+    const suffix=attempt===0?"":"\n\nYour previous extraction attempt was unusable. Return the complete JSON object exactly as requested.";
+    const system=synthesisBriefSystem(moduleLabel);
+    const user="Module: "+moduleLabel+"\n\nFull Module Output:\n"+source+suffix;
+    let raw=null,txt=null;
     try {
-      var suffix=attempt===0?"":"\n\nYour previous extraction attempt was unusable. Return the complete JSON object exactly as requested.";
-      var raw=await apiCallFor(runtime)(synthesisBriefSystem(moduleLabel),"Module: "+moduleLabel+"\n\nFull Module Output:\n"+fullOutput+suffix,false);
-      var txt=stripJsonFenceText(raw.text);
-      if(!isValidSynthesisBriefText(txt,moduleLabel)) throw new Error("invalid synthesis Governance Brief schema");
-      var provenanceAssessment=assessProvenanceMonotonicity(fullOutput,txt);
-      if(provenanceAssessment.violates) throw new Error("synthesis Governance Brief provenance violation: "+provenanceAssessment.reason);
-      var authorityAssessment=assessAuthorityBoundary(synthesisLayerForModule(moduleLabel),txt);
-      if(authorityAssessment.violates) throw new Error("synthesis Governance Brief authority violation: "+authorityAssessment.reason);
+      raw=await apiCallFor(runtime)(system,user,false,runtime&&runtime.fetchImpl);
+      txt=stripJsonFenceText(raw.text);
+      if(!isValidSynthesisBriefText(txt,moduleLabel))throw new Error("invalid synthesis Governance Brief schema");
+      const assessment=assessProvenanceMonotonicity(source,txt);
+      if(assessment.violates)throw new Error("synthesis Governance Brief provenance violation: "+assessment.reason);
+      const authority=assessAuthorityBoundary(parent,txt);
+      if(authority.violates)throw new Error("synthesis Governance Brief authority violation: "+authority.reason);
+      await capture({event_id:"compression:"+parent+":attempt:"+(attempt+1),mode:"model",attempt_index:attempt+1,status:"success",selected:true,system_prompt:system,user_message:user,raw_response:raw.text,final_response:txt});
       return txt;
-    } catch(e) { lastError=e.message||String(e); }
+    } catch(e) {
+      lastError=e.message||String(e);
+      await capture({event_id:"compression:"+parent+":attempt:"+(attempt+1),mode:"model",attempt_index:attempt+1,status:"rejected",selected:false,system_prompt:system,user_message:user,raw_response:raw&&raw.text!=null?raw.text:null,final_response:txt,error:lastError});
+    }
   }
-  var fallbackBrief=deterministicSynthesisBrief(moduleLabel,fullOutput,lastError);
-  if(!isValidSynthesisBriefText(fallbackBrief,moduleLabel)) throw new Error("invalid deterministic synthesis Governance Brief schema");
-  return fallbackBrief;
+  const fallback=deterministicSynthesisBrief(moduleLabel,source,lastError);
+  if(!isValidSynthesisBriefText(fallback,moduleLabel))throw new Error("invalid deterministic synthesis Governance Brief schema");
+  await capture({event_id:"compression:"+parent+":fallback:3",mode:"deterministic",attempt_index:3,status:"fallback",selected:true,final_response:fallback,error:lastError});
+  return fallback;
 }
 
 export function formatBriefForSynthesis(briefJson, fallbackFullOutput) {
