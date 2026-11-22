@@ -11,6 +11,7 @@
 // Strategy: split on heading boundaries, fingerprint each block, drop duplicates.
 import { useState, useRef, useEffect } from "react";
 import { scanLivedNegativeScope } from "./src/runtime/lived-negative-scope-guardrail.js";
+import { extractChairItems, extractLogicalFindings, extractAbsentPerspectiveSummary } from "./src/runtime/dashboard-integrity.js";
 import {
   TRUSTED_DOMAINS,
   ANALYSIS_MODES,
@@ -466,7 +467,7 @@ function parseDashboard(decision, dirOutputs, meta, stress, chair, dialogueHisto
   // Fix: only filter short items (under 80 chars) that match the framing pattern.
   // Content lines are substantively longer and should pass through regardless.
   var conflicts = dedupExtracted(
-    extractMetaItems(metaText, "Cross-Domain Conflicts")
+    (extractLogicalFindings(metaText, "Cross-Domain Conflicts").length ? extractLogicalFindings(metaText, "Cross-Domain Conflicts") : extractMetaItems(metaText, "Cross-Domain Conflicts"))
       .filter(function(c){
         var t = c.trim();
         if (PREAMBLE_LINE.test(t)) return false;
@@ -475,7 +476,7 @@ function parseDashboard(decision, dirOutputs, meta, stress, chair, dialogueHisto
       })
   ).slice(0,8);
   var assumptions = dedupExtracted(
-    extractMetaItems(metaText, "Hidden Assumptions")
+    (extractLogicalFindings(metaText, "Hidden Assumptions").length ? extractLogicalFindings(metaText, "Hidden Assumptions") : extractMetaItems(metaText, "Hidden Assumptions"))
       .filter(function(a){ return !PREAMBLE_LINE.test(a.trim()) && !ASSUMPTION_FRAMING.test(a.trim()); })
   ).slice(0,8);
   // P2.1: post-extraction validation — warn if source has more items than extracted
@@ -485,7 +486,8 @@ function parseDashboard(decision, dirOutputs, meta, stress, chair, dialogueHisto
       console.warn("PHDSS extraction: META has "+sourcedBlocks+" SOURCED/INFERRED blocks but only "+(conflicts.length+assumptions.length)+" conflicts+assumptions extracted — possible under-extraction");
     }
   })();
-  var gaps=extractBulletLines(metaText,"Reasoning Gaps");
+  var gaps=extractLogicalFindings(metaText,"Reasoning Gaps");
+  if(!gaps.length) gaps=extractBulletLines(metaText,"Reasoning Gaps");
   // FIX: Use dedupExtracted (content fingerprint) not dedupItems (text normalise only) to
   // prevent the same tension block appearing twice when Executive Layer addition causes
   // extractBulletLines and extractSection to both find the same content in the META output.
@@ -760,7 +762,9 @@ function parseDashboard(decision, dirOutputs, meta, stress, chair, dialogueHisto
 
     return dedupItems(raw).filter(function(s){ return s.length > 10; });
   }
-  var conditions = extractConditionLines(chairText).slice(0,6);
+  var conditions = extractChairItems(chairText,"Decision Conditions");
+  if(!conditions.length) conditions = extractConditionLines(chairText);
+  // F-6: never silently cap substantive Chair conditions.
   // P2.1: warn if chair text has numbered condition blocks but we extracted very few
   (function(){
     var numberedItems=(chairText.match(/^\s*\d+\.\s+\*\*/gm)||[]).length;
@@ -768,9 +772,9 @@ function parseDashboard(decision, dirOutputs, meta, stress, chair, dialogueHisto
       console.warn("PHDSS extraction: Chair has "+numberedItems+" numbered bold items but only "+conditions.length+" conditions extracted — possible under-extraction");
     }
   })();
-  var tradeoffs=dedupItems(extractBulletLines(chairText,"Key Trade-offs").concat(
-    extractSection(chairText,"Key Trade-offs").split("\n").filter(function(l){return l.trim()&&!l.startsWith("**");}))
-  ).slice(0,5);
+  var tradeoffs=extractChairItems(chairText,"Key Trade-offs");
+  if(!tradeoffs.length) tradeoffs=dedupItems(extractBulletLines(chairText,"Key Trade-offs"));
+  // F-6: preserve all source trade-offs, including heading/body pairs.
   var keyDiscovery=extractSection(chairText,"Key Discovery");
   var acceptedRisk=extractSection(chairText,"Accepted Residual Risk");
   var conflictCount=conflicts.filter(function(c){return c.length>10;}).length;
@@ -1021,7 +1025,7 @@ function TransparencyDashboard({decision,dirOutputs,meta,stress,chair,epistemic,
     });
   }
   var biasSummary=d.biasSignals?d.biasSignals.split(/[.!?]/)[0].trim():"";
-  var absentSummary=d.absentPerspectives?d.absentPerspectives.split(/[.!?]/)[0].trim():"";
+  var absentSummary=extractAbsentPerspectiveSummary(probe);
   var briefReady=d.decisionBriefStatus&&d.decisionBriefStatus!=="-";
   var briefColor=d.isPartialEvidenceBrief?"#B45309":briefReady?"#0369A1":"#64748B";
   var briefBg=d.isPartialEvidenceBrief?"#FFFBEB":briefReady?"#EFF6FF":"#F8FAFC";
