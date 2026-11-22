@@ -147,7 +147,7 @@ The register is in Review Candidate status and is not accepted as Gate A-complet
 | # | Criterion | Status | Basis |
 |---|---|---|---|
 | 1 | Clean, versioned, tagged release build | **NOT MET** | RC1 tag never created; conditional historical tag plan superseded by PA-01 RC1 closure (§10). No RC1 release-candidate tag is authorised now. |
-| 2 | `npm run validate` passes unmodified | MET at candidate commit; re-verify at tag | §4.1 (CI and local) |
+| 2 | `npm run validate` passes unmodified | MET at candidate commit; RC1 tag re-verification not applicable (RC1 closed NOT PASSED; no tag) | §4.1 (CI and local) |
 | 3 | Limitations register complete and accurate | **NOT MET** | Register not accepted; L-24 remains in draft and F-5–F-9 await registration, alongside existing open limitations (including L-14). See RC1 closure (§10). |
 | 4 | Synthetic-only test-data policy | **NOT MET — PA-11 purposive interpretation** | Policy is documented and explicit as the literal criterion says, but its own status remains `PROPOSED — Protocol Authority review required`; policy approval not evidenced. Earlier MET was written by reviewer without inspecting that status and is superseded by PA-11. Separately, RC1 run omitted §4 pre-run checks and is ineligible. |
 | 5 | Deployment provenance and instruction-pin verification on tagged build | PARTIAL | Build and pins verified locally; no tag; not deployed; L-14 |
