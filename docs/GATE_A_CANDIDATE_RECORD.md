@@ -185,5 +185,5 @@ The register is in Review Candidate status and is not accepted as Gate A-complet
 | Candidate freeze at `7649eb4` | Approved | 2026-11-22 |
 | L-14 compensating controls | Accepted with amendments | 2026-11-22 |
 | Closure route | C (remain OPEN) | 2026-11-22 |
-| Release tag timing | Pending confirmation | |
+| Release tag timing | **DEFERRED by Protocol Authority** until the live Governance export test, UI disclosure inspection, and review are completed; no tag creation authorised before these conditions | 2026-11-22 |
 | Independent review | | |
