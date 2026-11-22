@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import { extractChairItems,extractLogicalFindings,extractAbsentPerspectiveSummary } from "../src/runtime/dashboard-integrity.js";
 
 // Entirely invented synthetic fixtures. Never historical RC1 case text.
@@ -284,5 +285,16 @@ assert.match(tensionParsed.at(-1),/Scale can conflict with participation/);
 assert.match(tensionParsed.at(-1),/input burden/);
 // Empty/new-parser failure MUST remain empty, never silently revive legacy count.
 assert.deepEqual(extractLogicalFindings("**Reasoning Gaps**\n**Coverage Limitations**\n1. Not a gap.","Reasoning Gaps"),[]);
+
+// R96-5: test the DASHBOARD call path, not merely the isolated parser.
+// A future refactor must not silently restore the legacy counting path.
+const dashboardSource=fs.readFileSync("App_FINAL.jsx","utf8");
+for(const heading of ["Cross-Domain Conflicts","Hidden Assumptions","Reasoning Gaps","Unresolved Tensions"]){
+  assert.match(dashboardSource,new RegExp("extractLogicalFindings\\(metaText,\\s*\""+heading+"\"\\)"),heading+" uses the new parser");
+}
+assert.doesNotMatch(dashboardSource,/if\s*\(\s*!gaps\.length\s*\)\s*gaps\s*=\s*extractBulletLines/);
+assert.doesNotMatch(dashboardSource,/if\s*\(\s*!tensions\.length\s*\)\s*tensions\s*=/);
+assert.doesNotMatch(dashboardSource,/extractLogicalFindings\(metaText,\s*"Cross-Domain Conflicts"\)\.length\s*\?/);
+assert.doesNotMatch(dashboardSource,/extractLogicalFindings\(metaText,\s*"Hidden Assumptions"\)\.length\s*\?/);
 
 console.log("RC2 dashboard integrity: PASS");
