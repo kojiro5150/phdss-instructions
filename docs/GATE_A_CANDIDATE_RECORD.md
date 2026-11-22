@@ -119,7 +119,7 @@ Method: for each of the 21 files at each pin, SHA-256 of the git object compared
 | Source | URL pattern | Result |
 |---|---|---|
 | Raw GitHub (verifier source) | `https://raw.githubusercontent.com/kojiro5150/phdss-instructions/<pin>/<file>.md` | 42/42 HTTP 200, 42/42 MATCH, 2026-11-22T00:2x UTC |
-| jsDelivr (runtime source) | `https://cdn.jsdelivr.net/gh/kojiro5150/phdss-instructions@<pin>/<file>.md` | **REPRODUCED FROM OPERATOR REPORT.** 42/42 HTTP 200 and MATCH, 0 FAIL, 2026-11-22T00:44:41Z–00:45:18Z. Operator: Protocol Authority (Sam Hayward); environment: macOS (Darwin 25.6.0 arm64). Evidence: `tests/evidence/gate-a/rc1-2026-11-22/l14-jsdelivr-report-20261122T004441Z.tsv` (SHA-256 `6f3b2f9f07d45c3b4ec56d945ed24d646f6c89bef4dd253c4a577452478b1d72`). Retrieved data and hash independently checked by ChatGPT; fetching performed on operator's Mac, not in the AI workspace. |
+| jsDelivr (runtime source) | `https://cdn.jsdelivr.net/gh/kojiro5150/phdss-instructions@<pin>/<file>.md` | **PERFORMED by operator; output verified.** 42/42 HTTP 200 and MATCH, 0 FAIL, 2026-11-22T00:44:41Z–00:45:18Z. Operator: Protocol Authority (Sam Hayward); environment: macOS (Darwin 25.6.0 arm64). Evidence: `tests/evidence/gate-a/rc1-2026-11-22/l14-jsdelivr-report-20261122T004441Z.tsv` (SHA-256 `6f3b2f9f07d45c3b4ec56d945ed24d646f6c89bef4dd253c4a577452478b1d72`). Report contents and SHA-256 checked by ChatGPT; Claude independently compared all 42 reported response hashes directly against git objects at the pinned commits. Neither AI repeated the jsDelivr retrieval. Claude authored the retrieval script and later reviewed its output; ChatGPT inspected the script only after the operator had run it. |
 
 **Boundary.** The jsDelivr comparison is now documented as completed at the recorded retrieval times. A match shows byte equivalence at retrieval time only; it does not show permanent equivalence, CDN behaviour at other times, or correct source attribution. L-14 remains OPEN and QUALIFIED; Governance-mode provenance parity remains unverified.
 
@@ -170,7 +170,7 @@ The register is in Review Candidate status and is not accepted as Gate A-complet
 |---|---|---|
 | Create release-candidate tag only after live Governance export testing, UI disclosure inspection, and review are completed, with exact target verified | Engineering, subject to Protocol Authority decision in §9 | DEFERRED; prerequisites outstanding |
 | Governance end-to-end export test per protocol §3 | Protocol Authority (operator) | Authorised, not run |
-| jsDelivr half of control 4 | Protocol Authority (Mac operator); ChatGPT (report verification) | COMPLETED for sampled retrieval times; independent assurance review pending (§5.3) |
+| jsDelivr half of control 4 | Protocol Authority (Mac operator); ChatGPT (report and post-run script inspection); Claude (git cross-check and script author) | COMPLETED for sampled retrieval times; report integrity and all 42 reported hashes independently cross-checked against git. Independence qualified: Claude authored the script, and ChatGPT reviewed it after execution; neither AI independently repeated CDN retrieval (§5.3). |
 | UI disclosure inspection | Protocol Authority or reviewer | Not run |
 | L-18 and L-21 dispositions | Protocol Authority | Pending evidence |
 | Confirm branch protection requires CI | Protocol Authority (repo admin) | Not verified |
