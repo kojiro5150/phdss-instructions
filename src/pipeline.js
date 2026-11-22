@@ -18,6 +18,7 @@ import {
 } from "./prompt-builders.js";
 import { authorityBoundaryPrompt, assessAuthorityBoundary } from "./authority-contract.js";
 import { INSTRUCTION_COMMIT } from "./runtime/instruction-loader.js";
+import { compressionEventRef, emitCompressionEvent } from "./runtime/compression-provenance.js";
 import { apiCall, callClaude_synthesis } from "./runtime/anthropic-client.js";
 import {
   createGovernanceStageRequest,
@@ -447,8 +448,15 @@ export async function runGovernancePipeline(config,runtime,emit) {
     metaOut:"",surfaceMapOut:"",realityAnchorOut:"",stressOut:"",chairOut:"",
     epistemicOut:"",probeOut:"",comparatorData:null,stageErrors:[],stressDecision:null,
     synthesisStageStatus:{},authorityRepairEvents:authorityRepairEvents,
-    governanceProvenance:{manifest:null,stages:{}}
+    governanceProvenance:{manifest:null,stages:{},compression_events:[]}
   };
+
+  var compressionRuntime=Object.assign({},governedRuntime,{
+    onCompressionProvenance:async function(event){
+      state.governanceProvenance.compression_events.push(event);
+      emit("governance-compression-event",{event:event});
+    }
+  });
 
   emit("active-directors",{activeDir:activeDir,omittedDir:omittedDir});
   activeDir.forEach(function(d){emit("director-loading",{id:d.id,loading:true});});
@@ -527,9 +535,10 @@ export async function runGovernancePipeline(config,runtime,emit) {
   async function storeSynthesisBrief(key,moduleLabel,output) {
     var brief;
     try {
-      brief=await compressSynthesis(moduleLabel,output);
+      brief=await compressSynthesis(moduleLabel,output,compressionRuntime);
     } catch(e) {
       brief=deterministicSynthesis(moduleLabel,output,e.message||String(e));
+      await emitCompressionEvent(compressionRuntime,{event_id:"compression:"+key+":outer_fallback",parent_stage_id:key,compression_kind:"synthesis",mode:"deterministic",attempt_index:0,status:"fallback",selected:true,source_output:output,final_response:brief,error:e.message||String(e),captured_at:runtimeNow(runtime)});
     }
     state.synthesisBriefs[key]=brief;
     emit("synthesis-brief",{key:key,brief:brief});
@@ -572,11 +581,12 @@ export async function runGovernancePipeline(config,runtime,emit) {
         emit("director-loading",{id:dirId,loading:false});
         results_seq.push(Object.assign({},dirI,{output:cOut}));
         try {
-          var brief=await compressDirector(dirI.label,cOut);
+          var brief=await compressDirector(dirI.label,cOut,Object.assign({},compressionRuntime,{stageId:dirId}));
           state.dirBriefs[dirId]=brief;
           emit("director-brief",{id:dirId,brief:brief});
         } catch(compErr) {
           var fallback=deterministicDirector(dirI.label,cOut,compErr.message||String(compErr));
+          await emitCompressionEvent(compressionRuntime,{event_id:"compression:director:"+dirId+":outer_fallback",parent_stage_id:"director:"+dirId,compression_kind:"director",mode:"deterministic",attempt_index:0,status:"fallback",selected:true,source_output:cOut,final_response:fallback,error:compErr.message||String(compErr),captured_at:runtimeNow(runtime)});
           state.dirBriefs[dirId]=fallback;
           emit("director-brief",{id:dirId,brief:fallback});
         }
@@ -836,6 +846,7 @@ export async function runGovernancePipeline(config,runtime,emit) {
     }
 
     if(state.results.length>0){
+      var compressionRefs=await Promise.all(state.governanceProvenance.compression_events.map(compressionEventRef));
       var record=buildLedgerRecord(makeLedgerInput(config,state,state.stressDecision),runtime);
       emit("ledger-record",{record:record});
       state.ledgerRecord=record;
@@ -858,6 +869,7 @@ export async function runGovernancePipeline(config,runtime,emit) {
         active_directors:activeDir.map(function(d){return d.id;}),
         omitted_directors:omittedDir.map(function(d){return d.id;}),
         stages:stageRecords,
+        compression_events:compressionRefs,
         final_ledger:record
       });
       emit("governance-provenance-manifest",{manifest:state.governanceProvenance.manifest,stages:state.governanceProvenance.stages});
@@ -866,6 +878,7 @@ export async function runGovernancePipeline(config,runtime,emit) {
     state.fatalError=fatalErr;
     if(state.results.length>0){
       try {
+        var compressionRefsFatal=await Promise.all(state.governanceProvenance.compression_events.map(compressionEventRef));
         var fatalRecord=buildLedgerRecord(makeLedgerInput(config,state,config.priorStressTestResult),runtime);
         emit("ledger-record",{record:fatalRecord});
         state.ledgerRecord=fatalRecord;
@@ -875,7 +888,7 @@ export async function runGovernancePipeline(config,runtime,emit) {
           instruction_commit:INSTRUCTION_COMMIT,analysis_mode:config.analysisMode,decision_text:config.decision,chair_selected_directors:config.chairSelectedIds||[],auto_continue:config.autoContinue,
           web_search:config.webSearch,public_web_search:config.publicWebSearch,session_evidence_count:(config.sessionEvidence||[]).length,
           active_directors:activeDir.map(function(d){return d.id;}),omitted_directors:omittedDir.map(function(d){return d.id;}),
-          stages:fatalStages,final_ledger:fatalRecord
+          stages:fatalStages,compression_events:compressionRefsFatal,final_ledger:fatalRecord
         });
         emit("governance-provenance-manifest",{manifest:state.governanceProvenance.manifest,stages:state.governanceProvenance.stages});
       } catch(e) {}
