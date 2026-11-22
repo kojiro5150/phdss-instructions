@@ -468,7 +468,7 @@ function parseDashboard(decision, dirOutputs, meta, stress, chair, dialogueHisto
   // Fix: only filter short items (under 80 chars) that match the framing pattern.
   // Content lines are substantively longer and should pass through regardless.
   var conflicts = dedupExtracted(
-    (extractLogicalFindings(metaText, "Cross-Domain Conflicts").length ? extractLogicalFindings(metaText, "Cross-Domain Conflicts") : extractMetaItems(metaText, "Cross-Domain Conflicts"))
+    extractLogicalFindings(metaText, "Cross-Domain Conflicts")
       .filter(function(c){
         var t = c.trim();
         if (PREAMBLE_LINE.test(t)) return false;
@@ -477,7 +477,7 @@ function parseDashboard(decision, dirOutputs, meta, stress, chair, dialogueHisto
       })
   );
   var assumptions = dedupExtracted(
-    (extractLogicalFindings(metaText, "Hidden Assumptions").length ? extractLogicalFindings(metaText, "Hidden Assumptions") : extractMetaItems(metaText, "Hidden Assumptions"))
+    extractLogicalFindings(metaText, "Hidden Assumptions")
       .filter(function(a){ return !PREAMBLE_LINE.test(a.trim()) && !ASSUMPTION_FRAMING.test(a.trim()); })
   );
   // P2.1: post-extraction validation — warn if source has more items than extracted
@@ -488,11 +488,11 @@ function parseDashboard(decision, dirOutputs, meta, stress, chair, dialogueHisto
     }
   })();
   var gaps=extractLogicalFindings(metaText,"Reasoning Gaps");
-  if(!gaps.length) gaps=extractBulletLines(metaText,"Reasoning Gaps");
+  // R96-5: no silent fallback to the known-defective legacy counter.
   // F-7: count each logical tension exactly once, using the same
   // section-boundary semantics as conflicts, assumptions and reasoning gaps.
   var tensions=extractLogicalFindings(metaText,"Unresolved Tensions");
-  if(!tensions.length) tensions=dedupExtracted(extractBulletLines(metaText,"Unresolved Tensions"));
+  // R96-5: zero is reported as zero, not replaced by untrusted legacy extraction.
   var integrationSignal=safeMatch(metaText,/Integration Signal\*?\*?:?\s*\*{0,2}(HIGH|MEDIUM|LOW)\*{0,2}/i,1)||"-";
   // FIX 5: Extract the rationale that follows the Integration Signal label (up to end of line)
   var integrationRationale=(function(){
