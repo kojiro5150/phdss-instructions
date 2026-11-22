@@ -113,6 +113,7 @@ const DASHBOARD_GROUP_LABELS={
 function dashboardText(value) {
   return String(value||"")
     .replace(/\*\*/g,"")
+    .replace(/^\s*\*\s+/,"")
     .replace(/(^|\s)\*(?=\S)/g,"$1")
     .replace(/(?<=\S)\*(?=\s|$)/g,"")
     .replace(/^\s*(?:[-•]\s+|\d+[.):]\s+)/,"")
@@ -155,11 +156,31 @@ export function buildDashboardFindings(text,heading) {
   return out;
 }
 function dashboardSection(text,heading) {
-  // Restrict this reader to named source headings; no changes to src/parsers.js.
   if(!text)return "";
-  const re=new RegExp("\\*\\*"+heading+"\\*\\*:?[ \\t]*([^\\n]*)(?:\\n([\\s\\S]*?))?(?=\\n\\*\\*[A-Za-z][^*\\n]{2,}(?<!:)\\*\\*\\s*\\n|$)","i");
-  const m=String(text).match(re);
-  return m?[m[1]||"",m[2]||""].filter(Boolean).join("\n").trim():"";
+  const lines=String(text).split("\n");
+  const header="**"+heading+"**";
+  const start=lines.findIndex(line=>line.trim().toLowerCase().startsWith(header.toLowerCase()));
+  if(start<0)return "";
+  const body=[];
+  const inline=lines[start].trim().slice(header.length).replace(/^:\s*/,"").trim();
+  if(inline)body.push(inline);
+  const endHeadings=new Set([
+    ...SECTION_NAMES,"epistemic health score","systematic bias signals",
+    "what absent perspectives are missing","integration health","risk register"
+  ]);
+  for(let i=start+1;i<lines.length;i++){
+    const line=lines[i];
+    const t=line.trim();
+    if(/^\s*#{1,6}\s+/.test(line))break;
+    if(/^\*\*[A-Za-z][^*\n]+\*\*:?\s*$/.test(t)&&!dashboardGroup(t,heading)){
+      const name=title(t);
+      // Known section boundary is definitive. For unknown headings, preserve
+      // the text as an ambiguous finding rather than silently drop it.
+      if(endHeadings.has(name))break;
+    }
+    body.push(line);
+  }
+  return body.join("\n").trim();
 }
 export function buildDashboardLogicalFindings(parserItems) {
   // No additional filtering or deduplication after the logical CDTA parser.
