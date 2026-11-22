@@ -242,7 +242,7 @@ Housing-policy and geopolitical runs were used to examine structural transfer of
 ## L-14 — Composite-pin instruction provenance misattribution
 
 **Classification:** Verification / provenance integrity  
-**Status:** OPEN  
+**Status:** REMEDIATED IN CODE (PR #96, merged `81ac31a`); PENDING ELIGIBLE RC2 VALIDATION — historical RC1 finding retained; composite-pin source trust residuals below
 **Component:** `src/runtime/instruction-loader.js`; Governance and Advisory provenance capture; `scripts/verify-governance-provenance-v2.mjs`; `scripts/verify-advisory-provenance-v4.mjs`  
 **Discovered:** Read-only Gate A provenance independence trace at `5a7e4c9`, 20 October 2026  
 **Evidence:**
@@ -271,6 +271,10 @@ Housing-policy and geopolitical runs were used to examine structural transfer of
 **Relationship to L-13:** Shared root (a single commit label applied to a composite instruction set), separate mechanism. L-13 concerns `scripts/replay-stage.mjs` and records no content hashes; L-14 concerns Governance and Advisory provenance, which do record and verify content hashes. The 20 October trace found no execution or evidence path by which L-13 enters Gate A provenance.
 
 **Transfer implication:** A verified provenance record establishes that recorded bytes exist at the declared commit. For a composite-pin build, it does not by itself establish which commit the runtime loaded them from.
+
+**PA-26 status reconciliation (22 November 2026):** The original RC1 observation and disposition above remain a historical record. PR #96, independently reviewed on restricted RC1 outputs and merged under PA-25, implements the bounded Phase A fix. **Not closed:** prospective eligible RC2 run, tagged-build identity and independent end-to-end browser/UI/export checks remain outstanding. Neither passing CI nor re-running an ineligible RC1 case satisfies Gate A. See `docs/PA_26_RC2_DOCUMENTATION_RECONCILIATION.md`.
+
+**Residual source-confidence boundaries:** The Governance verifier retains **hardcoded expected source pins** (with an override), so future authorised pin changes require coordinated verifier review; the runtime retrieves through jsDelivr while independent source checks read raw GitHub, with equivalence supported by a **time-bounded operator check**, not ongoing code-enforced fetch equivalence. Per-file commit attribution in PR #96 is accepted as a code remediation but does not establish provider-origin attestation, a new deployment identity or independently monitored CDN equivalence. The separately scoped Advisory provenance surface must not be assumed to have acquired all Governance v3 guarantees solely from this repair.
 
 ---
 
@@ -498,7 +502,7 @@ The second is not a function of the first. A single HALT among thirteen Director
 ## L-24 — Browser export can silently deliver an incomplete Governance provenance bundle (F-1)
 
 **Classification:** Provenance export-delivery / operator assurance; material for evidence completeness  
-**Status:** OPEN — observed defect on RC1; exact browser-level mechanism not conclusively established  
+**Status:** REMEDIATED IN CODE (PR #96, merged `81ac31a`); PENDING ELIGIBLE RC2 VALIDATION — historical RC1 finding retained
 **Component:** `App_FINAL.jsx` Ledger → Export Provenance; `downloadJson` browser download sequence; standalone Governance provenance verifier  
 **Discovered:** RC1 live CORE Governance run, 22 November 2026, frozen deployment commit `7649eb4ed5f07072a29a7c5758040d2f9ecd9828`; decision `DR-20261122-115931-4417e9`  
 **Evidence:** RC1 governance manifest and 13 stage records retained outside the public repository; operator Chrome download history; two original export attempts; recovery script `recovery/targeted-download-filter.js` in restricted RC1 review bundle; independent review `INDEPENDENT_REVIEW_DR-20261122-115931-4417e9.md` §§2–3, 7, Addenda A–C.
@@ -515,12 +519,16 @@ The second is not a function of the first. A single HALT among thirteen Director
 
 **Transfer implication:** An operator must never treat the presence of some downloaded provenance files, or a successful runtime stage tally, as proof that the exported evidence bundle is complete.
 
+**PA-26 status reconciliation (22 November 2026):** The original RC1 observation and disposition above remain a historical record. PR #96, independently reviewed on restricted RC1 outputs and merged under PA-25, implements the bounded Phase A fix. **Not closed:** prospective eligible RC2 run, tagged-build identity and independent end-to-end browser/UI/export checks remain outstanding. Neither passing CI nor re-running an ineligible RC1 case satisfies Gate A. See `docs/PA_26_RC2_DOCUMENTATION_RECONCILIATION.md`.
+
+**Current export behaviour:** A single dependency-free JSON bundle retains all captured components and an integrity inventory; incomplete/defective runs remain exportable with `export_validation.status=INCOMPLETE/INVALID` and itemised failures. Independent verifier rejection is distinct from evidence preservation. Claude's local replay of restricted RC1 material produced a **15-file incomplete bundle correctly rejected**. Ordinary browser download of the new candidate and complete Phase B UI path remain untested.
+
 ---
 
 ## L-25 — Governance Brief compression model calls are outside stage provenance (F-5)
 
 **Classification:** Provenance-chain coverage / material Criterion 6 gap  
-**Status:** OPEN — demonstrated in RC1; **BLOCKS Criterion 6** by Protocol Authority disposition  
+**Status:** REMEDIATED IN CODE (PR #96, merged `81ac31a`); PENDING ELIGIBLE RC2 VALIDATION — historical RC1 finding retained
 **Component:** `src/runtime/governance-compression.js` (`compressDirectorOutput`, `compressSynthesisOutput`), Governance orchestration and `scripts/verify-governance-provenance-v2.mjs`  
 **Discovered:** Independent RC1 audit, 22 November 2026; frozen runtime `7649eb4ed5f07072a29a7c5758040d2f9ecd9828`  
 **Evidence:** Independent review Addendum A F-5; frozen source inspection; RC1 Chair full brief, separate Chair Governance Record and downstream stage `user_message` fields; independently reproduced 13-stage verifier (`VALID`).
@@ -539,12 +547,16 @@ The second is not a function of the first. A single HALT among thirteen Director
 
 **Transfer implication:** A reviewer must distinguish integrity of recorded stages from completeness of the model-mediated reasoning chain.
 
+**PA-26 status reconciliation (22 November 2026):** The original RC1 observation and disposition above remain a historical record. PR #96, independently reviewed on restricted RC1 outputs and merged under PA-25, implements the bounded Phase A fix. **Not closed:** prospective eligible RC2 run, tagged-build identity and independent end-to-end browser/UI/export checks remain outstanding. Neither passing CI nor re-running an ineligible RC1 case satisfies Gate A. See `docs/PA_26_RC2_DOCUMENTATION_RECONCILIATION.md`.
+
+**Current verification boundary:** First-class pre-call request, post-call result, rejected attempt and selected deterministic fallback records are linked to consumed Governance Brief hashes, independently checked with missing/tampered-event negatives. An eligible fresh RC2 call chain and actual exported UI evidence are still required.
+
 ---
 
 ## L-26 — Transparency Dashboard silently truncates Chair decision content (F-6)
 
 **Classification:** Operator-facing representation integrity; material Criterion 7 gap  
-**Status:** OPEN — demonstrated in RC1; **BLOCKS Criterion 7** by Protocol Authority disposition  
+**Status:** REMEDIATED IN CODE (PR #96, merged `81ac31a`); PENDING ELIGIBLE RC2 VALIDATION — historical RC1 finding retained
 **Component:** `App_FINAL.jsx` Transparency Dashboard parsing of Chair Decision Conditions and Key Trade-offs  
 **Discovered:** RC1 dashboard/output comparison, 22 November 2026, frozen `7649eb4ed5f07072a29a7c5758040d2f9ecd9828`  
 **Evidence:** Independent review Addendum A F-6; full Chair exported output, dashboard export and reviewed screenshots.
@@ -561,12 +573,16 @@ The second is not a function of the first. A single HALT among thirteen Director
 
 **Transfer implication:** A compact dashboard cannot silently replace a material governance risk-benefit analysis with an incomplete subset while appearing complete.
 
+**PA-26 status reconciliation (22 November 2026):** The original RC1 observation and disposition above remain a historical record. PR #96, independently reviewed on restricted RC1 outputs and merged under PA-25, implements the bounded Phase A fix. **Not closed:** prospective eligible RC2 run, tagged-build identity and independent end-to-end browser/UI/export checks remain outstanding. Neither passing CI nor re-running an ineligible RC1 case satisfies Gate A. See `docs/PA_26_RC2_DOCUMENTATION_RECONCILIATION.md`.
+
+**Observed regression result:** Restricted independent RC1 replay recovered all six Chair conditions and all six trade-offs, preserving their source content; real RC2 UI/export inspection is pending. Newly registered L-29 concerns *other* dashboard caps and is not retrospectively folded into F-6.
+
 ---
 
 ## L-27 — Dashboard inflates counts by treating Markdown fragments as separate findings (F-7)
 
 **Classification:** Operator-facing quantitative representation integrity; Criterion 7 blocker  
-**Status:** OPEN — demonstrated in RC1; **BLOCKS Criterion 7** by Protocol Authority disposition  
+**Status:** REMEDIATED IN CODE (PR #96, merged `81ac31a`); PENDING ELIGIBLE RC2 VALIDATION — historical RC1 finding retained
 **Component:** `App_FINAL.jsx` Cross-Domain Tension Analysis dashboard parser and export  
 **Discovered:** RC1 dashboard/output comparison, 22 November 2026, frozen `7649eb4ed5f07072a29a7c5758040d2f9ecd9828`  
 **Evidence:** Independent review Addendum A F-7; Cross-Domain Tension Analysis stage output and dashboard export.
@@ -583,12 +599,16 @@ The second is not a function of the first. A single HALT among thirteen Director
 
 **Transfer implication:** Incorrectly doubled counts can mislead the relative weight or apparent extent of governance tensions.
 
+**PA-26 status reconciliation (22 November 2026):** The original RC1 observation and disposition above remain a historical record. PR #96, independently reviewed on restricted RC1 outputs and merged under PA-25, implements the bounded Phase A fix. **Not closed:** prospective eligible RC2 run, tagged-build identity and independent end-to-end browser/UI/export checks remain outstanding. Neither passing CI nor re-running an ineligible RC1 case satisfies Gate A. See `docs/PA_26_RC2_DOCUMENTATION_RECONCILIATION.md`.
+
+**Observed regression result:** The accepted PR #96 parser returns 4/4/4/4 conflicts, hidden assumptions, reasoning gaps and unresolved tensions on restricted RC1 replay; known-defective legacy counting fallback is removed. L-29 separately addresses display truncation **after** these correct logical counts.
+
 ---
 
 ## L-28 — Internal instruction-guard text displaces a missing-perspective finding (F-8)
 
 **Classification:** Instruction/output boundary and operator-facing representation integrity; material Criterion 7 gap  
-**Status:** OPEN — demonstrated in RC1; **BLOCKS Criterion 7** by Protocol Authority disposition  
+**Status:** REMEDIATED IN CODE (PR #96, merged `81ac31a`); PENDING ELIGIBLE RC2 VALIDATION — historical RC1 finding retained
 **Component:** Systems and Equity Director outputs; Adversarial Probe output; `App_FINAL.jsx` Confidence-Calibrated Ensemble / Absent Perspective parser  
 **Discovered:** RC1 evidence inspection and Comparator-panel dashboard screenshot review, 22 November 2026, frozen `7649eb4ed5f07072a29a7c5758040d2f9ecd9828`  
 **Evidence:** Independent review Addenda B F-8 and C.2; original stages and Director UI exports; Comparator screenshot SHA-256 `e73f18838322e3971112006835c08b24c25eb7c05a4ee12285e6a7271175f16d`.
@@ -604,6 +624,45 @@ The second is not a function of the first. A single HALT among thirteen Director
 **Closure evidence:** RC1-output regression shows the Absent Perspective card displays the substantive perspective and no instruction guard; negative controls show guard comments cannot capture first-item selection or suppress subsequent findings; verify fresh RC2 interface and export. A clean stochastic output in one new live run is insufficient evidence of robust containment.
 
 **Transfer implication:** A high-stakes governance display must not allow internal prompt residue to suppress the representation of affected people's perspectives.
+
+**PA-26 status reconciliation (22 November 2026):** The original RC1 observation and disposition above remain a historical record. PR #96, independently reviewed on restricted RC1 outputs and merged under PA-25, implements the bounded Phase A fix. **Not closed:** prospective eligible RC2 run, tagged-build identity and independent end-to-end browser/UI/export checks remain outstanding. Neither passing CI nor re-running an ineligible RC1 case satisfies Gate A. See `docs/PA_26_RC2_DOCUMENTATION_RECONCILIATION.md`.
+
+**Observed regression result:** The independently replayed Absent Perspective card begins with the substantive Aboriginal and Torres Strait Islander perspective, has no instruction-guard content, and is confined to its own section. Longer text is explicitly labelled as a 1,000-character excerpt with access to the full Probe output. This does not show that the model never emits guard residue elsewhere.
+
+---
+
+## L-29 — Silent dashboard list caps omit substantive governance findings
+
+**Classification:** Operator-facing representational completeness / evidence-balance integrity; material to Gate A Criterion 7  
+**Status:** OPEN — remediation proposed; authorisation pending (PA-27 not yet approved as at this documentation draft)  
+**Discovered:** Independent PR #96 Round 3 review, 22 November 2026, on merged reviewed head `7800c7ac5c1bea0a4499a555c3f618c95e9487a6`  
+**Component:** `App_FINAL.jsx` Transparency Dashboard; five bounded display lists  
+**Evidence:** Independent reviewer RC1 restricted replay and source inspection (review file `PR96_RC2_PHASE_A_REVIEW.md`, Round 3, **retained outside the public repository**); recorded headings/counts and visible-list comparison; underlying source retained in restricted custody.
+
+**Limitation:** Five separate UI paths silently cap the number of items displayed without a `showing N of M` notice or immediate disclosure of omitted items:
+
+| Dashboard list | Current cap | Source anchor on PA-25 merged `main` |
+|---|---:|---|
+| Overconfidence flags | 6 | `App_FINAL.jsx` ~line 796 |
+| Epistemic gaps | 5 | `App_FINAL.jsx` ~line 798 |
+| What the Board Missed | 5 | `App_FINAL.jsx` ~line 810 |
+| Reasoning gaps | 4 | `App_FINAL.jsx` ~line 1202 |
+| Unresolved tensions | 3 | `App_FINAL.jsx` ~line 1203 |
+
+The independent replay of RC1 established a specific consequential instance: **four** genuine unresolved tensions were correctly counted, but only the **first three** displayed. The withheld fourth is the **benefit-side tension**, concerning the safety case for speed and whether effective AI triage might improve outcomes. The heading displays `Unresolved Tensions (4)` while the list shows three, so partial count visibility does **not** resolve the missing substantive evidence.
+
+**Risk mechanism:** UI selection can silently bias an institutional decision surface by excluding a material opposing consideration while appearing to summarise the complete reasoning. This is a representational and human-factors risk, not evidence that upstream model reasoning or stage output omitted the item. Other four caps are confirmed source-level mechanisms; their particular clinical or governance consequences are **not separately measured**.
+
+**Containment / prospective remediation:** Preserve the complete source; either render **all** logical items (optionally collapsible for readability), or state the explicit `Showing N of M` count with immediate access to every omitted item. Preserve item meaning, order and source association. Do not claim that a heading count alone is an adequate disclosure or that truncation is harmless where the benefit side is hidden.
+
+**Authority and status coordination:** This entry is **registration only** under PA-26. No L-29 engineering modification is approved by it. PA-27 is a separately proposed, bounded engineering mandate for precisely the five caps and synthetic tests; its approval and merge remain independent. The reviewer must reconcile status against actual `main` at documentation-merge time:
+- PA-27 not approved: **OPEN — remediation proposed; authorisation pending**.
+- PA-27 approved, unmerged: **OPEN — remediation authorised (PA-27); implementation pending**.
+- PA-27 merged: **Remediated in code (PR #…); pending RC2 validation**, with actual merge identity and CI.
+
+**Closure evidence:** Deterministic tests of all five lists above cap thresholds, positive and missing-item negative controls, source order and traceability, restricted original RC1 output replay for the benefit-side tension, an independently reviewed PR and explicit separately authorised merge, then an eligible RC2 full UI/export walkthrough and Criterion 7 review. **No automatic closure from CI or a merged code change.**
+
+**Transfer implication:** Before any Gate A Criterion 7 acceptance, a non-builder must be able to identify and access all consequential material represented as governance findings, including alternative benefit arguments.
 
 ---
 
@@ -638,9 +697,9 @@ Limitations are not removed when they are mitigated; they are updated to reflect
 Outstanding verification and update triggers before Gate A exit:
 
 - **Reality Anchor:** The existing instruction-contract regression coverage is listed in `docs/GATE_A_ENTRY.md`, but this review has not established a separate Reality Anchor-specific failure mode. Do not invent one; inspect any relevant evidence during transfer-candidate validation and add a specific entry if supported.
-- **Governance provenance:** RC1's live v2 capture/export integration was performed and independently reviewed; F-5 (L-25) and download delivery (L-24) remain unresolved. Reassess L-09/L-12 and test the full compression/source/export chain on a separately frozen RC2 candidate.
+- **Governance provenance:** RC1's live v2 capture/export integration was performed and independently reviewed; F-5 (L-25) and download delivery (L-24) are remediated in code, pending prospective RC2 validation. Reassess L-09/L-12 and test the full compression/source/export chain on a separately frozen RC2 candidate.
 - **Build/deployment:** Record any reproducibility, instruction-pin, provider, export or environment defect found on the exact tagged candidate; update L-12 or add a new limitation with evidence.
 - **Operator transfer:** Any missing operational knowledge discovered while drafting the Gate B Operator Guide or in the stranger test must be logged and assessed; Gate B findings must not be retrospectively described as Gate A validation.
 - **UI disclosure:** Verify that the transfer-facing limitations are intelligible and accessible in the actual UI; this register alone does not establish UI disclosure.
 
-**Protocol Authority review questions:** Are L-01–L-28 accurately characterised? Are there documented, evidenced omissions? Which open items are transfer blockers versus accepted limitations? Do not mark the register or Gate A exit COMPLETE before these questions are disposed of.
+**Protocol Authority review questions:** Are L-01–L-29 accurately characterised? Are there documented, evidenced omissions? Which open items are transfer blockers versus accepted limitations? Do not mark the register or Gate A exit COMPLETE before these questions are disposed of.
