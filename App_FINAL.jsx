@@ -1928,6 +1928,29 @@ function PHDSS() {
     setDialogueHistory([]); setDirectorResultsRef([]); setExpandedDirs({});
 
     var eventHandler=function(type,payload){
+      // Preserve streaming evidence even when a later stage fails before a run
+      // manifest can be generated. A defective run must remain exportable.
+      if(type==="governance-provenance-stage"){
+        setGovernanceProvenance(function(prev){
+          var next=prev||{manifest:null,stages:{},compression_events:[]};
+          return {...next,stages:{...next.stages,[payload.stage_id]:payload.record}};
+        });
+        return;
+      }
+      if(type==="governance-compression-event"){
+        setGovernanceProvenance(function(prev){
+          var next=prev||{manifest:null,stages:{},compression_events:[]};
+          return {...next,compression_events:[...(next.compression_events||[]),payload.event]};
+        });
+        return;
+      }
+      if(type==="governance-provenance-manifest"){
+        setGovernanceProvenance(function(prev){
+          var next=prev||{manifest:null,stages:{},compression_events:[]};
+          return {...next,manifest:payload.manifest,stages:payload.stages||next.stages};
+        });
+        return;
+      }
       if(type==="active-directors"){
         setActiveDirectorsRef(payload.activeDir);
         setOmittedDirectorsRef(payload.omittedDir);
@@ -2003,7 +2026,7 @@ function PHDSS() {
         deploymentCommit:(import.meta.env&&import.meta.env.VITE_GIT_COMMIT)||"UNRECORDED"
       },{},eventHandler);
 
-      if(pipelineState&&pipelineState.governanceProvenance&&pipelineState.governanceProvenance.manifest){
+      if(pipelineState&&pipelineState.governanceProvenance){
         setGovernanceProvenance(pipelineState.governanceProvenance);
       }
 
