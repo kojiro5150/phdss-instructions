@@ -119,9 +119,9 @@ Method: for each of the 21 files at each pin, SHA-256 of the git object compared
 | Source | URL pattern | Result |
 |---|---|---|
 | Raw GitHub (verifier source) | `https://raw.githubusercontent.com/kojiro5150/phdss-instructions/<pin>/<file>.md` | 42/42 HTTP 200, 42/42 MATCH, 2026-11-22T00:2x UTC |
-| jsDelivr (runtime source) | `https://cdn.jsdelivr.net/gh/kojiro5150/phdss-instructions@<pin>/<file>.md` | **NOT PERFORMED.** Host unreachable from the Claude workspace (network allowlist). No discrepancy observed because none could be tested |
+| jsDelivr (runtime source) | `https://cdn.jsdelivr.net/gh/kojiro5150/phdss-instructions@<pin>/<file>.md` | **REPRODUCED FROM OPERATOR REPORT.** 42/42 HTTP 200 and MATCH, 0 FAIL, 2026-11-22T00:44:41Z–00:45:18Z. Operator: Protocol Authority (Sam Hayward); environment: macOS (Darwin 25.6.0 arm64). Evidence: `tests/evidence/gate-a/rc1-2026-11-22/l14-jsdelivr-report-20261122T004441Z.tsv` (SHA-256 `6f3b2f9f07d45c3b4ec56d945ed24d646f6c89bef4dd253c4a577452478b1d72`). Retrieved data and hash independently checked by ChatGPT; fetching performed on operator's Mac, not in the AI workspace. |
 
-**Boundary.** A match shows byte equivalence at the time of retrieval only. It does not show permanent equivalence, CDN behaviour at other times, or correct source attribution. The jsDelivr half of control 4 stays outstanding and must be completed from an unrestricted network before transfer.
+**Boundary.** The jsDelivr comparison is now documented as completed at the recorded retrieval times. A match shows byte equivalence at retrieval time only; it does not show permanent equivalence, CDN behaviour at other times, or correct source attribution. L-14 remains OPEN and QUALIFIED; Governance-mode provenance parity remains unverified.
 
 ---
 
@@ -156,7 +156,7 @@ The register is in Review Candidate status and is not accepted as Gate A-complet
 
 **Does QUALIFIED satisfy Gate A?** No. `GATE_A_ENTRY.md` §4 requires every criterion to be "demonstrably met" and defines no qualified closure. Route C was selected accordingly.
 
-**Release tag held.** Decision 4 authorises the tag. `GATE_A_TRANSFER_CANDIDATE_VALIDATION_PROTOCOL.md` §2.8 says to tag only after the full validation sequence (including the Governance export test and UI inspection) and Protocol Authority review, and not in a documentation PR. That protocol is still marked DRAFT. The Protocol Authority confirmed on 22 November 2026 that tagging is deferred until the live Governance export test, UI disclosure inspection, and review are completed (§9); this is an explicit decision, not an approval of the draft protocol. Target verified: `7649eb4ed5f07072a29a7c5758040d2f9ecd9828`.
+**Release tag deferred.** Decision 4 authorises the tag. `GATE_A_TRANSFER_CANDIDATE_VALIDATION_PROTOCOL.md` §2.8 says to tag only after the full validation sequence (including the Governance export test and UI inspection) and Protocol Authority review, and not in a documentation PR. That protocol is still marked DRAFT. The Protocol Authority confirmed on 22 November 2026 that tagging is deferred until the live Governance export test, UI disclosure inspection, and review are completed (§9); this is an explicit decision, not an approval of the draft protocol. Target verified: `7649eb4ed5f07072a29a7c5758040d2f9ecd9828`.
 
 **CI on a tag.** The workflow triggers on pushes to `main` and `v2.0` and on pull requests to `main`. It has no tag or manual trigger. A tag push will not run CI unless the workflow is changed, which this PR does not do.
 
@@ -170,7 +170,7 @@ The register is in Review Candidate status and is not accepted as Gate A-complet
 |---|---|---|
 | Create release-candidate tag only after live Governance export testing, UI disclosure inspection, and review are completed, with exact target verified | Engineering, subject to Protocol Authority decision in §9 | DEFERRED; prerequisites outstanding |
 | Governance end-to-end export test per protocol §3 | Protocol Authority (operator) | Authorised, not run |
-| jsDelivr half of control 4 | Anyone with unrestricted network | Outstanding |
+| jsDelivr half of control 4 | Protocol Authority (Mac operator); ChatGPT (report verification) | COMPLETED for sampled retrieval times; independent assurance review pending (§5.3) |
 | UI disclosure inspection | Protocol Authority or reviewer | Not run |
 | L-18 and L-21 dispositions | Protocol Authority | Pending evidence |
 | Confirm branch protection requires CI | Protocol Authority (repo admin) | Not verified |
