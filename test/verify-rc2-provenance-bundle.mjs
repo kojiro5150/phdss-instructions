@@ -47,9 +47,13 @@ for(const [key,file] of Object.entries(files))instructionSources[key]={file,comm
 const events=[];
 for(const s of originalStages.filter(x=>x.stage_id!=="comparator")){
   const text=JSON.stringify({synthetic_brief:s.stage_id});
-  events.push(await makeCompressionEvent({event_id:"compression:"+s.stage_id+":attempt:1",parent_stage_id:s.stage_id,
-    compression_kind:s.stage_kind==="director"?"director":"synthesis",mode:"model",attempt_index:1,
-    captured_at:"2026-11-22T00:00:00.000Z",status:"success",selected:true,
+  events.push(await makeCompressionEvent({event_id:"compression:"+s.stage_id+":attempt:1:request",parent_stage_id:s.stage_id,
+    compression_kind:s.stage_kind==="director"?"director":"synthesis",mode:"model",phase:"request",attempt_index:1,
+    captured_at:"2026-11-22T00:00:00.000Z",status:"pending",selected:false,
+    source_output:s.output,system_prompt:"Compress "+s.stage_id,user_message:"Source: "+s.output}));
+  events.push(await makeCompressionEvent({event_id:"compression:"+s.stage_id+":attempt:1:result",parent_stage_id:s.stage_id,
+    compression_kind:s.stage_kind==="director"?"director":"synthesis",mode:"model",phase:"result",attempt_index:1,
+    captured_at:"2026-11-22T00:00:01.000Z",status:"success",selected:true,
     source_output:s.output,system_prompt:"Compress "+s.stage_id,user_message:"Source: "+s.output,
     raw_response:text,final_response:text}));
 }
@@ -63,7 +67,7 @@ const manifest={
  omitted_directors:all.filter(x=>!active.includes(x)),
  stages:originalStages.map(r=>({stage_id:r.stage_id,status:r.status,output_sha256:r.output_sha256})),
  compression_events:await Promise.all(events.map(compressionEventRef)),
- compression_results:events.map(e=>({parent_stage_id:e.parent_stage_id,brief_sha256:e.final_response_sha256})),
+ compression_results:events.filter(e=>e.selected).map(e=>({parent_stage_id:e.parent_stage_id,brief_sha256:e.final_response_sha256})),
  final_ledger_sha256:sha(JSON.stringify(ledger))
 };
 const valid=await verifyGovernanceProvenance({manifest,stageRecords:originalStages,compressionEvents:events,sourceLoader,expectedDeployment:"rc2-test-build"});
@@ -95,11 +99,11 @@ const refreshInventory=value=>{
 };
 await invalid("missing stage",mutate(b=>{delete b.files["stages/director_systems.json"];}),/missing|inventory/);
 await invalid("missing compression event",mutate(b=>{
-  delete b.files["compression/compression_director_systems_attempt_1.json"];
+  delete b.files["compression/compression_director_systems_attempt_1_request.json"];
   refreshInventory(b);
 }),/bundle file set|missing/);
 await invalid("tampered response",mutate(b=>{
-  b.files["compression/compression_director_systems_attempt_1.json"].raw_response="altered";
+  b.files["compression/compression_director_systems_attempt_1_result.json"].raw_response="altered";
   refreshInventory(b);
 }),/compression event hash mismatch/);
 await invalid("tampered stage prompt",mutate(b=>{
