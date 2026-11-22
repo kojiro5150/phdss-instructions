@@ -144,4 +144,74 @@ for(const h of ["Cross-Domain Conflicts","Hidden Assumptions","Reasoning Gaps"])
 }
 assert.match(extractLogicalFindings(boldMeta,"Cross-Domain Conflicts")[0],/Supporting material/);
 
+
+// R96-1/R96-2: invented format-matched Sonnet sections. The next bold-only
+// heading is intentionally unknown to the parser's historical whitelist.
+const modelStyleCDTA=[
+  "**Cross-Domain Conflicts**",
+  "1. **Access vs oversight** — Staff require permissions.",
+  "2. **Continuity vs disruption** — Changes may interrupt care.",
+  "3. **Innovation vs safety** — New functions require testing.",
+  "4. **Transparency vs confidentiality** — Public reporting needs limits.",
+  "**Hidden Assumptions**",
+  "1. **Capacity exists** — Teams can complete reviews.",
+  "2. **Records are accurate** — Inputs are reconciled.",
+  "3. **Consent is current** — Conditions have not changed.",
+  "4. **Fallback works** — Offline processes remain available.",
+  "**Reasoning Gaps**",
+  "1. **Missing comparison** — No alternative approach is tested.",
+  "2. **Missing evidence** — Outcomes are unknown.",
+  "3. **Missing ownership** — Responsibility is not allocated.",
+  "4. **Missing implementation proof** — Deployment is untested.",
+  "**Coverage Limitations**",
+  "1. A fictitious locality's staffing has not been inspected.",
+  "2. No invented budget has been verified.",
+  "3. Data availability is uncertain.",
+  "4. Provider arrangements are unknown.",
+  "5. Clinical supervision is not evidenced.",
+  "6. Recovery drills have not occurred.",
+  "7. Monitoring capacity is unknown.",
+  "8. Local commissioning is hypothetical.",
+  "9. Implementation dates are speculative.",
+  "**Unresolved Tensions**",
+  "1. **Speed vs diligence** — Proceeding quickly weakens assurance.",
+  "2. **Uniformity vs equity** — A template misses local needs.",
+  "3. **Scope vs resources** — Capacity constrains ambition.",
+  "4. **Assurance vs flexibility** — Controls restrict adaptation.",
+  "**Integration Signal**: MEDIUM — human review is still needed.",
+  "**Another Unlisted Section**",
+  "This must never become another tension."
+].join("\n");
+for(const h of ["Cross-Domain Conflicts","Hidden Assumptions","Reasoning Gaps","Unresolved Tensions"]){
+  const items=extractLogicalFindings(modelStyleCDTA,h);
+  assert.equal(items.length,4,"model-format "+h+" must have exactly four logical findings");
+  assert.ok(items.every(x=>!x.includes("Coverage Limitations")&&!x.includes("Integration Signal")),"no boundary leakage: "+h);
+}
+assert.equal(extractLogicalFindings(modelStyleCDTA,"Reasoning Gaps").at(-1).includes("Missing implementation proof"),true);
+assert.match(extractLogicalFindings(modelStyleCDTA,"Unresolved Tensions").at(-1),/Assurance vs flexibility/);
+const modelStyleProbe=[
+  "**Whose Perspective Is Absent**",
+  "<!-- NOTE! This is an invented instruction-guard example. -->",
+  "Aboriginal and Torres Strait Islander perspectives have not been supplied.",
+  "A separate invented community workforce voice is also absent.",
+  "**Where AI Limitation Is Most Visible**",
+  "This non-perspective analysis should not appear in the card.",
+  "**Coverage-Induced Blind Spots**",
+  "Several other limitations follow.",
+  "**Probe Verdict**: SIGNIFICANT GAPS",
+  "Extra material that belongs to the verdict."
+].join("\n");
+const modelSummary=extractAbsentPerspectiveSummary(modelStyleProbe);
+assert.match(modelSummary,/^Aboriginal and Torres Strait Islander/);
+assert.match(modelSummary,/community workforce/);
+assert.doesNotMatch(modelSummary,/Where AI Limitation|Coverage-Induced|Probe Verdict|instruction-guard/);
+assert.ok(modelSummary.length<300,"model-format summary limited to its own section");
+// Disclose excerpt bounds, never silently truncate in the operator card.
+const oversizedProbe="**Whose Perspective Is Absent**\nAboriginal and Torres Strait Islander perspectives: "+
+  "Unverified community perspectives. ".repeat(100)+"\n**Where AI Limitation Is Most Visible**";
+const longSummary=extractAbsentPerspectiveSummary(oversizedProbe);
+assert.match(longSummary,/^\bAboriginal and Torres Strait Islander/);
+assert.match(longSummary,/\[Excerpt: see full Probe output\]$/);
+assert.ok(longSummary.length<1100);
+
 console.log("RC2 dashboard integrity: PASS");
