@@ -17,6 +17,7 @@ export async function makeCompressionEvent(input) {
     parent_stage_id:String(input.parent_stage_id),
     compression_kind:input.compression_kind,
     mode:input.mode,
+    phase:input.phase||(input.mode==="deterministic"?"fallback":"result"),
     attempt_index:input.attempt_index,
     captured_at:input.captured_at||null,
     model:input.mode==="model"?SYNTHESIS_MODEL:null,
