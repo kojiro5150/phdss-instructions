@@ -1,51 +1,80 @@
-// RC2 Phase A: lossless operator-facing extraction of structured findings.
-function clean(value) { return String(value || "").replace(/\r/g, "").trim(); }
-function stripPrefix(value) { return clean(value).replace(/^\s*(?:[-•]\s*|\d+[.)]\s*)/, ""); }
-function stripMarkdown(value) { return clean(value).replace(/\*\*/g, "").replace(/^\s*#{1,6}\s*/, ""); }
-function section(text, label) {
+// RC2 Phase A: lossless, dependency-free operator-facing extraction (F-6–F-8).
+const SECTION_NAMES=new Set([
+  "decision conditions","key trade-offs","key discovery","accepted residual risk",
+  "cross-domain conflicts","hidden assumptions","reasoning gaps","unresolved tensions",
+  "whose perspective is absent","what the board missed","probe verdict",
+  "governance implication","decision brief status","summary","verification phase",
+  "integration signal","non-negotiable conditions","board conclusion"
+]);
+function clean(value) { return String(value||"").replace(/\r/g,"").trim(); }
+function stripMarkdown(value) { return clean(value).replace(/\*\*/g,"").replace(/^\s*#{1,6}\s*/,""); }
+function title(line) { return stripMarkdown(line).replace(/:\s*$/,"").trim().toLowerCase(); }
+function isSectionHeading(line) {
+  const t=title(line);
+  return SECTION_NAMES.has(t)&&/^\s*(?:#{1,6}\s|\*\*)/.test(line);
+}
+function section(text,label) {
   const lines=clean(text).split("\n");
-  const heading=label.toLowerCase();
-  let start=-1;
-  for(let i=0;i<lines.length;i++) {
-    const h=stripMarkdown(lines[i]).replace(/:$/,"").trim().toLowerCase();
-    if(h===heading) {start=i+1;break;}
+  let start=-1,headingLevel=0;
+  for(let i=0;i<lines.length;i++){
+    if(title(lines[i])===label.toLowerCase()&&/^\s*(?:#{1,6}\s|\*\*)/.test(lines[i])){
+      start=i+1;
+      const found=lines[i].match(/^\s*(#{1,6})\s/);
+      headingLevel=found?found[1].length:0;
+      break;
+    }
   }
-  if(start<0) return "";
+  if(start<0)return "";
   const body=[];
-  for(let i=start;i<lines.length;i++) {
-    if(/^\s*(?:#{1,6}\s+[A-Za-z]|\*\*[A-Za-z][^*]*\*\*\s*:?\s*$)/.test(lines[i]))break;
+  for(let i=start;i<lines.length;i++){
+    const h=lines[i].match(/^\s*(#{1,6})\s/);
+    if(h&&(!headingLevel||h[1].length<=headingLevel))break;
+    // Treat recognised major bold headings as section boundaries,
+    // but NEVER treat arbitrary bold item titles as boundaries.
+    if(isSectionHeading(lines[i]))break;
     body.push(lines[i]);
   }
   return body.join("\n").trim();
 }
 function unique(items) {
-  const seen = new Set();
-  return items.filter(item => {
+  const seen=new Set();
+  return items.filter(item=>{
     const key=stripMarkdown(item).toLowerCase().replace(/\s+/g," ");
-    if (!key || seen.has(key)) return false;
-    seen.add(key); return true;
+    if(!key||seen.has(key))return false;
+    seen.add(key);return true;
   });
 }
 function listEntries(block) {
+  const lines=clean(block).split("\n");
+  const numbered=lines.some(line=>/^\s*\d+[.)]\s+/.test(line));
+  const bulleted=!numbered&&lines.some(line=>/^\s*[-•]\s+/.test(line));
   const out=[];
-  for(const line of clean(block).split("\n")) {
-    const t=line.trim();
-    if(!t || /^<!--/.test(t)) continue;
-    if(/^(?:[-•]\s+|\d+[.)]\s+)/.test(t)) out.push(stripPrefix(t));
-    else if(out.length && !/^#{1,6}\s/.test(t)) out[out.length-1]+=" "+t;
+  for(const original of lines){
+    const t=original.trim();
+    if(!t||/^<!--/.test(t))continue;
+    const number=/^\s*\d+[.)]\s+/.test(original);
+    const topBullet=/^[-•]\s+/.test(original);
+    const boldHeading=/^\*\*[^*]{3,}\*\*\s*[-—:]?/.test(t);
+    const startsNew=numbered?number:(bulleted?topBullet:boldHeading);
+    if(startsNew) {
+      const entry=t.replace(/^\d+[.)]\s+|^[-•]\s+/,"").trim();
+      out.push(entry);
+    } else if(out.length&&!/^#{1,6}\s/.test(t)) {
+      out[out.length-1]+=" "+t;
+    }
   }
   return unique(out.map(stripMarkdown));
 }
-export function extractChairItems(text, heading) {
+export function extractChairItems(text,heading) {
   const block=section(text,heading);
   if(!block)return [];
   const entries=listEntries(block);
   if(entries.length)return entries;
   return unique(block.split(/\n\s*\n/).map(stripMarkdown).filter(x=>x.length>15));
 }
-export function extractLogicalFindings(text, heading) {
-  const entries=listEntries(section(text,heading));
-  return entries.filter(x=>x.length>10&&!/^(sourced|inferred|speculative)\s+(conflicts?|assumptions?|gaps?):?\s*$/i.test(x));
+export function extractLogicalFindings(text,heading) {
+  return listEntries(section(text,heading)).filter(x=>x.length>10
+    &&!/^(sourced|inferred|speculative)\s+(conflicts?|assumptions?|gaps?):?\s*$/i.test(x));
 }
 export function extractAbsentPerspectiveSummary(text) {
   const block=section(text,"Whose Perspective Is Absent");
