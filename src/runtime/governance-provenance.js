@@ -1,9 +1,11 @@
 import { SYNTHESIS_MODEL } from "./anthropic-client.js";
 
 export const GOVERNANCE_PROVENANCE_SCHEMA="phdss.governance-provenance.v1";
+export const GOVERNANCE_PROVENANCE_SCHEMA_RC2="phdss.governance-provenance.v2";
 // Stage schema versioned to v2 to add raw_output, raw_output_sha256,
 // output_transform and output_capture_stage (G-01 / G-02 repair).
 export const GOVERNANCE_STAGE_PROVENANCE_SCHEMA="phdss.governance-stage-provenance.v2";
+export const GOVERNANCE_STAGE_PROVENANCE_SCHEMA_RC2="phdss.governance-stage-provenance.v3";
 
 export async function sha256Text(value){
   if(typeof globalThis==="undefined"||!globalThis.crypto||!globalThis.crypto.subtle||typeof TextEncoder==="undefined"){
@@ -29,23 +31,27 @@ export function instructionKeyForStage(stageId){
   return map[stageId]||null;
 }
 
-export async function buildInstructionProvenance(stageId,instructions){
+export async function buildInstructionProvenance(stageId,instructions,instructionSources){
   var key=instructionKeyForStage(stageId);
-  if(!key) return {instruction_files:[],instruction_runtime_sha256:[]};
+  if(!key) return {instruction_files:[],instruction_runtime_sha256:[],instruction_source_commits:[],instruction_source_urls:[]};
+  const source=instructionSources&&instructionSources[key];
+  const sourceInfo={instruction_source_commits:[source&&source.commit||null],instruction_source_urls:[source&&source.url||null]};
   var content=instructions&&instructions[key];
   if(typeof content!=="string"||!content.trim()){
-    return {instruction_files:[key+".md"],instruction_runtime_sha256:[null]};
+    return Object.assign({instruction_files:[key+".md"],instruction_runtime_sha256:[null]},sourceInfo);
   }
   return {
     instruction_files:[key+".md"],
-    instruction_runtime_sha256:[await sha256Text(content)]
+    instruction_runtime_sha256:[await sha256Text(content)],
+    instruction_source_commits:sourceInfo.instruction_source_commits,
+    instruction_source_urls:sourceInfo.instruction_source_urls
   };
 }
 
 export async function createGovernanceStageRequest(input){
-  var instruction=await buildInstructionProvenance(input.stage_id,input.instructions||{});
+  var instruction=await buildInstructionProvenance(input.stage_id,input.instructions||{},input.instruction_sources);
   return {
-    schema:GOVERNANCE_STAGE_PROVENANCE_SCHEMA,
+    schema:input.instruction_sources?GOVERNANCE_STAGE_PROVENANCE_SCHEMA_RC2:GOVERNANCE_STAGE_PROVENANCE_SCHEMA,
     decision_id:input.decision_id,
     run_type:"GOVERNANCE",
     stage_id:input.stage_id,
@@ -57,6 +63,8 @@ export async function createGovernanceStageRequest(input){
     instruction_files:instruction.instruction_files,
     instruction_normalization_version:"trim_v1",
     instruction_runtime_sha256:instruction.instruction_runtime_sha256,
+    instruction_source_commits:instruction.instruction_source_commits,
+    instruction_source_urls:instruction.instruction_source_urls,
     model:SYNTHESIS_MODEL,
     model_settings:{
       max_tokens:16000,
@@ -141,7 +149,7 @@ export async function finalizeGovernanceStage(record,input){
 
 export function createSkippedGovernanceStage(input){
   return {
-    schema:GOVERNANCE_STAGE_PROVENANCE_SCHEMA,
+    schema:input.instruction_sources?GOVERNANCE_STAGE_PROVENANCE_SCHEMA_RC2:GOVERNANCE_STAGE_PROVENANCE_SCHEMA,
     decision_id:input.decision_id,
     run_type:"GOVERNANCE",
     stage_id:input.stage_id,
@@ -153,6 +161,8 @@ export function createSkippedGovernanceStage(input){
     instruction_files:[],
     instruction_normalization_version:"trim_v1",
     instruction_runtime_sha256:[],
+    instruction_source_commits:[],
+    instruction_source_urls:[],
     model:SYNTHESIS_MODEL,
     model_settings:{max_tokens:16000,temperature:0.8,auto_continue:!!input.auto_continue},
     web_search:false,
@@ -174,12 +184,13 @@ export function createSkippedGovernanceStage(input){
 
 export async function createGovernanceManifest(input){
   return {
-    schema:GOVERNANCE_PROVENANCE_SCHEMA,
+    schema:Array.isArray(input.compression_events)?GOVERNANCE_PROVENANCE_SCHEMA_RC2:GOVERNANCE_PROVENANCE_SCHEMA,
     decision_id:input.decision_id,
     run_type:"GOVERNANCE",
     captured_at:input.captured_at,
     deployment_commit:input.deployment_commit||"UNRECORDED",
     instruction_commit:input.instruction_commit,
+    instruction_sources:input.instruction_sources?Object.assign({},input.instruction_sources):null,
     instruction_normalization_version:"trim_v1",
     analysis_mode:input.analysis_mode,
     decision_text:input.decision_text||null,
@@ -195,6 +206,7 @@ export async function createGovernanceManifest(input){
     stages:(input.stages||[]).map(function(record){
       return {stage_id:record.stage_id,status:record.status,output_sha256:record.output_sha256||null};
     }),
+    compression_events:Array.isArray(input.compression_events)?input.compression_events.map(function(ref){return Object.assign({},ref);}):undefined,
     final_ledger_sha256:input.final_ledger==null?null:await sha256Text(JSON.stringify(input.final_ledger))
   };
 }
