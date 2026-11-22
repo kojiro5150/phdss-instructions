@@ -64,7 +64,7 @@ Advisory provenance tests do not on their own establish Governance-mode provenan
 
 | Requirement | Status | Notes |
 |---|---|---|
-| Frozen build (tagged release) | PARTIAL | Candidate `7649eb4` frozen by Protocol Authority 22 Nov 2026; release tag `v3.0.0-gateA-rc1` authorised, not yet created. See `docs/GATE_A_CANDIDATE_RECORD.md` |
+| Frozen build (tagged release) | PARTIAL | Candidate `7649eb4` frozen by Protocol Authority 22 Nov 2026; release tag `v3.0.0-gateA-rc1` conditionally authorised but deferred by Protocol Authority until live Governance export testing, UI disclosure inspection, and review are completed; not yet created. See `docs/GATE_A_CANDIDATE_RECORD.md` |
 | Limitations register complete | REVIEW CANDIDATE | Not yet accepted as Gate A-complete; L-13, L-14, L-19, L-20, L-22, L-23 OPEN; L-18, L-21 pending Protocol Authority disposition |
 | Synthetic-only test-data policy documented | MET | `docs/GATE_A_SYNTHETIC_TEST_DATA_POLICY.md` (PR #81) |
 | Transfer-candidate validation run | PARTIAL | Validate and build pass at `7649eb4`; Governance end-to-end export and UI inspection not run |
