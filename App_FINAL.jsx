@@ -791,11 +791,13 @@ function parseDashboard(decision, dirOutputs, meta, stress, chair, dialogueHisto
   // because analytical rigour cannot be inferred from completion alone.
   var epistemicHealthGate = epistemicScore==="WEAK"||epistemicScore==="COMPROMISED";
   var governanceLevel=(!epistemicHealthGate&&traceabilityScore>=75&&coverageScore>=77)?"HIGH":traceabilityScore>=50?"MEDIUM":"LOW";
+  // PA-27 / L-29: presentation must not truncate parser-returned items.
+  // Render all five dashboard lists in source order; no content-based filtering here.
   var overconfidenceFlags=dedupItems(extractBulletLines(epistemicText,"Overconfidence Flags").concat(
     extractSection(epistemicText,"Overconfidence Flags").split("\n").filter(function(l){return l.trim()&&!l.startsWith("**");}))
-  ).slice(0,6);
+  );
   var biasSignals=extractSection(epistemicText,"Systematic Bias Signals");
-  var epistemicGaps=extractBulletLines(epistemicText,"Epistemic Gaps").slice(0,5);
+  var epistemicGaps=extractBulletLines(epistemicText,"Epistemic Gaps");
   var dirConfidence={};
   if(epistemicText){
     active.forEach(function(d){
@@ -807,7 +809,7 @@ function parseDashboard(decision, dirOutputs, meta, stress, chair, dialogueHisto
   var probeVerdict=findSignal(probeText,["BOARD REASONING SOUND","SIGNIFICANT GAPS","CONCLUSION CHALLENGED"]);
   var boardMissed=dedupItems(extractBulletLines(probeText,"What the Board Missed").concat(
     extractSection(probeText,"What the Board Missed").split("\n").filter(function(l){return l.trim()&&!l.startsWith("**");}))
-  ).slice(0,5);
+  );
   var absentPerspectives=extractSection(probeText,"Whose Perspective Is Absent");
   var esNum=epistemicScore==="STRONG"?100:epistemicScore==="ADEQUATE"?65:epistemicScore==="WEAK"?30:epistemicScore==="COMPROMISED"?0:null;
   // Probe score: scale CONCLUSION CHALLENGED floor by coverage ratio.
@@ -1199,8 +1201,8 @@ function TransparencyDashboard({decision,dirOutputs,meta,stress,chair,epistemic,
                 <div style={{width:22,height:22,borderRadius:6,background:"#D1FAE5",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11}}>🧩</div>
                 <div><div style={{fontSize:10,fontWeight:700,color:"#065F46",textTransform:"uppercase",letterSpacing:0.8}}>Reasoning Gaps</div><div style={{fontSize:10,color:"#059669",marginTop:1}}>{d.gaps.length>0?d.gaps.length+" found":"None identified"}</div></div>
               </div>
-              {d.gaps.length>0&&<div style={{display:"flex",flexDirection:"column",gap:5,marginBottom:d.tensions.length>0?10:0}}>{d.gaps.slice(0,4).map(function(g,i){return <div key={i} style={{padding:"6px 9px",borderRadius:7,background:"#FFFFFF",border:"1px solid #BBF7D0"}}><div style={{display:"flex",alignItems:"flex-start",gap:6}}><span style={{fontSize:9,fontWeight:700,color:"#059669",flexShrink:0,marginTop:2}}>{i+1}</span><span style={{fontSize:11,color:"#334155",lineHeight:1.55}}>{g.replace(/^\d+\.\s*/,"")}</span></div></div>;})}</div>}
-              {d.tensions.length>0&&<div><div style={{fontSize:9,fontWeight:700,color:"#059669",textTransform:"uppercase",letterSpacing:0.6,marginBottom:6,marginTop:d.gaps.length>0?4:0}}>Unresolved Tensions ({d.tensions.length})</div>{d.tensions.slice(0,3).map(function(t,i){return <div key={i} style={{fontSize:11,color:"#334155",padding:"5px 8px",borderRadius:6,background:"#FFFFFF",border:"1px solid #BBF7D0",marginBottom:4,lineHeight:1.5}}>{t.replace(/^\d+\.\s*/,"")}</div>;})}</div>}
+              {d.gaps.length>0&&<div style={{display:"flex",flexDirection:"column",gap:5,marginBottom:d.tensions.length>0?10:0}}>{d.gaps.map(function(g,i){return <div key={i} style={{padding:"6px 9px",borderRadius:7,background:"#FFFFFF",border:"1px solid #BBF7D0"}}><div style={{display:"flex",alignItems:"flex-start",gap:6}}><span style={{fontSize:9,fontWeight:700,color:"#059669",flexShrink:0,marginTop:2}}>{i+1}</span><span style={{fontSize:11,color:"#334155",lineHeight:1.55}}>{g.replace(/^\d+\.\s*/,"")}</span></div></div>;})}</div>}
+              {d.tensions.length>0&&<div><div style={{fontSize:9,fontWeight:700,color:"#059669",textTransform:"uppercase",letterSpacing:0.6,marginBottom:6,marginTop:d.gaps.length>0?4:0}}>Unresolved Tensions ({d.tensions.length})</div>{d.tensions.map(function(t,i){return <div key={i} style={{fontSize:11,color:"#334155",padding:"5px 8px",borderRadius:6,background:"#FFFFFF",border:"1px solid #BBF7D0",marginBottom:4,lineHeight:1.5}}>{t.replace(/^\d+\.\s*/,"")}</div>;})}</div>}
               {d.gaps.length===0&&d.tensions.length===0&&<div style={{fontSize:11,color:"#94A3B8",fontStyle:"italic",padding:"6px 0"}}>No gaps or tensions extracted.</div>}
             </div>
           </div>
