@@ -192,6 +192,12 @@ Housing-policy and geopolitical runs were used to examine structural transfer of
 
 **Transfer implication:** Evaluators must examine source grounding and unresolved uncertainty, distinguish model inference from supplied evidence and actual participation, and preserve human authority. Do not use PHDSS output as clinical, legal or institutional authorisation.
 
+**RC1 evidence-quality case (F-9; 22 November 2026):** In the Safety, Quality & Harm Director's Technical Appendix for decision \`DR-20261122-115931-4417e9\`, a purported “2022 systematic review (Kirubarajan et al., *Annals of Emergency Medicine*)” was cited to support specific claims about paediatric/atypical triage performance and Australian Indigenous population validation. Independent review identified the corresponding Kirubarajan et al. article as a **2020 scoping review in *JACEP Open*** (DOI \`10.1002/emp2.12277\`), not the cited year, journal or review type; the attributed findings were not independently established by that citation. A separate Victorian AI-standard reference was also propagated from Digital & AI Governance into the Chair's conditions without verifying the model's interpretation of applicability. In this run, web search was **off** and the supplied session-evidence count was **zero**. Provenance faithfully captures these statements, but does not validate them.
+
+**F-9 disposition (PA-07):** **Qualified acceptance only with a documented evidence-verification disclosure/control**, not acceptance of the claims as true. Specific legal, clinical, academic or regulatory references must be checked against authoritative sources **before institutional reliance**; the generic “requires human expert review” footer alone has not been established as sufficient operator-facing disclosure. This finding does not itself establish that every citation in the run is false, and does not authorise broad citation-verification product development inside RC2's narrow engineering scope. L-11 remains OPEN.
+
+
+
 ---
 
 ## L-12 — Transfer reproducibility and operator independence not yet demonstrated
@@ -489,6 +495,118 @@ The second is not a function of the first. A single HALT among thirteen Director
 
 ---
 
+## L-24 — Browser export can silently deliver an incomplete Governance provenance bundle (F-1)
+
+**Classification:** Provenance export-delivery / operator assurance; material for evidence completeness  
+**Status:** OPEN — observed defect on RC1; exact browser-level mechanism not conclusively established  
+**Component:** \`App_FINAL.jsx\` Ledger → Export Provenance; \`downloadJson\` browser download sequence; standalone Governance provenance verifier  
+**Discovered:** RC1 live CORE Governance run, 22 November 2026, frozen deployment commit \`7649eb4ed5f07072a29a7c5758040d2f9ecd9828\`; decision \`DR-20261122-115931-4417e9\`  
+**Evidence:** RC1 governance manifest and 13 stage records retained outside the public repository; operator Chrome download history; two original export attempts; recovery script \`recovery/targeted-download-filter.js\` in restricted RC1 review bundle; independent review \`INDEPENDENT_REVIEW_DR-20261122-115931-4417e9.md\` §§2–3, 7, Addenda A–C.
+
+**Limitation:** The application initiates one download for the Governance manifest and one for each stage record. The RC1 manifest recorded 13 successful stages, requiring **14 files** in total. Each of two ordinary browser export attempts delivered exactly **10 files: the manifest and the first nine stage records**. The missing records were the last four stages in manifest order (\`adversarial_probe\`, \`stress_test\`, \`chair\`, \`comparator\`). The first ten delivered files were byte-identical across both attempts. The export interface provided no completeness warning. These observations strongly support a consecutive-download delivery limit, but do **not** prove Chrome's exact internal cause, establish a universal 10-file limit, or show that the four runtime stage records were absent.
+
+**Containment and recovery:** The operator used a targeted DevTools download filter to request **only** the four missing stage files, without modifying the frozen runtime. The recovered records, original manifest and Ledger were assembled and verified. The standalone frozen verifier returned \`VALID\` on all 13 stages; an independent reviewer reproduced the verifier output byte-identically and demonstrated that removing \`comparator\` from a copy produces \`INVALID\`. A tampered Chair output also produced \`INVALID\`. The recovery is a **recorded operator deviation**, not evidence that ordinary exports are reliable. The verifier detects missing stage records **when run on the delivered bundle**; it does not prevent the browser from silently omitting downloads.
+
+**RC1 finding / disposition:** Gate A RC1 was closed **NOT PASSED**. Successful post-recovery verification does not constitute complete, deviation-free export delivery, nor does it resolve Governance provenance parity (L-14; L-25).
+
+**RC2 scope (PA-10):** Implement a single, complete, independently verifiable provenance export bundle, including stage and compression-event records, inventory, and missing-part/tamper rejection. No browser-console workaround should be necessary. This is authorised remediation scope, **not** an implemented or tested fix.
+
+**Closure evidence:** Demonstrate complete UI-path export on the new frozen RC2 build; reconcile declared inventory with actual bundled entries; independently reject missing/altered items; capture relevant browser, model and run identifiers; confirm no silent incomplete delivery. Do not infer that a passing verifier alone proves ordinary browser export reliability.
+
+**Transfer implication:** An operator must never treat the presence of some downloaded provenance files, or a successful runtime stage tally, as proof that the exported evidence bundle is complete.
+
+---
+
+## L-25 — Governance Brief compression model calls are outside stage provenance (F-5)
+
+**Classification:** Provenance-chain coverage / material Criterion 6 gap  
+**Status:** OPEN — demonstrated in RC1; **BLOCKS Criterion 6** by Protocol Authority disposition  
+**Component:** \`src/runtime/governance-compression.js\` (\`compressDirectorOutput\`, \`compressSynthesisOutput\`), Governance orchestration and \`scripts/verify-governance-provenance-v2.mjs\`  
+**Discovered:** Independent RC1 audit, 22 November 2026; frozen runtime \`7649eb4ed5f07072a29a7c5758040d2f9ecd9828\`  
+**Evidence:** Independent review Addendum A F-5; frozen source inspection; RC1 Chair full brief, separate Chair Governance Record and downstream stage \`user_message\` fields; independently reproduced 13-stage verifier (\`VALID\`).
+
+**Limitation:** Governance-mode \`compressDirectorOutput\` and \`compressSynthesisOutput\` make separate model calls (up to two attempts, with deterministic fallback) to create compressed Governance Briefs. These briefs supply the Governance Record surface and, for Directors, feed downstream synthesis stages. Their **resulting text** is captured where downstream stages consume it, but the compression calls' instruction/prompt, raw model response, attempts and fallback path are **not** captured as first-class provenance records. The existing verifier covers 13 recorded stages and cannot reconstruct or independently validate these intervening model-mediated transformations.
+
+**Comparison to Advisory benchmark:** At the frozen commit, Advisory mode calls the model per Director and captures those calls, including raw and final outputs and hashes; it does not add this compression step. Thus Governance has a real coverage shortfall relative to Criterion 6's unchanged requirement to meet the Advisory provenance standard. A byte-identical reproduction of \`VALID\` for the 13 captured stages cannot resolve this shortfall.
+
+**Boundaries:** This finding does **not** establish that compression changed substantive meaning in this run, that the observed downstream brief texts were absent, or that the entire Governance run lacked provenance. It establishes that the *transforming calls themselves* are unrecorded. L-05 and L-09 cover distinct transform/retry boundaries; L-14 separately covers source-commit attribution.
+
+**RC1 disposition:** **BLOCK Criterion 6** (PA-03). RC1 closed NOT PASSED. No waiver or narrowing of the parity criterion was approved.
+
+**RC2 scope:** Capture each model-mediated compression event with traceable inputs, instruction identity, model/settings, attempts, raw/final response, fallback outcome, hashes and linkage to downstream use. Design must preserve independently checkable causal coverage without relying on a verbal explanation; combine with L-24 complete bundled export. This is not yet implemented.
+
+**Closure evidence:** Deterministic contract tests and omission/tamper negative controls for compression events, followed by an eligible live RC2 Governance run with independently reproduced full chain and source checks. Merely counting 13 stages or seeing text in a downstream request is insufficient.
+
+**Transfer implication:** A reviewer must distinguish integrity of recorded stages from completeness of the model-mediated reasoning chain.
+
+---
+
+## L-26 — Transparency Dashboard silently truncates Chair decision content (F-6)
+
+**Classification:** Operator-facing representation integrity; material Criterion 7 gap  
+**Status:** OPEN — demonstrated in RC1; **BLOCKS Criterion 7** by Protocol Authority disposition  
+**Component:** \`App_FINAL.jsx\` Transparency Dashboard parsing of Chair Decision Conditions and Key Trade-offs  
+**Discovered:** RC1 dashboard/output comparison, 22 November 2026, frozen \`7649eb4ed5f07072a29a7c5758040d2f9ecd9828\`  
+**Evidence:** Independent review Addendum A F-6; full Chair exported output, dashboard export and reviewed screenshots.
+
+**Limitation:** The dashboard parses numbered Chair sections by splitting headings and bodies and applies fixed item caps. In RC1, it treats the introductory sentence of **Decision Conditions** as one condition and limits the displayed list to six, leaving out the Chair's sixth substantive condition, **“Retraining data independence and feedback contamination prevention.”** For **Key Trade-offs**, heading and body text are counted as separate items and the dashboard caps the list at five, showing approximately 2.5 of the Chair's six substantive trade-offs. The omitted material includes **“Inaction harm versus deployment harm,”** the Adversarial Probe's central comparative challenge. The dashboard and its export do not disclose how many substantive items were omitted.
+
+**Boundaries:** The missing material remains present in the full Chair stage output and full Chair UI export; this is a dashboard **selection/representation** defect, not proof that the upstream model failed to generate the content. No general rate of truncation across all decisions has been established. Visual Comparator displayed-field parity does not validate the dashboard's Chair sections.
+
+**RC1 disposition:** **BLOCK Criterion 7** (PA-04). A separate operator note may disclose the defect, but cannot make silently omitted governance content complete or establish that operators understood what was absent.
+
+**RC2 scope:** Parse and render logical Chair conditions and trade-offs without silently dropping substantive items; test against the frozen RC1 outputs without an additional model call. Any intentional display summarisation must visibly state its completeness boundary and provide access to the complete underlying record. Not yet fixed.
+
+**Closure evidence:** Deterministic regression against the RC1 Chair text must recover all six named substantive conditions and all six trade-offs, correctly bound headings to bodies, and prove that any summary surface explicitly identifies omissions. Recheck UI and export on the new RC2 build.
+
+**Transfer implication:** A compact dashboard cannot silently replace a material governance risk-benefit analysis with an incomplete subset while appearing complete.
+
+---
+
+## L-27 — Dashboard inflates counts by treating Markdown fragments as separate findings (F-7)
+
+**Classification:** Operator-facing quantitative representation integrity; Criterion 7 blocker  
+**Status:** OPEN — demonstrated in RC1; **BLOCKS Criterion 7** by Protocol Authority disposition  
+**Component:** \`App_FINAL.jsx\` Cross-Domain Tension Analysis dashboard parser and export  
+**Discovered:** RC1 dashboard/output comparison, 22 November 2026, frozen \`7649eb4ed5f07072a29a7c5758040d2f9ecd9828\`  
+**Evidence:** Independent review Addendum A F-7; Cross-Domain Tension Analysis stage output and dashboard export.
+
+**Limitation:** The RC1 Cross-Domain Tension Analysis contains **four conflicts, four hidden assumptions and four reasoning gaps**. The dashboard and its export display **eight, eight and eight** respectively because a Markdown item heading and its body are counted as separate entries. Display artefacts include doubled numbering (\`1. 1.\`) and trailing Markdown markers (\`**\`). Thus the operator-facing scorecard overstates the *number of logical findings* in this observed run.
+
+**Boundaries:** These are incorrect **display counts**, not a claim that the Cross-Domain Tension Analysis independently generated eight findings in each category. The evidence establishes the specific RC1 instance and parser mechanism; it does not establish a generalised frequency or a clinical/institutional effect. The distortion is separate from L-26's truncated Chair items.
+
+**RC1 disposition:** **BLOCK Criterion 7** (PA-05). A recorded caveat does not convert incorrect current counts to accurate counts.
+
+**RC2 scope:** Count structured logical findings, not Markdown heading/body fragments; preserve complete finding text and correct display/export numbering. No unrelated redesign authorised.
+
+**Closure evidence:** Deterministic RC1 replay through RC2 presentation code reports four in each category, with heading and body paired; malformed Markdown and empty-line variation tests prevent recurrence. Independently review actual RC2 dashboard and export.
+
+**Transfer implication:** Incorrectly doubled counts can mislead the relative weight or apparent extent of governance tensions.
+
+---
+
+## L-28 — Internal instruction-guard text displaces a missing-perspective finding (F-8)
+
+**Classification:** Instruction/output boundary and operator-facing representation integrity; material Criterion 7 gap  
+**Status:** OPEN — demonstrated in RC1; **BLOCKS Criterion 7** by Protocol Authority disposition  
+**Component:** Systems and Equity Director outputs; Adversarial Probe output; \`App_FINAL.jsx\` Confidence-Calibrated Ensemble / Absent Perspective parser  
+**Discovered:** RC1 evidence inspection and Comparator-panel dashboard screenshot review, 22 November 2026, frozen \`7649eb4ed5f07072a29a7c5758040d2f9ecd9828\`  
+**Evidence:** Independent review Addenda B F-8 and C.2; original stages and Director UI exports; Comparator screenshot SHA-256 \`e73f18838322e3971112006835c08b24c25eb7c05a4ee12285e6a7271175f16d\`.
+
+**Limitation:** The model reproduced prohibited internal \`SINGLE-INSTANCE GUARD\` instruction-comment text in generated records despite instructions not to reproduce it. In the 13 RC1 final stage outputs, the reviewer found **five occurrences**: two verbatim in the Adversarial Probe, two paraphrased in Systems & Dynamics and one paraphrased in Equity & Human Rights. In the Probe's **Whose Perspective Is Absent** section, a full guard comment precedes the genuine first absent perspective: **“Aboriginal and Torres Strait Islander communities and community-controlled health organisations.”** The dashboard takes the first sentence of that section. Because the comment comes first, the **Absent Perspective** card displays only \`<\` instead of that substantive finding, without a warning.
+
+**Boundaries:** This is not only cosmetic leakage. It demonstrates both failure to contain instruction text in generated records and a downstream UI parsing failure capable of **replacing a governance finding in the displayed summary**. The genuine text remains in the full Probe output. The evidence does not establish that the model omitted the perspective from its full analysis, that a human relied on the corrupted card, or that the problem occurs on every run. The single-character display and its mechanism are supported by the specific RC1 screenshot and source inspection.
+
+**RC1 disposition:** **BLOCK Criterion 7** (PA-06). Remediation is justified by an observed loss of operator-visible content, not merely because HTML comments appeared in a Markdown export.
+
+**RC2 scope:** Prevent instruction/guard comments from entering the operator-facing summary and parse absent perspectives so a non-content token cannot displace a substantive finding. Preserve the full relevant perspective and add deterministic tests using the RC1 Probe output, including verbatim and paraphrased guard text. Fixes must not erase legitimate user-provided content without a separately reviewed rule. Not yet implemented.
+
+**Closure evidence:** RC1-output regression shows the Absent Perspective card displays the substantive perspective and no instruction guard; negative controls show guard comments cannot capture first-item selection or suppress subsequent findings; verify fresh RC2 interface and export. A clean stochastic output in one new live run is insufficient evidence of robust containment.
+
+**Transfer implication:** A high-stakes governance display must not allow internal prompt residue to suppress the representation of affected people's perspectives.
+
+---
+
 ## Pre-pilot verification versus pilot human-factors evaluation
 
 **Pre-pilot technical checks:** (1) Track an npm-generated `package-lock.json`, use `npm ci` from a clean clone and record an unmodified-tree provenance build; (2) complete the actual synthetic Governance capture/export integration check and its CLI verification, acknowledging L-09; (3) demonstrate in the actual UI that L-01/L-02/L-08/L-11 disclosures are visible, unambiguous and readily accessible; and (4) update the canonical register and evidence record. These checks do **not** constitute Gate A acceptance.
@@ -520,9 +638,9 @@ Limitations are not removed when they are mitigated; they are updated to reflect
 Outstanding verification and update triggers before Gate A exit:
 
 - **Reality Anchor:** The existing instruction-contract regression coverage is listed in `docs/GATE_A_ENTRY.md`, but this review has not established a separate Reality Anchor-specific failure mode. Do not invent one; inspect any relevant evidence during transfer-candidate validation and add a specific entry if supported.
-- **Governance provenance:** Run the actual v2 capture/export integration test and update L-09/L-12 if it reveals further gaps.
+- **Governance provenance:** RC1's live v2 capture/export integration was performed and independently reviewed; F-5 (L-25) and download delivery (L-24) remain unresolved. Reassess L-09/L-12 and test the full compression/source/export chain on a separately frozen RC2 candidate.
 - **Build/deployment:** Record any reproducibility, instruction-pin, provider, export or environment defect found on the exact tagged candidate; update L-12 or add a new limitation with evidence.
 - **Operator transfer:** Any missing operational knowledge discovered while drafting the Gate B Operator Guide or in the stranger test must be logged and assessed; Gate B findings must not be retrospectively described as Gate A validation.
 - **UI disclosure:** Verify that the transfer-facing limitations are intelligible and accessible in the actual UI; this register alone does not establish UI disclosure.
 
-**Protocol Authority review questions:** Are L-01–L-23 accurately characterised? Are there documented, evidenced omissions? Which open items are transfer blockers versus accepted limitations? Do not mark the register or Gate A exit COMPLETE before these questions are disposed of.
+**Protocol Authority review questions:** Are L-01–L-28 accurately characterised? Are there documented, evidenced omissions? Which open items are transfer blockers versus accepted limitations? Do not mark the register or Gate A exit COMPLETE before these questions are disposed of.
