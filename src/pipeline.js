@@ -32,6 +32,7 @@ import {
   compressSynthesisOutput,
   deterministicSynthesisBrief,
   formatBriefForSynthesis,
+  synthesisLayerForModule,
 } from "./runtime/governance-compression.js";
 
 export const MANDATORY_SYNTHESIS_STAGES = Object.freeze([
@@ -485,6 +486,7 @@ export async function runGovernancePipeline(config,runtime,emit) {
       deployment_commit:config.deploymentCommit||"UNRECORDED",
       instruction_commit:INSTRUCTION_COMMIT,
       instructions:config.instructions||{},
+      instruction_sources:config.instructionSources||{},
       auto_continue:config.autoContinue,
       web_search:!!useWeb,
       system_prompt:systemPrompt,
@@ -524,6 +526,7 @@ export async function runGovernancePipeline(config,runtime,emit) {
       captured_at:runtimeNow(runtime),
       deployment_commit:config.deploymentCommit||"UNRECORDED",
       instruction_commit:INSTRUCTION_COMMIT,
+      instruction_sources:config.instructionSources||{},
       auto_continue:config.autoContinue,
       reason:reason
     });
@@ -538,7 +541,7 @@ export async function runGovernancePipeline(config,runtime,emit) {
       brief=await compressSynthesis(moduleLabel,output,compressionRuntime);
     } catch(e) {
       brief=deterministicSynthesis(moduleLabel,output,e.message||String(e));
-      await emitCompressionEvent(compressionRuntime,{event_id:"compression:"+key+":outer_fallback",parent_stage_id:key,compression_kind:"synthesis",mode:"deterministic",attempt_index:0,status:"fallback",selected:true,source_output:output,final_response:brief,error:e.message||String(e),captured_at:runtimeNow(runtime)});
+      await emitCompressionEvent(compressionRuntime,{event_id:"compression:"+synthesisLayerForModule(moduleLabel)+":outer_fallback",parent_stage_id:synthesisLayerForModule(moduleLabel),compression_kind:"synthesis",mode:"deterministic",attempt_index:0,status:"fallback",selected:true,source_output:output,final_response:brief,error:e.message||String(e),captured_at:runtimeNow(runtime)});
     }
     state.synthesisBriefs[key]=brief;
     emit("synthesis-brief",{key:key,brief:brief});
@@ -858,6 +861,7 @@ export async function runGovernancePipeline(config,runtime,emit) {
         captured_at:runtimeNow(runtime),
         deployment_commit:config.deploymentCommit||"UNRECORDED",
         instruction_commit:INSTRUCTION_COMMIT,
+        instruction_sources:config.instructionSources||{},
         analysis_mode:config.analysisMode,
         decision_text:config.decision,
         chair_selected_directors:config.chairSelectedIds||[],
@@ -885,7 +889,7 @@ export async function runGovernancePipeline(config,runtime,emit) {
         var fatalStages=Object.keys(state.governanceProvenance.stages).map(function(key){return state.governanceProvenance.stages[key];});
         state.governanceProvenance.manifest=await createGovernanceManifest({
           decision_id:config.decisionId,captured_at:runtimeNow(runtime),deployment_commit:config.deploymentCommit||"UNRECORDED",
-          instruction_commit:INSTRUCTION_COMMIT,analysis_mode:config.analysisMode,decision_text:config.decision,chair_selected_directors:config.chairSelectedIds||[],auto_continue:config.autoContinue,
+          instruction_commit:INSTRUCTION_COMMIT,instruction_sources:config.instructionSources||{},analysis_mode:config.analysisMode,decision_text:config.decision,chair_selected_directors:config.chairSelectedIds||[],auto_continue:config.autoContinue,
           web_search:config.webSearch,public_web_search:config.publicWebSearch,session_evidence_count:(config.sessionEvidence||[]).length,
           active_directors:activeDir.map(function(d){return d.id;}),omitted_directors:omittedDir.map(function(d){return d.id;}),
           stages:fatalStages,compression_events:compressionRefsFatal,final_ledger:fatalRecord
