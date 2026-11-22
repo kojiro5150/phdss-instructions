@@ -134,7 +134,10 @@ export function buildDashboardFindings(text,heading) {
   if(!block)return [];
   const out=[],seenByGroup=new Map();
   let group="";
-  for(const original of block.split("\n")){
+  // R98-6: one bold Director heading and its following paragraph form
+  // one parser-returned flag, not two separate findings.
+  const sourceLines=heading==="Overconfidence Flags"?joinDirectorFlagParagraphs(block):block.split("\\n");
+  for(const original of sourceLines){
     const line=original.trim();
     if(!line||isHorizontalRule(line))continue;
     const groupMatch=dashboardGroup(line,heading);
@@ -158,6 +161,25 @@ export function buildDashboardFindings(text,heading) {
   }
   return out;
 }
+function joinDirectorFlagParagraphs(block) {
+  const lines=block.split("\n"),out=[];
+  let current="";
+  const flush=()=>{if(current.trim())out.push(current.trim());current="";};
+  for(const original of lines){
+    const t=original.trim();
+    if(!t){continue;}
+    if(isHorizontalRule(t)){flush();out.push(t);continue;}
+    const directorHeader=/^\*\*[^*\n]+\*\*:?\s*$/.test(t);
+    const explicitlyListed=/^(?:\d+[.):]\s+|[-•*]\s+)/.test(t);
+    if(directorHeader||explicitlyListed){
+      flush();current=t;continue;
+    }
+    if(current)current+=" "+t;
+    else current=t;
+  }
+  flush();
+  return out;
+}
 function dashboardSection(text,heading) {
   if(!text)return "";
   const lines=String(text).split("\n");
@@ -169,13 +191,16 @@ function dashboardSection(text,heading) {
   if(inline)body.push(inline);
   const endHeadings=new Set([
     ...SECTION_NAMES,"epistemic health score","systematic bias signals",
+    "coverage impact on epistemic quality",
     "what absent perspectives are missing","integration health","risk register"
   ]);
   for(let i=start+1;i<lines.length;i++){
     const line=lines[i];
     const t=line.trim();
     if(/^\s*#{1,6}\s+/.test(line))break;
-    if(/^\*\*[A-Za-z][^*\n]+\*\*:?\s*$/.test(t)&&!dashboardGroup(t,heading)){
+    // Layer 1 headings may be bold-only or bold followed by ": value".
+    // Only known instruction-declared section headings terminate this section.
+    if(/^\*\*[A-Za-z][^*\n]+\*\*\s*(?::[ \t]*.*)?$/.test(t)&&!dashboardGroup(t,heading)){
       const name=title(t);
       // Known section boundary is definitive. For unknown headings, preserve
       // the text as an ambiguous finding rather than silently drop it.
