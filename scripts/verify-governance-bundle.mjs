@@ -12,6 +12,12 @@ export async function verifyGovernanceBundle({bundle,expectedDeployment=null,sou
   const errors=[];
   const fail=x=>errors.push(x);
   if(!bundle||bundle.schema!=="phdss.governance-export-bundle.v1")return {status:"INVALID",errors:["unsupported bundle schema"]};
+  // Export preserving evidence is not the same as accepting its provenance.
+  // Treat any self-reported defect as invalid, then independently re-check.
+  if(bundle.status!=="COMPLETE_UNVERIFIED")fail("export reports incomplete/invalid evidence");
+  if(!bundle.export_validation||bundle.export_validation.status!=="COMPLETE_UNVERIFIED"
+    ||!Array.isArray(bundle.export_validation.checks)||bundle.export_validation.checks.length)
+    fail("export validation records incomplete or invalid");
   const files=bundle.files||{};
   const inventory=bundle.inventory||{};
   const keys=Object.keys(files).sort();
