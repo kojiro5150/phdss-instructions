@@ -1,6 +1,6 @@
 # Gate A — Synthetic-Only Test-Data Policy
 
-**Approval status:** Determined only by a separate, version-specific Protocol Authority decision record. This document does not self-certify approval. No PA-12a approval is established by this draft.
+**Approval status:** Determined only by a separate, version-specific Protocol Authority decision record. This document does not self-certify approval; a repository commit is not policy approval.
 **Scope:** PHDSS Gate A transfer-candidate validation and the first bounded external transfer study
 **Authority:** `docs/V3_TRANSFER_READINESS_AND_INDEPENDENT_EVALUATION_ROADMAP.md` §13; `docs/GATE_A_ENTRY.md` §4
 **Enforcement status:** Procedural policy only. No runtime technical prevention of prohibited inputs is established by this document.
