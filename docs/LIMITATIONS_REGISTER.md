@@ -634,7 +634,7 @@ The second is not a function of the first. A single HALT among thirteen Director
 ## L-29 — Silent dashboard list caps omit substantive governance findings
 
 **Classification:** Operator-facing representational completeness / evidence-balance integrity; material to Gate A Criterion 7  
-**Status:** OPEN — remediation proposed; authorisation pending (PA-27 not yet approved as at this documentation draft)  
+**Status:** OPEN — remediation authorised (PA-27); implementation pending independent engineering acceptance and merge  
 **Discovered:** Independent PR #96 Round 3 review, 22 November 2026, on merged reviewed head `7800c7ac5c1bea0a4499a555c3f618c95e9487a6`  
 **Component:** `App_FINAL.jsx` Transparency Dashboard; five bounded display lists  
 **Evidence:** Independent reviewer RC1 restricted replay and source inspection (review file `PR96_RC2_PHASE_A_REVIEW.md`, Round 3, **retained outside the public repository**); recorded headings/counts and visible-list comparison; underlying source retained in restricted custody.
@@ -655,7 +655,7 @@ The independent replay of RC1 established a specific consequential instance: **f
 
 **Containment / prospective remediation:** Preserve the complete source; either render **all** logical items (optionally collapsible for readability), or state the explicit `Showing N of M` count with immediate access to every omitted item. Preserve item meaning, order and source association. Do not claim that a heading count alone is an adequate disclosure or that truncation is harmless where the benefit side is hidden.
 
-**Authority and status coordination:** This entry is **registration only** under PA-26. No L-29 engineering modification is approved by it. PA-27 is a separately proposed, bounded engineering mandate for precisely the five caps and synthetic tests; its approval and merge remain independent. The reviewer must reconcile status against actual `main` at documentation-merge time:
+**Authority and status coordination:** This entry was registered under documentation-only PA-26. **The Protocol Authority subsequently approved PA-27 with three amendments**: display every parser-returned item with no content filtering; for any collapse, disclose the count and expand in place; test exact count equality beyond each prior cap and against restricted RC1; and reconcile the register status against implementation/merge. PA-27 authorises only the five dashboard presentation paths, associated synthetic tests and this status update. Its engineering PR remains subject to independent review and a separate Protocol Authority merge decision. The reviewer must reconcile status against actual `main` at documentation-merge time:
 - PA-27 not approved: **OPEN — remediation proposed; authorisation pending**.
 - PA-27 approved, unmerged: **OPEN — remediation authorised (PA-27); implementation pending**.
 - PA-27 merged: **Remediated in code (PR #…); pending RC2 validation**, with actual merge identity and CI.

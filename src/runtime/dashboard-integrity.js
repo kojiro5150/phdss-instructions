@@ -96,3 +96,124 @@ export function extractAbsentPerspectiveSummary(text) {
   if(summary.length<=limit)return summary;
   return summary.slice(0,limit).trimEnd()+"… [Excerpt: see full Probe output]";
 }
+
+
+// PA-27: dashboard-only presentation adapter. No shared-parser changes.
+// Group headings are labelled context, never counted as findings.
+// Duplicates match only after Markdown emphasis, extra whitespace and
+// list-numbering cleanup, within the same source group.
+const DASHBOARD_GROUP_LABELS={
+  "What the Board Missed":[
+    {pattern:/^What absent Directors would specifically have raised on this decision\s*:?\s*(?:-\s*)?$/i,label:"What absent Directors would specifically have raised on this decision"}
+  ],
+  "Epistemic Gaps":[
+    {pattern:/^Cross-cutting gaps\s*:?\s*$/i,label:"Cross-cutting gaps"}
+  ]
+};
+function dashboardText(value) {
+  return String(value||"")
+    .replace(/\*\*/g,"")
+    .replace(/^\s*\*\s+/,"")
+    .replace(/(^|\s)\*(?=\S)/g,"$1")
+    .replace(/(?<=\S)\*(?=\s|$)/g,"")
+    .replace(/^\s*(?:[-•]\s+|\d+[.):]\s+)/,"")
+    .replace(/\s+/g," ").trim();
+}
+function isHorizontalRule(value) {
+  return /^\s*(?:-{3,}|\*{3,}|_{3,})\s*$/.test(value);
+}
+function dashboardGroup(line,heading) {
+  const t=dashboardText(line);
+  return (DASHBOARD_GROUP_LABELS[heading]||[]).find(g=>g.pattern.test(t))||null;
+}
+export function buildDashboardFindings(text,heading) {
+  if(!["Overconfidence Flags","Epistemic Gaps","What the Board Missed"].includes(heading)){
+    throw new Error("PA-27 adapter restricted to three dashboard sections");
+  }
+  const block=dashboardSection(text,heading);
+  if(!block)return [];
+  const out=[],seenByGroup=new Map();
+  let group="";
+  // R98-6: one bold Director heading and its following paragraph form
+  // one parser-returned flag, not two separate findings.
+  const sourceLines=heading==="Overconfidence Flags"?joinDirectorFlagParagraphs(block):block.split("\n");
+  for(const original of sourceLines){
+    const line=original.trim();
+    if(!line||isHorizontalRule(line))continue;
+    const groupMatch=dashboardGroup(line,heading);
+    if(groupMatch){
+      group=groupMatch.label;
+      out.push({text:group,groupLabel:true});
+      continue;
+    }
+    const cleaned=dashboardText(line);
+    if(!cleaned||isHorizontalRule(cleaned))continue;
+    // Colon-ending findings and ambiguous heading-like lines stay findings.
+    // No semantic, case, or synonym-based deduplication.
+    if(!seenByGroup.has(group))seenByGroup.set(group,new Set());
+    const seen=seenByGroup.get(group);
+    if(seen.has(cleaned))continue;
+    seen.add(cleaned);
+    // A bold-only unrecognised heading may be either a finding or a label:
+    // retain and flag the ambiguity instead of silently classifying it away.
+    const ambiguousHeading=/^\*\*[^*\n]+\*\*:?\s*$/.test(line);
+    out.push({text:cleaned,sourceGroup:group||null,ambiguousHeading});
+  }
+  return out;
+}
+function joinDirectorFlagParagraphs(block) {
+  const lines=block.split("\n"),out=[];
+  let current="";
+  const flush=()=>{if(current.trim())out.push(current.trim());current="";};
+  for(const original of lines){
+    const t=original.trim();
+    if(!t){continue;}
+    if(isHorizontalRule(t)){flush();out.push(t);continue;}
+    const directorHeader=/^\*\*[^*\n]+\*\*:?\s*$/.test(t);
+    const explicitlyListed=/^(?:\d+[.):]\s+|[-•*]\s+)/.test(t);
+    if(directorHeader||explicitlyListed){
+      flush();current=t;continue;
+    }
+    if(current)current+=" "+t;
+    else current=t;
+  }
+  flush();
+  return out;
+}
+function dashboardSection(text,heading) {
+  if(!text)return "";
+  const lines=String(text).split("\n");
+  const header="**"+heading+"**";
+  const start=lines.findIndex(line=>line.trim().toLowerCase().startsWith(header.toLowerCase()));
+  if(start<0)return "";
+  const body=[];
+  const inline=lines[start].trim().slice(header.length).replace(/^:\s*/,"").trim();
+  if(inline)body.push(inline);
+  const endHeadings=new Set([
+    ...SECTION_NAMES,"epistemic health score","systematic bias signals",
+    "coverage impact on epistemic quality",
+    "what absent perspectives are missing","integration health","risk register"
+  ]);
+  for(let i=start+1;i<lines.length;i++){
+    const line=lines[i];
+    const t=line.trim();
+    if(/^\s*#{1,6}\s+/.test(line))break;
+    // Layer 1 headings may be bold-only or bold followed by ": value".
+    // Only known instruction-declared section headings terminate this section.
+    if(/^\*\*[A-Za-z][^*\n]+\*\*\s*(?::[ \t]*.*)?$/.test(t)&&!dashboardGroup(t,heading)){
+      const name=title(t).split(":")[0].trim();
+      // Known section boundary is definitive. For unknown headings, preserve
+      // the text as an ambiguous finding rather than silently drop it.
+      if(endHeadings.has(name))break;
+    }
+    body.push(line);
+  }
+  return body.join("\n").trim();
+}
+export function buildDashboardLogicalFindings(parserItems) {
+  // No additional filtering or deduplication after the logical CDTA parser.
+  return parserItems.map(item=>item);
+}
+export function dashboardFindingCount(items) {
+  return items.filter(item=>!(item&&typeof item==="object"&&item.groupLabel)).length;
+}

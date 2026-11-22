@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { extractChairItems,extractLogicalFindings,extractAbsentPerspectiveSummary } from "../src/runtime/dashboard-integrity.js";
+import { extractChairItems,extractLogicalFindings,extractAbsentPerspectiveSummary,buildDashboardFindings,buildDashboardLogicalFindings,dashboardFindingCount } from "../src/runtime/dashboard-integrity.js";
 
 // Entirely invented synthetic fixtures. Never historical RC1 case text.
 const chair=[
@@ -296,5 +296,157 @@ assert.doesNotMatch(dashboardSource,/if\s*\(\s*!gaps\.length\s*\)\s*gaps\s*=\s*e
 assert.doesNotMatch(dashboardSource,/if\s*\(\s*!tensions\.length\s*\)\s*tensions\s*=/);
 assert.doesNotMatch(dashboardSource,/extractLogicalFindings\(metaText,\s*"Cross-Domain Conflicts"\)\.length\s*\?/);
 assert.doesNotMatch(dashboardSource,/extractLogicalFindings\(metaText,\s*"Hidden Assumptions"\)\.length\s*\?/);
+
+
+// PA-27: executable above-cap regression tests of the actual list adapters.
+// Fixtures invented here. No private RC1 text or derived patient scenario.
+const cases=[
+  {heading:"Overconfidence Flags",oldCap:6,field:"overconfidenceFlags"},
+  {heading:"Epistemic Gaps",oldCap:5,field:"epistemicGaps"},
+  {heading:"What the Board Missed",oldCap:5,field:"boardMissed"}
+];
+for(const {heading,oldCap,field} of cases){
+  const values=Array.from({length:oldCap+3},(_,i)=>"Invented "+heading+" observation "+(i+1));
+  const text=["**"+heading+"**",...values.map((v,i)=>((i+1)+". "+v)),"**Summary**","Not part of this list"].join("\n");
+  const built=buildDashboardFindings(text,heading);
+  assert.equal(dashboardFindingCount(built),values.length,heading+" complete result count");
+  assert.deepEqual(built.map(x=>x.text),values,heading+" retains all returned items in order");
+  assert.equal(built.at(-1).text,values.at(-1),heading+" last above-cap item remains");
+  assert.match(dashboardSource,new RegExp("var "+field+"=buildDashboardFindings\\("),heading+" dashboard calls tested builder");
+}
+for(const [heading,oldCap] of [["Reasoning Gaps",4],["Unresolved Tensions",3]]){
+  const values=Array.from({length:oldCap+3},(_,i)=>"Invented "+heading+" consideration "+(i+1));
+  const text=["**"+heading+"**",...values.map((v,i)=>((i+1)+". "+v)),"**Integration Signal**: MEDIUM"].join("\n");
+  const parsed=extractLogicalFindings(text,heading);
+  const built=buildDashboardLogicalFindings(parsed);
+  assert.equal(built.length,values.length,heading+" retains all parser-returned items");
+  assert.deepEqual(built,parsed,heading+" does not filter or reorder parser items");
+  assert.match(built.at(-1),new RegExp((oldCap+3)+"\\b|consideration "+(oldCap+3)),heading+" last item");
+}
+// Labels carry interpretive source association and are excluded from counts.
+const groupedProbe=[
+  "**What the Board Missed**",
+  ...Array.from({length:5},(_,i)=>(i+1)+". Invented active-Director point "+(i+1)),
+  "**What absent Directors would specifically have raised on this decision: -**",
+  "6. An imagined perspective from an uninvoked Director",
+  "* An imagined perspective from an uninvoked Director",
+  "**7. A separate hypothetical issue**",
+  "---",
+  "8. An Innovation and Improvement benefit-case possibility",
+  "**Probe Verdict**",
+  "Something else"
+].join("\n");
+const grouped=buildDashboardFindings(groupedProbe,"What the Board Missed");
+const groupLabels=grouped.filter(x=>x.groupLabel);
+assert.equal(groupLabels.length,1,"hypothetical absent-Director group survives");
+assert.match(groupLabels[0].text,/absent Directors/);
+assert.equal(dashboardFindingCount(grouped),8,"five active and three distinct hypothetical findings; duplicate/rule not counted");
+assert.ok(grouped.filter(x=>x.sourceGroup).every(x=>x.sourceGroup===groupLabels[0].text),"hypothetical items retain group provenance");
+assert.ok(grouped.some(x=>/benefit-case/.test(x.text)),"benefit-side item remains");
+assert.ok(!grouped.some(x=>x.text==="---"),"horizontal rule is not a finding");
+assert.equal(grouped.filter(x=>/imagined perspective/.test(x.text)).length,1,"asterisk variants deduplicate exactly");
+const groupedEpistemic=[
+  "**Epistemic Gaps**",
+  "1. A primary gap requiring review",
+  "**Cross-cutting gaps:**",
+  ...Array.from({length:6},(_,i)=>(i+2)+". Invented cross-domain gap "+(i+1)),
+  "**Summary**"
+].join("\n");
+const epistemic=buildDashboardFindings(groupedEpistemic,"Epistemic Gaps");
+assert.equal(dashboardFindingCount(epistemic),7,"grouped epistemic 7 findings, not heading count");
+assert.equal(epistemic.filter(x=>x.groupLabel).length,1,"Cross-cutting gaps labelled and uncounted");
+assert.match(epistemic[1].text,/Cross-cutting gaps/);
+assert.equal(dashboardFindingCount(epistemic),7,"collapsed count excludes group label");
+const controls=[
+  "**Overconfidence Flags**",
+  "- Genuine finding ending in a colon:",
+  "- Finding with --- in its text",
+  "- Models may fail at local sites",
+  "- Models may fail at rural sites",
+  "- Genuine finding with a stray ** emphasis marker",
+  "- **Repeated audit observation**",
+  "* Repeated audit observation",
+  "7. Repeated audit observation",
+  "**Summary**"
+].join("\n");
+const negative=buildDashboardFindings(controls,"Overconfidence Flags");
+assert.deepEqual(negative.map(x=>x.text),[
+  "Genuine finding ending in a colon:",
+  "Finding with --- in its text",
+  "Models may fail at local sites",
+  "Models may fail at rural sites",
+  "Genuine finding with a stray emphasis marker",
+  "Repeated audit observation"
+],"negative controls preserve all distinct meaning and clean formatting only");
+assert.equal(dashboardFindingCount(negative),6);
+
+const ambiguity=buildDashboardFindings("**Overconfidence Flags**\n**Unfamiliar provenance heading**\n- A concrete substantive observation\n**Summary**","Overconfidence Flags");
+assert.equal(dashboardFindingCount(ambiguity),2,"unknown heading is kept and counted instead of dropped");
+assert.equal(ambiguity[0].ambiguousHeading,true,"unknown heading is explicitly flagged");
+assert.match(dashboardSource,/item&&item\.ambiguousHeading\?"\[Possible heading — retained as a finding\]/,"operator sees uncertainty marker");
+
+assert.match(dashboardSource,/showCollapsedItemCount&&!open[\s\S]*?dashboardFindingCount\(items\)/,"collapsed disclosure counts findings not grouping");
+assert.match(dashboardSource,/collapsedFindingCount=\{dashboardFindingCount\(d\.epistemicGaps\)\}/,"composite-score note excluded from AI Integrity count");
+for(const pattern of [
+  /items=\{d\.overconfidenceFlags\}\s+showCollapsedItemCount/,
+  /items=\{d\.boardMissed\}\s+showCollapsedItemCount/,
+  /showCollapsedItemCount\s+items=\{d\.epistemicGaps\.concat\(/
+])assert.match(dashboardSource,pattern,"affected expandable row must disclose finding counts");
+assert.match(dashboardSource,/item&&item\.groupLabel[\s\S]*?group label — not a counted finding/,"group labels must display with explicit status");
+for(const pattern of [/d\.gaps\.slice\s*\(/,/d\.tensions\.slice\s*\(/])assert.doesNotMatch(dashboardSource,pattern);
+
+
+// R98-5: instruction-declared Layer 1 boundaries govern the Epistemic Gaps
+// dashboard section; two heading forms must stop the list and not misattribute
+// coverage analysis or health-score drivers as cross-cutting gaps.
+const epistemicBoundaries=[
+  "**Epistemic Gaps**",
+  "1. Invented primary gap about unavailable evidence",
+  "**Cross-cutting gaps:**",
+  ...Array.from({length:6},(_,i)=>(i+2)+". Invented cross-domain evidence gap "+(i+1)),
+  "**Coverage Impact on Epistemic Quality**",
+  "This paragraph belongs to coverage impact, not the gaps list.",
+  "**Epistemic Health Score**: WEAK",
+  "This paragraph is a health-score driver, not an epistemic gap."
+].join("\n");
+const bounded=buildDashboardFindings(epistemicBoundaries,"Epistemic Gaps");
+assert.equal(dashboardFindingCount(bounded),7,"R98-5: seven epistemic findings");
+assert.equal(bounded.filter(item=>item.groupLabel).length,1,"R98-5: one cross-cutting group label");
+assert.ok(!bounded.some(item=>/coverage impact|health-score driver/i.test(item.text)),"R98-5: no following section leakage");
+const boldColonBoundary=[
+  "**Epistemic Gaps**",
+  "1. Invented gap about unavailable benchmark",
+  "**Epistemic Health Score**: WEAK — lacking comparable data",
+  "The score's paragraph must not become a second gap."
+].join("\n");
+assert.equal(dashboardFindingCount(buildDashboardFindings(boldColonBoundary,"Epistemic Gaps")),1,"R98-5: bold-colon inline score is a hard section boundary");
+// R98-6: each bold Director subheading and its explanatory paragraph is one
+// flag. Four Director flags must remain four, without clipping or double count.
+const fourFlags=[
+  "**Overconfidence Flags**",
+  "**Director Alpha**",
+  "The Alpha claim lacks a confidence interval.",
+  "**Director Beta**",
+  "The Beta claim rests on an unvalidated baseline.",
+  "**Director Gamma**",
+  "The Gamma claim assumes absent cross-site evidence.",
+  "**Director Delta**",
+  "The Delta claim overstates local generalisability.",
+  "**Systematic Bias Signals**",
+  "Unrelated downstream discussion"
+].join("\n");
+const combinedFlags=buildDashboardFindings(fourFlags,"Overconfidence Flags");
+assert.equal(dashboardFindingCount(combinedFlags),4,"R98-6: four Director flags, not eight rows");
+for(const [index,name] of ["Alpha","Beta","Gamma","Delta"].entries()){
+  assert.match(combinedFlags[index].text,new RegExp("Director "+name),"R98-6: heading preserved");
+  assert.match(combinedFlags[index].text,/claim/,"R98-6: explanatory paragraph joined");
+}
+assert.ok(!combinedFlags.some(item=>item.text.includes("Unrelated downstream")),"R98-6: later section is excluded");
+// Negative: neither a colon ending nor --- inside a legitimate flag paragraph
+// triggers removal or a false boundary.
+const flagNegative=buildDashboardFindings("**Overconfidence Flags**\n**Director Epsilon**\nThe underlying warning ends in a colon: \nAnd this observation contains --- within text.\n**Systematic Bias Signals**","Overconfidence Flags");
+assert.equal(dashboardFindingCount(flagNegative),1);
+assert.match(flagNegative[0].text,/colon:/);
+assert.match(flagNegative[0].text,/--- within text/);
 
 console.log("RC2 dashboard integrity: PASS");
