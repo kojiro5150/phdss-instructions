@@ -1,7 +1,7 @@
 // First-class Governance Brief compression event provenance.
 // This sidecar is separate from the stage request/output provenance.
 import { sha256Text } from "./governance-provenance.js";
-import { SYNTHESIS_MODEL } from "./anthropic-client.js";
+import { SYNTHESIS_MODEL, SYNTHESIS_REQUEST_SETTINGS } from "./anthropic-client.js";
 
 export const COMPRESSION_EVENT_SCHEMA="phdss.governance-compression-event.v1";
 
@@ -21,7 +21,7 @@ export async function makeCompressionEvent(input) {
     attempt_index:input.attempt_index,
     captured_at:input.captured_at||null,
     model:input.mode==="model"?SYNTHESIS_MODEL:null,
-    model_settings:input.mode==="model"?{max_tokens:16000,temperature:0.8,web_search:false}:null,
+    model_settings:input.mode==="model"?{...SYNTHESIS_REQUEST_SETTINGS,web_search:false}:null,
     source_output_sha256:await sha256Text(source),
     system_prompt:system,
     system_prompt_sha256:system==null?null:await sha256Text(system),
