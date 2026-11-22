@@ -2299,17 +2299,18 @@ function PHDSS() {
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
               <div><div style={{fontSize:13,fontWeight:700,color:"#0F172A",marginBottom:3}}>Decision Ledger</div><div style={{fontSize:12,color:"#64748B"}}>{ledger.length} decision{ledger.length!==1?"s":""} recorded this session.</div></div>
               <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                {governanceProvenance&&governanceProvenance.manifest&&<button onClick={async function(){
+                {governanceProvenance&&(governanceProvenance.manifest||Object.keys(governanceProvenance.stages||{}).length||governanceProvenance.compression_events&&governanceProvenance.compression_events.length)&&<button onClick={async function(){
   try {
-    var manifest=governanceProvenance.manifest;
-    var ledgerRecord=ledger.find(function(rec){return rec.decision_id===manifest.decision_id;});
+    var manifest=governanceProvenance.manifest||null;
+    var decisionKey=manifest&&manifest.decision_id||decisionId;
+    var ledgerRecord=ledger.find(function(rec){return rec.decision_id===decisionKey;})||null;
     var bundle=await createGovernanceExportBundle({
       manifest:manifest,
       stages:governanceProvenance.stages||{},
       compression_events:governanceProvenance.compression_events||[],
       ledger_record:ledgerRecord
     });
-    downloadJson("PHDSS_"+manifest.decision_id+"_governance_bundle.json",bundle);
+    downloadJson("PHDSS_"+bundle.decision_id+"_governance_bundle"+(bundle.status==="INCOMPLETE/INVALID"?"_INCOMPLETE":"")+".json",bundle);
   } catch(exportError) {
     window.alert("Governance export blocked: "+(exportError&&exportError.message||String(exportError)));
   }
